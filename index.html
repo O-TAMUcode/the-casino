@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>THE CASINO</title>
+<style>
+:root{--ink:#2a2018;--red:#b3261e;--panel:#2b2320;--btn:#4a3d36;--btnfg:#f3e9d8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--panel);color:var(--btnfg);font-family:"Hiragino Sans","Yu Gothic",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.field{flex:3;position:relative;display:flex;flex-direction:column;background:#b4b272;overflow:hidden;min-height:0}
+.row-mat{flex:1;display:flex;border-bottom:3px solid #3a3a1e}
+.mat{flex:0 0 50%;border-right:3px solid #3a3a1e;background:repeating-linear-gradient(90deg,rgba(60,60,20,.08) 0 2px,transparent 2px 6px),#b4b272;box-shadow:inset 0 0 18px rgba(60,60,20,.25)}
+.row-mat.off .mat:first-child{flex-basis:25%}.row-mat.off .mat:nth-child(2){flex-basis:50%}.row-mat.off .mat:nth-child(3){flex-basis:25%}
+.hud{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-weight:bold;text-shadow:0 1px 2px rgba(0,0,0,.6);color:#fff;z-index:5}
+.hud div,.hud button{flex:1;min-width:0;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:1.1rem;padding:0;white-space:nowrap}
+.hud b{font-size:1.9rem}
+.hud button{font:inherit;font-size:1.3rem;cursor:pointer}
+.stage{position:absolute;left:50%;bottom:60px;width:180px;height:150px;transform:translateX(-50%);transform-origin:50% 100%}
+.shadow{position:absolute;left:50%;bottom:-6px;width:150px;height:22px;transform:translateX(-50%);background:rgba(0,0,0,.28);border-radius:50%;filter:blur(3px)}
+.dice{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:14px}
+.die{width:46px;height:46px;background:#fbf6ea;border-radius:8px;border:1px solid #888;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:5px;box-shadow:0 3px 4px rgba(0,0,0,.35)}
+.die i{width:100%;height:100%}
+.die i.p{background:#222;border-radius:50%;transform:scale(.8)}
+.die.one i.p{background:var(--red)}
+.cupwrap{position:absolute;left:calc(50% - 75px);bottom:0;width:150px;z-index:3}
+.cup{transition:transform .45s ease;display:block;overflow:visible}
+.cup.up{transform:translateY(-72px) rotate(-6deg)}
+.shake{animation:sh .12s linear infinite}
+@keyframes sh{0%{transform:translate(-6px,-4px) rotate(-4deg)}50%{transform:translate(6px,3px) rotate(4deg)}100%{transform:translate(-6px,-4px) rotate(-4deg)}}
+.msg{position:absolute;left:8px;right:8px;bottom:8px;text-align:center;font-weight:bold;font-size:1.25rem;color:#fff;background:rgba(30,22,16,.7);border-radius:8px;padding:7px;min-height:2.3em;z-index:5}
+.msg.win{color:#9bf0b5}.msg.lose{color:#ff9d94}
+.panel{flex:1;padding:6px 8px;display:flex;flex-direction:row;gap:10px;min-height:0;overflow-y:auto}
+.col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0}
+#bets .b{font-size:1.6rem}
+#bets .r{gap:4px}
+.r{display:flex;gap:6px;flex:1;min-height:0}
+button.b{flex:1;min-width:0;font:inherit;font-size:1.8rem;color:var(--btnfg);background:var(--btn);border:1px solid #6a5a50;border-radius:8px;padding:6px 0;cursor:pointer}
+button.b.sel{border-color:#ff6a5e;box-shadow:0 0 0 3px #ff6a5e}
+button.big{font-size:2.2rem;font-weight:bold}
+button.go{flex:2;background:#c9a227;color:#2a2018;border-color:#c9a227;font-weight:bold}
+button.b:disabled{opacity:.45}
+.n button.b{font-size:.85rem;padding:6px 0}
+
+.mon.nm{flex:1.4;padding:2px 4px;font-size:1.6rem}
+.mon.nm::before{content:"数字";font-size:.6rem}
+.mon{flex:3;background:#161616;color:#fff;font-family:ui-monospace,Menlo,monospace;font-size:2.2rem;padding:2px 8px;border-radius:8px;border:2px solid #666;box-shadow:inset 0 0 8px #000;display:flex;align-items:center;justify-content:flex-end}
+.mon::before{content:"掛け金";margin-right:auto;font-family:"Hiragino Sans","Yu Gothic",sans-serif;font-size:.8rem;color:#fff}
+.tt{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.9);border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,.3);color:var(--ink);font-weight:bold;text-shadow:none}
+#nums .b{font-size:1.5rem}
+.maiko{position:absolute;left:calc(50% - 85px);bottom:70px;width:170px;height:200px;z-index:1;transform-origin:50% 100%}
+.maiko.sw{animation:sw .22s ease-in-out infinite alternate}
+@keyframes sw{from{transform:translateX(-3px) rotate(-1.2deg)}to{transform:translateX(3px) rotate(1.2deg)}}
+.mon::before{display:none!important}
+.tools{position:absolute;top:108px;left:8px;right:8px;display:flex;gap:8px;z-index:5}
+.tl{flex:1;min-width:0;white-space:nowrap;height:96px;font:inherit;font-size:1.25rem;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.tl b{font-size:1.9rem}
+.lb{flex:1;min-width:0;display:flex;gap:4px}
+#loan,#bank{font-size:1.2rem}
+.tl.alert{box-shadow:0 0 0 3px #ff6a5e,0 2px 4px rgba(0,0,0,.4)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal[hidden]{display:none}
+.mbox{width:100%;max-width:420px;max-height:90vh;overflow-y:auto;background:#2b2320;color:#f3e9d8;border:3px solid #c9a227;border-radius:12px;padding:16px;font-size:1.05rem}
+.mbox h2{margin:0 0 8px;font-size:1.3rem;color:#f2d27a}
+.mbox .mr{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.mbox button{font:inherit;flex:1;padding:12px 6px;border-radius:8px;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;cursor:pointer}
+.mbox input{width:100%;font:inherit;font-size:1.15rem;padding:10px;border-radius:8px;border:1px solid #6a5a50;background:#161616;color:#fff;letter-spacing:.08em}
+.mbox .code{font-family:ui-monospace,Menlo,monospace;font-size:1.25rem;word-break:break-all;background:#161616;padding:10px;border-radius:8px;text-align:center;user-select:all;margin-top:6px}
+.mbox .note{margin-top:10px;min-height:1.4em;color:#f2d27a}
+.mbox small{opacity:.8}
+#rnums .b{font-size:1.5rem}
+.gp{display:contents}.gp[hidden]{display:none}
+.gname{position:relative;min-width:0;flex:1;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:1.25rem;text-shadow:0 0 4px #000,0 1px 2px #000;white-space:nowrap}
+.arw{position:absolute;bottom:66px;width:42px;height:72px;border:0;border-radius:10px;background:rgba(30,22,16,.55);color:#fff;font-size:1.6rem;z-index:6;cursor:pointer;padding:0}
+#dealer{position:absolute;left:50%;top:90px;width:240px;height:240px;transform:translateX(-50%);pointer-events:none;z-index:0}
+.scene>.sv,.scene>.pk,.scene>.rinfo{position:relative;z-index:1}
+#dealer svg{width:100%;height:100%;display:block;animation:dbob 2.8s ease-in-out infinite}
+@keyframes dbob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+.gname.hasd{align-items:flex-start}
+.gname #gtxt{font-size:.8rem;line-height:1.3;padding:2px 8px;border-radius:8px;background:rgba(0,0,0,.5)}
+.gname.hasd #gtxt{font-size:.8rem;line-height:1.3;padding:0 8px;border-radius:8px;background:rgba(0,0,0,.5)}
+#sc-keiba{padding:292px 48px 62px}
+#kcv{width:100%;height:100%;display:block;border-radius:8px}
+#gp-keiba .kh{font-size:.95rem;line-height:1.1}
+#aL{left:2px}#aR{right:2px}
+.scene{position:absolute;inset:0;z-index:3;padding:212px 48px 62px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1f8a4c 0%,#0e5430 70%,#083a20 100%)}
+.scene[hidden]{display:none}
+.sv{width:100%;height:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+.sv svg{max-width:100%;max-height:100%;aspect-ratio:1}
+#wheel{transform-origin:100px 100px;transition:transform 5s cubic-bezier(.15,.6,.15,1)}
+#ballg{transform-origin:100px 100px;transition:transform 4.4s cubic-bezier(.2,.6,.2,1)}
+#ball{transition:transform .5s}
+.ptxt{font-size:1.05rem!important;white-space:normal;text-align:center;justify-content:center!important;line-height:1.2;padding:2px 4px}
+#sc-roulette{flex-direction:column;padding-top:292px}
+#sc-roulette .sv{height:auto;flex:1}
+.rinfo{color:#fff;font-size:.85rem;text-align:center;text-shadow:0 0 3px #000;min-height:1.2em;margin-top:4px;width:100%}
+.pk{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%}
+.pcards{display:flex;gap:4px;justify-content:center}
+.plabel,.pinfo{color:#fff;font-weight:bold;font-size:.9rem;text-shadow:0 0 3px #000}
+.card{width:var(--cw,40px);height:calc(var(--cw,40px)*1.4);border-radius:5px;background:#fff;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:calc(var(--cw,40px)*.4);line-height:1;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.card{position:relative;overflow:hidden}
+.card .rk{position:absolute;left:7%;top:3%;font-size:calc(var(--cw,40px)*.44);line-height:1.1;letter-spacing:0}
+.card .su{position:absolute;right:4%;bottom:3%;font-size:calc(var(--cw,40px)*.86);line-height:1}
+.card.red{color:#c62828}
+.card.back{background:repeating-linear-gradient(45deg,#1a3a8a 0 5px,#274fb8 5px 10px);border:2px solid #fff}
+.card.ph{background:rgba(255,255,255,.12);box-shadow:none;border:1px dashed rgba(255,255,255,.4)}
+.modal.sheet{align-items:flex-end;padding:0}
+.modal.sheet .mbox{max-width:480px;border-radius:14px 14px 0 0;max-height:92vh;padding:12px}
+.rgrid{display:grid;grid-template-columns:46px 46px 1fr 1fr 1fr;grid-auto-rows:31px;gap:3px;margin-top:8px}
+.mbox .rc{flex:none;border:0;border-radius:5px;font-weight:bold;font-size:1rem;color:#fff;background:#4a3d36;padding:0}
+.mbox .rc.r{background:#b71c1c}.mbox .rc.k{background:#161616}.mbox .rc.g{background:#0a7a3a}.mbox .rc.o{font-size:.8rem}
+.mbox .rc.on{outline:3px solid #ffe082;z-index:1}
+.rinfo2{margin-top:8px;font-size:.9rem}
+
+.scene.wide{padding:212px 6px 62px}
+
+#helpbtn{position:absolute;top:3px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#help .mbox h3{margin:12px 0 4px;font-size:1.05rem;color:#f2d27a}
+#help .mbox p{margin:0 0 6px;line-height:1.5;font-size:.95rem}
+#help .mbox p.cur{background:rgba(201,162,39,.18);border-radius:6px;padding:4px 6px}
+#onbtn{position:absolute;top:32px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#onbtn.live{background:#1b6b3a;color:#fff;border-color:#7be0a0}
+#oppbar{position:absolute;top:3px;left:3px;right:84px;z-index:8;height:26px;line-height:26px;padding:0 8px;border-radius:13px;background:rgba(30,22,16,.85);color:#fff;font-size:.72rem;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#oppbar[hidden]{display:none}
+#intro{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px;background:radial-gradient(ellipse at center,#7a1410 0%,#3a0b09 55%,#120504 100%);color:#f3e9d8;transition:opacity .6s}
+#intro.out{opacity:0;pointer-events:none}
+#intro .orn{color:#c9a227;letter-spacing:.5em;font-size:1.1rem}
+#intro h1{margin:0;font-size:clamp(2rem,9vw,3.6rem);letter-spacing:.1em;color:#f2d27a;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;text-shadow:0 0 18px rgba(242,210,122,.55),0 3px 4px #000;animation:glow 2.4s ease-in-out infinite alternate}
+@keyframes glow{from{text-shadow:0 0 8px rgba(242,210,122,.3),0 3px 4px #000}to{text-shadow:0 0 26px rgba(242,210,122,.8),0 3px 4px #000}}
+#intro .sub{font-size:1rem;opacity:.85}
+#intro .gl{display:flex;flex-wrap:nowrap;justify-content:center;gap:4px;width:100%;max-width:520px}
+#intro .gl span{border:1px solid #c9a227;border-radius:14px;padding:4px clamp(4px,1.6vw,12px);font-size:clamp(.6rem,2.9vw,.95rem);white-space:nowrap;background:rgba(0,0,0,.3)}
+#intro .sym{font-size:2.2rem;letter-spacing:.3em;animation:fl 3s ease-in-out infinite alternate}
+@keyframes fl{from{transform:translateY(-4px)}to{transform:translateY(4px)}}
+#introgo{font:inherit;font-size:1.6rem;font-weight:bold;padding:12px 48px;border-radius:30px;border:2px solid #f2d27a;background:#c9a227;color:#2a2018;cursor:pointer;animation:pl 1.4s ease-in-out infinite}
+@keyframes pl{50%{transform:scale(1.06)}}
+#intro small{opacity:.7}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="field" id="field">
+  <div class="hud">
+    <div class="tt">所持金 <b id="bal">10000</b></div>
+    <div class="tt">賭け <b id="ch">—</b></div>
+    <button id="snd" class="tt">♪琴</button>
+  </div>
+  <div class="tools"><button class="tt tl" id="pw">パスワード</button><div id="gname" class="gname"><span id="gtxt">丁半</span></div><div class="lb"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="bank">銀行</button></div></div>
+  <div class="stage" id="stage">
+    <svg class='maiko' id='maiko' viewBox='0 0 170 200' width='170' height='200'>
+<defs>
+<filter id='b1'><feGaussianBlur stdDeviation='1'/></filter>
+<filter id='b2' x='-40%' y='-40%' width='180%' height='180%'><feGaussianBlur stdDeviation='2.4'/></filter>
+<radialGradient id='fc' cx='.5' cy='.45' r='.65'><stop offset='0' stop-color='#fffbf8'/><stop offset='.7' stop-color='#fbeee6'/><stop offset='1' stop-color='#e8c9ba'/></radialGradient>
+<linearGradient id='nk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#d3a898'/><stop offset='.35' stop-color='#ecd0c3'/><stop offset='1' stop-color='#f6e4d9'/></linearGradient>
+<radialGradient id='ir'><stop offset='0' stop-color='#7a5538'/><stop offset='.7' stop-color='#3b2415'/><stop offset='1' stop-color='#140a05'/></radialGradient>
+<linearGradient id='ki' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#e91e63'/><stop offset='1' stop-color='#880e4f'/></linearGradient>
+<linearGradient id='sl' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f06292'/><stop offset='1' stop-color='#ad1457'/></linearGradient>
+<linearGradient id='ob' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='#b8860b'/><stop offset='.5' stop-color='#f6d365'/><stop offset='1' stop-color='#b8860b'/></linearGradient>
+<linearGradient id='hr' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#3a3a3a'/><stop offset='.4' stop-color='#111'/><stop offset='1' stop-color='#050505'/></linearGradient>
+<linearGradient id='lp' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#d84a4a'/><stop offset='1' stop-color='#9e1b1b'/></linearGradient>
+<pattern id='fl' width='22' height='22' patternUnits='userSpaceOnUse'><circle cx='6' cy='6' r='3' fill='#fff' opacity='.55'/><circle cx='17' cy='16' r='2.5' fill='#ffe082' opacity='.7'/><circle cx='6' cy='6' r='1' fill='#e91e63'/></pattern>
+<clipPath id='eL'><path d='M69 50Q74 45.2 79 49.6Q74 53 69 50Z'/></clipPath>
+<clipPath id='eR'><path d='M91 49.6Q96 45.2 101 50Q96 53 91 49.6Z'/></clipPath>
+</defs>
+<path d='M35 108Q55 96 74 98L85 122L96 98Q115 96 135 108L166 200L4 200Z' fill='url(#ki)'/><path d='M35 108Q55 96 74 98L85 122L96 98Q115 96 135 108L166 200L4 200Z' fill='url(#fl)'/>
+<path d='M62 126Q56 165 38 200M108 126Q114 165 132 200M85 160V200' stroke='#000' stroke-opacity='.15' stroke-width='1.4' fill='none'/><path d='M66 126Q60 165 44 200M104 126Q110 165 126 200' stroke='#fff' stroke-opacity='.12' stroke-width='1.2' fill='none'/>
+<rect x='50' y='124' width='70' height='32' rx='2' fill='url(#ob)'/><path d='M50 134H120M50 146H120' stroke='#8d6e00' stroke-width='.8' opacity='.6'/><path d='M50 118Q85 128 120 118L120 126Q85 134 50 126Z' fill='#f48fb1'/><path d='M60 131Q85 139 110 131' stroke='#2e7d32' stroke-width='2.2' fill='none'/><circle cx='85' cy='136' r='3' fill='#2e7d32'/>
+<path d='M35 108Q6 128 10 194L54 188Q56 150 66 116Z' fill='url(#sl)'/><path d='M35 108Q6 128 10 194L54 188Q56 150 66 116Z' fill='url(#fl)'/>
+<path d='M135 108Q164 128 160 194L116 188Q114 150 104 116Z' fill='url(#sl)'/><path d='M135 108Q164 128 160 194L116 188Q114 150 104 116Z' fill='url(#fl)'/>
+<path d='M47 106Q42 132 47 154L71 154Q73 130 67 108Z' fill='url(#sl)'/><path d='M47 106Q42 132 47 154L71 154Q73 130 67 108Z' fill='url(#fl)'/>
+<path d='M123 106Q128 132 123 154L99 154Q97 130 103 108Z' fill='url(#sl)'/><path d='M123 106Q128 132 123 154L99 154Q97 130 103 108Z' fill='url(#fl)'/>
+<path d='M78 72Q78 86 74 99L96 99Q92 86 92 72Z' fill='url(#nk)'/><path d='M78.5 78Q77.5 90 75 98M91.5 78Q92.5 90 95 98' stroke='#d3ab9b' stroke-width='.8' fill='none' opacity='.6'/>
+<path d='M73 97L85 116L97 97Z' fill='#f1dacd'/>
+<path d='M69 96L85 128L101 96L97 93L85 116L73 93Z' fill='#c62828'/><path d='M73.5 94.5L85 112L96.5 94.5L94 92.5L85 106.5L76 92.5Z' fill='#fff' opacity='.93'/>
+<ellipse cx='85' cy='81' rx='10' ry='3.2' fill='#b88b7a' opacity='.35' filter='url(#b1)'/>
+<ellipse cx='85' cy='38' rx='43' ry='30' fill='url(#hr)'/><ellipse cx='85' cy='12' rx='21' ry='11' fill='url(#hr)'/>
+<path d='M50 30Q85 3 120 30' stroke='#8a8a8a' stroke-width='1.2' fill='none' opacity='.5'/><path d='M58 40Q85 24 112 40' stroke='#8a8a8a' stroke-width='.8' fill='none' opacity='.25'/>
+<path d='M65 14Q85 4 105 14L103 22Q85 14 67 22Z' fill='#e53935'/><g fill='#fff' opacity='.85'><circle cx='73' cy='15' r='1.1'/><circle cx='80' cy='12' r='1.1'/><circle cx='90' cy='12' r='1.1'/><circle cx='97' cy='15' r='1.1'/><circle cx='76' cy='19' r='1.1'/><circle cx='94' cy='19' r='1.1'/></g>
+<path d='M58 9L84 19' stroke='#ffd54f' stroke-width='2' stroke-linecap='round'/>
+<path d='M62 50Q62 29 85 28Q108 29 108 50Q108 63 101 71Q95 77 85 78Q75 77 69 71Q62 63 62 50Z' fill='url(#fc)'/>
+<ellipse cx='85' cy='36' rx='12' ry='5' fill='#fff' opacity='.5' filter='url(#b2)'/>
+<path d='M63 52Q63 66 72 74M107 52Q107 66 98 74' stroke='#d3a897' stroke-width='3' fill='none' opacity='.3' filter='url(#b2)'/>
+<circle cx='70' cy='62' r='7' fill='#ff8a80' opacity='.38' filter='url(#b2)'/><circle cx='100' cy='62' r='7' fill='#ff8a80' opacity='.38' filter='url(#b2)'/>
+<path d='M66.5 44.5Q73.5 39.5 81.5 43Q74 41.8 66.5 45.8Z' fill='#6d3328'/><path d='M88.5 43Q96.5 39.5 103.5 44.5Q96 41.8 88.5 45.8Z' fill='#6d3328'/>
+<path d='M66 50Q73 40 81 48.5Q73 44.5 66 50Z' fill='#d94a4a' opacity='.6' filter='url(#b1)'/><path d='M89 48.5Q97 40 104 50Q97 44.5 89 48.5Z' fill='#d94a4a' opacity='.6' filter='url(#b1)'/>
+<g clip-path='url(#eL)'><rect x='67' y='44' width='14' height='11' fill='#f1ece6'/><circle cx='74' cy='49.4' r='3.2' fill='url(#ir)'/><circle cx='74' cy='49.4' r='1.4' fill='#050505'/><circle cx='75' cy='48.5' r='.8' fill='#fff'/></g>
+<g clip-path='url(#eR)'><rect x='89' y='44' width='14' height='11' fill='#f1ece6'/><circle cx='96' cy='49.4' r='3.2' fill='url(#ir)'/><circle cx='96' cy='49.4' r='1.4' fill='#050505'/><circle cx='97' cy='48.5' r='.8' fill='#fff'/></g>
+<path d='M68.5 50.3Q74 44.8 79.4 49.4M90.6 49.4Q96 44.8 101.5 50.3M68.5 50.3L67 51.6M101.5 50.3L103 51.6' stroke='#171010' stroke-width='1.3' fill='none' stroke-linecap='round'/>
+<path d='M70 46.8Q74 42.8 78.5 46.2M91.5 46.2Q96 42.8 100 46.8' stroke='#a77366' stroke-width='.6' fill='none' opacity='.6'/>
+<path d='M70 51Q74 53.2 78 50.8M92 50.8Q96 53.2 100 51' stroke='#c79e90' stroke-width='.5' fill='none'/>
+<path d='M82.5 55Q81 59 82 60.5' stroke='#cfa593' stroke-width='1.6' fill='none' opacity='.35' filter='url(#b1)'/><path d='M85.3 52V58' stroke='#fff' stroke-width='1.5' opacity='.5' filter='url(#b1)'/>
+<path d='M85 54Q84 58.5 82.8 60.6Q85 62.4 87.2 60.6Q86 58.5 85 54' fill='none' stroke='#d7b3a3' stroke-width='.8'/><ellipse cx='83.6' cy='61.2' rx='.8' ry='.45' fill='#b98a7a' opacity='.7'/><ellipse cx='86.4' cy='61.2' rx='.8' ry='.45' fill='#b98a7a' opacity='.7'/>
+<ellipse cx='85' cy='74.6' rx='3.6' ry='1.1' fill='#d3a999' opacity='.4' filter='url(#b1)'/>
+<path d='M80.5 68.2Q83 66.8 85 67.6Q87 66.8 89.5 68.2Q85 69.3 80.5 68.2Z' fill='#e0958f'/><path d='M81.5 68.8Q85 74 88.5 68.8Q85 70.2 81.5 68.8Z' fill='url(#lp)'/><ellipse cx='85' cy='71.6' rx='1.7' ry='.5' fill='#fff' opacity='.5'/><path d='M81 68.4Q85 69.6 89 68.4' stroke='#9c4a45' stroke-width='.5' fill='none'/>
+<path d='M62 46Q60 22 85 19Q110 22 108 46Q105 33 97 29Q85 24 73 29Q65 33 62 46Z' fill='url(#hr)'/><path d='M85 19V28' stroke='#444' stroke-width='.8'/>
+<path d='M63 36Q58 50 60 64Q61 74 67 80Q64 66 65 52Q65 42 68 35Z' fill='url(#hr)'/><path d='M107 36Q112 50 110 64Q109 74 103 80Q106 66 105 52Q105 42 102 35Z' fill='url(#hr)'/>
+<g fill='#ef5350'><circle cx='46' cy='28' r='5'/><circle cx='52' cy='33' r='5'/><circle cx='50' cy='40' r='5'/><circle cx='42' cy='40' r='5'/><circle cx='40' cy='33' r='5'/></g><circle cx='46' cy='34' r='3.5' fill='#ffe082'/>
+<g fill='#f8bbd0'><circle cx='124' cy='26' r='6.5'/><circle cx='131' cy='32' r='6.5'/><circle cx='128' cy='41' r='6.5'/><circle cx='119' cy='41' r='6.5'/><circle cx='117' cy='32' r='6.5'/></g><circle cx='124' cy='34' r='4' fill='#ffe082'/>
+<g fill='#fff'><circle cx='136' cy='46' r='4.5'/><circle cx='141' cy='51' r='4.5'/><circle cx='136' cy='55' r='4.5'/><circle cx='131' cy='51' r='4.5'/></g><circle cx='136' cy='51' r='2.5' fill='#ef5350'/>
+<path d='M44 45V70M49 45V77M114 46V72M119 46V80M124 46V86M129 46V80M134 58V82' stroke='#ffd54f' stroke-width='1'/><circle cx='44' cy='71' r='2.8' fill='#ef5350'/><circle cx='49' cy='78' r='2.8' fill='#ffe082'/><circle cx='114' cy='73' r='2.8' fill='#fff'/><circle cx='119' cy='81' r='2.8' fill='#f48fb1'/><circle cx='124' cy='87' r='2.8' fill='#fff'/><circle cx='129' cy='81' r='2.8' fill='#f8bbd0'/><circle cx='134' cy='83' r='2.8' fill='#ffe082'/>
+</svg>
+    <div class="shadow"></div>
+    <div class="dice"><div class="die" id="d1"></div><div class="die" id="d2"></div></div>
+    <div class="cupwrap" id="cupwrap">
+      <svg class="cup" id="cup" viewBox="0 0 150 110" width="150" height="110">
+        <path d="M12 100 Q6 38 42 20 Q75 6 108 20 Q144 38 138 100 Z" fill="#f4eee0" stroke="#555" stroke-width="2"/>
+        <path d="M10 82 Q75 96 140 82 L139 92 Q75 106 11 92 Z" fill="#1f3a68"/>
+        <ellipse cx="75" cy="100" rx="64" ry="8" fill="#e6dec9" stroke="#555" stroke-width="2"/>
+        <path d="M40 34 Q55 22 72 20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+        <defs><linearGradient id='hk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fff3ea'/><stop offset='1' stop-color='#eac9ba'/></linearGradient></defs>
+<path d='M36 -2Q36 -14 50 -14L64 -14Q66 -6 64 2L40 4Z' fill='#ad1457'/><path d='M114 -2Q114 -14 100 -14L86 -14Q84 -6 86 2L110 4Z' fill='#ad1457'/>
+<path d='M38 8Q38 -2 50 -2Q62 0 66 8Q70 18 62 24Q56 28 48 26Q38 22 38 8Z' fill='url(#hk)' stroke='#d3ab9b' stroke-width='.8'/><path d='M50 18Q52 24 51 27M56 17Q58 23 57 26M61 15Q64 20 63 23M40 10Q34 14 38 20' stroke='#d3ab9b' stroke-width='.8' fill='none'/>
+<path d='M112 8Q112 -2 100 -2Q88 0 84 8Q80 18 88 24Q94 28 102 26Q112 22 112 8Z' fill='url(#hk)' stroke='#d3ab9b' stroke-width='.8'/><path d='M100 18Q98 24 99 27M94 17Q92 23 93 26M89 15Q86 20 87 23M110 10Q116 14 112 20' stroke='#d3ab9b' stroke-width='.8' fill='none'/>
+      </svg>
+    </div>
+  </div>
+  <div class="scene" id="sc-roulette" hidden><div id="dealer"></div><div class="sv" id="rsv"></div><div class="rinfo" id="rinfo"></div></div>
+  <div class="scene wide" id="sc-poker" hidden><div class="pk">
+    <div class="plabel" id="olabel">相手</div><div class="pcards" id="ocards"></div>
+    <div class="pinfo" id="pinfo">ポット 0</div><div class="pcards" id="bcards"></div>
+    <div class="pcards" id="hcards"></div><div class="plabel" id="plabel">あなた</div>
+  </div></div>
+  <div class="scene wide" id="sc-blackjack" hidden><div class="pk">
+    <div class="plabel" id="dlabel">ディーラー</div><div class="pcards" id="dcards"></div>
+    <div class="plabel" id="h1label">あなた</div><div class="pcards" id="h1cards"></div>
+    <div class="plabel" id="h2label"></div><div class="pcards" id="h2cards"></div>
+  </div></div>
+  <div class="scene" id="sc-keiba" hidden><div class="sv" id="ksv"><canvas id="kcv"></canvas></div></div>
+  <button class="arw" id="aL">◀</button><button class="arw" id="aR">▶</button>
+  <div class="msg" id="msg">賭け方と掛け金を選んでください</div>
+</div>
+<div class="panel">
+  <div class="col">
+  <div class="gp" id="gp-chouhan">
+  <div class="r">
+    <button class="b big" id="even">丁</button>
+    <button class="b big" id="odd">半</button>
+  </div>
+  <div class="r" id="nums" style="flex:1.6"><button class="b" data-d="-1">−1</button><div class="mon nm tt" id="numv"></div><button class="b" data-d="1">＋1</button></div>
+  </div>
+  <div class="gp" id="gp-roulette" hidden>
+    <div class="r"><button class="b" id="rtable" style="font-size:1.6rem">賭け台</button></div>
+    <div class="r" style="flex:1.2"><button class="b" id="radd" style="font-size:1.6rem">追加</button></div>
+  </div>
+  <div class="gp" id="gp-poker" hidden>
+    <div class="r"><button class="b" id="pfold" style="font-size:.95rem">フォールド</button><button class="b" id="pcall" style="font-size:.95rem;line-height:1.1">チェック</button></div>
+    <div class="r" style="flex:1.2"><button class="b" id="praise" style="font-size:1rem;line-height:1.1">ベット</button><button class="b" id="pallin" style="font-size:.95rem;line-height:1.1">オールイン</button></div>
+  </div>
+  <div class="gp" id="gp-blackjack" hidden>
+    <div class="r"><button class="b" id="bhit" style="font-size:1.2rem">ヒット</button><button class="b" id="bstand" style="font-size:1.1rem">スタンド</button></div>
+    <div class="r" style="flex:1.2"><button class="b" id="bdbl" style="font-size:1rem">ダブル</button><button class="b" id="bsplit" style="font-size:.85rem">スプリット</button></div>
+  </div>
+  <div class="gp" id="gp-keiba" hidden>
+    <div class="r"><button class="b kh" id="kh0" data-h="0"></button><button class="b kh" id="kh1" data-h="1"></button><button class="b kh" id="kh2" data-h="2"></button></div>
+    <div class="r"><button class="b kh" id="kh3" data-h="3"></button><button class="b kh" id="kh4" data-h="4"></button><button class="b kh" id="kh5" data-h="5"></button></div>
+    <div class="r"><button class="b" id="kwin" style="font-size:1.1rem">単勝</button><button class="b" id="kplace" style="font-size:1.1rem">複勝</button></div>
+  </div>
+  <div class="r"><button class="b big go" id="go" disabled>勝負！</button></div>
+  </div>
+  <div class="col" id="bets">
+    <div class="r" style="flex:1.7"><div class="mon tt" id="bet"></div></div>
+    <div class="r"><button class="b" data-a="1">1</button><button class="b" data-a="10">10</button></div>
+    <div class="r"><button class="b" data-a="100">100</button><button class="b" data-a="1000">1000</button></div>
+    <div class="r"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div>
+  </div>
+</div>
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
+<button id="helpbtn">？説明</button>
+<button id="onbtn">オンライン</button><div id="oppbar" hidden></div>
+<div class="modal" id="onl" hidden><div class="mbox">
+<h2>オンライン対戦</h2>
+<p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力した2人がつながります。全ゲームで「同じ出目・同じ配札・同じレース」になるので、所持金の差で勝負しましょう。</p>
+<input id="onc" maxlength="16" placeholder="合言葉（例：sakura）" autocomplete="off">
+<div class="note" id="onn"></div>
+<div class="mr"><button id="onok">接続</button><button id="onoff">切断</button><button id="onx">閉じる</button></div>
+</div></div>
+<div class="modal" id="help" hidden><div class="mbox">
+<h2>遊び方</h2>
+<p>所持金10000からスタート。◀▶で遊ぶゲームを切り替えます（ゲーム中は切替不可）。賭け金を選び「勝負！」で開始。所持金がなくなったら「借金」、記録は「パスワード」で保存・復元できます。♪で音楽のオン／オフ。</p>
+<h3>丁半</h3><p data-g="chouhan">サイコロ2個の合計が偶数なら「丁」、奇数なら「半」。予想が当たれば2倍。合計の数字(2〜12)をぴたりと当てると4倍。</p>
+<h3>ルーレット</h3><p data-g="roulette">ヨーロピアン式（0〜36）。「賭け台」で数字や色、偶奇などを選び「追加」で賭けを重ねられます。</p>
+<h3>ポーカー</h3><p data-g="poker">テキサスホールデムの1対1（ノーリミット）。フォールド／チェック・コール／ベット・レイズ／オールインで相手と勝負。</p>
+<h3>ブラックジャック</h3><p data-g="blackjack">21に近い方が勝ち、超えるとバースト。ヒット＝カードを引く、スタンド＝止める。ダブル、スプリットも可能。ブラックジャックは2.5倍。</p>
+<h3>競馬</h3><p data-g="keiba">6頭から1頭を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。</p>
+<h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続。相手の所持金が上に表示されます。ポーカーは同じ配札でCPUと勝負です。</p>
+<div class="mr"><button id="helpx">閉じる</button></div>
+</div></div>
+<div id="intro">
+<div class="orn">◆ ◇ ◆ ◇ ◆</div>
+<div class="sym">♠ ♥ ♦ ♣</div>
+<h1>THE CASINO</h1>
+<div class="sub">丁半からルーレットまで、五つの勝負</div>
+<div class="gl"><span>丁半</span><span>ルーレット</span><span>ポーカー</span><span>ブラックジャック</span><span>競馬</span></div>
+<button id="introgo">はじめる</button>
+</div>
+<script>
+const START=10000;var online=false,_sd=1;
+function rr(){if(!online)return Math.random();_sd=(_sd+0x6D2B79F5)|0;let t=Math.imul(_sd^_sd>>>15,1|_sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+let balance=START,bet=0,choice=null,busy=false,cupUp=false;
+const $=id=>document.getElementById(id);
+const field=$('field');
+for(let i=0;i<4;i++){const r=document.createElement('div');r.className='row-mat'+(i%2?' off':'');
+  for(let j=0;j<(i%2?3:2);j++){const m=document.createElement('div');m.className='mat';r.appendChild(m);}
+  field.insertBefore(r,field.firstChild);}
+const nums=$('nums');
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function face(el,v){el.className='die'+(v===1?' one':'');el.innerHTML='';
+  for(let i=0;i<9;i++){const c=document.createElement('i');if(PIPS[v].includes(i))c.className='p';el.appendChild(c);}}
+const roll=()=>1+Math.floor(rr()*6);
+face($('d1'),roll());face($('d2'),roll());
+const label=()=>curLabel();
+function update(){
+  {const cap=(game==='poker'&&H&&H.on)?H.cur[0]+balance:balance;if(bet>cap)bet=cap;}
+  $('bal').textContent=balance;$('bet').textContent=bet>0?bet:'';$('ch').textContent=label();fitCh();refreshTools();fitMon($('bet'));fitMon($('numv'));gameUI();
+  $('go').disabled=busy||!ready();
+}
+function setChoice(c){
+  if(busy)return;choice=c;
+  document.querySelectorAll('#even,#odd').forEach(b=>b.classList.remove('sel'));
+  $('numv').classList.toggle('sel',typeof c==='number');
+  $('numv').textContent=typeof c==='number'?c:'';
+  if(c==='even')$('even').classList.add('sel');
+  else if(c==='odd')$('odd').classList.add('sel');
+  update();
+}
+$('even').onclick=()=>setChoice('even');
+$('odd').onclick=()=>setChoice('odd');
+nums.onclick=e=>{const d=e.target.dataset.d;if(!d||busy)return;
+  const cur=typeof choice==='number'?choice:(d>0?1:13);
+  setChoice(Math.max(2,Math.min(12,cur+Number(d))));};
+$('bets').onclick=e=>{
+  const a=e.target.dataset.a;if(!a||busy)return;
+  if(a==='all')bet=(game==='poker'&&H&&H.on)?H.cur[0]+balance:balance;
+  else if(a==='clear')bet=0;
+  else bet=Math.min(balance,bet+Number(a));
+  update();
+};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+$('go').onclick=async()=>{
+  if($('go').disabled||game!=='chouhan')return;
+  busy=true;
+  const stake=bet;balance-=stake;bet=Math.min(bet,balance);update();$('go').disabled=true;
+  const msg=$('msg'),cup=$('cup'),wrap=$('cupwrap');
+  msg.className='msg';msg.textContent='入ります！';
+  if(cupUp){cup.classList.remove('up');await wait(500);}
+  const a=roll(),b=roll(),sum=a+b;
+  face($('d1'),a);face($('d2'),b);
+  wrap.classList.add('shake');$('maiko').classList.add('sw');await wait(1100);wrap.classList.remove('shake');$('maiko').classList.remove('sw');
+  cup.classList.add('up');cupUp=true;await wait(500);
+  let mult=0;
+  if(choice==='even'&&sum%2===0)mult=2;
+  else if(choice==='odd'&&sum%2===1)mult=2;
+  else if(typeof choice==='number'&&choice===sum)mult=4;
+  const pay=stake*mult;balance+=pay;sfx(mult>0);
+  const kind=sum%2===0?'丁':'半';
+  if(mult){msg.className='msg win';msg.textContent=`${a}・${b}の${sum}、${kind}！ 当たり！ ${pay}獲得（${mult}倍）`;}
+  else{msg.className='msg lose';msg.textContent=`${a}・${b}の${sum}、${kind}… 外れ。${stake}失いました`;}
+  busy=false;update();
+  if(balance<=0){msg.textContent+=' ／ 所持金がなくなりました。上の「借金」で借りられます';}
+};
+/* 琴風BGM（Web Audioで合成） */
+let ctx=null,on=false,step=0,tm=null,phrase=null,out=null,tb=null;
+const SC=[146.83,220,293.66,329.63,349.23,440,466.16,587.33,659.25,698.46,880];
+const PH=[[7,6,5,6,5,-1,4,5,7,-1,8,7,5,4,2,-1],[5,-1,6,5,4,5,-1,4,2,3,4,5,6,5,4,-1],[8,7,5,7,8,-1,10,8,7,5,6,5,4,-1,2,-1]];
+const bufs={};
+function buf(f){
+  if(bufs[f])return bufs[f];
+  const sr=ctx.sampleRate,len=Math.floor(sr*2.6),N=Math.round(sr/f),b=ctx.createBuffer(1,len,sr),d=b.getChannelData(0);
+  const k=Math.pow(.5,1/(f*1.2)),ring=new Float32Array(N);
+  for(let i=0;i<N;i++)ring[i]=Math.random()*2-1;
+  let p=0;
+  for(let i=0;i<len;i++){const n=(p+1)%N;d[i]=ring[p];ring[p]=(ring[p]+ring[n])*.5*k;p=n;}
+  const fl=Math.floor(sr*.3);
+  for(let i=len-fl;i<len;i++)d[i]*=(len-i)/fl;
+  return bufs[f]=b;
+}
+function pluck(f,v){
+  const s=ctx.createBufferSource();s.buffer=buf(f);
+  const g=ctx.createGain();g.gain.value=v;
+  s.connect(g);g.connect(out);s.start();
+}
+function flute(f,v){
+  const t=ctx.currentTime,o=ctx.createOscillator(),o2=ctx.createOscillator(),l=ctx.createOscillator(),lg=ctx.createGain(),g=ctx.createGain(),g2=ctx.createGain();
+  o.frequency.value=f;o2.type='triangle';o2.frequency.value=f*2;g2.gain.value=.12;
+  l.frequency.value=5;lg.gain.value=f*.012;l.connect(lg);lg.connect(o.frequency);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.3);g.gain.setValueAtTime(v,t+1.2);g.gain.linearRampToValueAtTime(0,t+2.3);
+  o.connect(g);o2.connect(g2);g2.connect(g);g.connect(out);
+  [o,o2,l].forEach(x=>{x.start(t);x.stop(t+2.4);});
+}
+const MUS={chouhan:['琴','尺八'],roulette:['ジャズ','ラウンジ'],poker:['ブルース','ピアノ'],blackjack:['ボサノバ','ワルツ'],keiba:['ラッパ','疾走']};
+let trk=0;
+const mf=n=>440*Math.pow(2,(n-69)/12);
+function tone(f,v,dur,type,harm){
+  const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+dur);
+  o.connect(g);g.connect(out);o.start(t);o.stop(t+dur+.05);
+  if(harm){
+    const o2=ctx.createOscillator(),g2=ctx.createGain();
+    o2.frequency.value=f*harm;
+    g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(v*.5,t+.005);g2.gain.exponentialRampToValueAtTime(.0008,t+dur*.35);
+    o2.connect(g2);g2.connect(out);o2.start(t);o2.stop(t+dur);
+  }
+}
+const epiano=(f,v)=>tone(f,v,1.4,'sine',4),vibe=(f,v)=>tone(f,v,2.2,'sine',3.99);
+const bass=(f,v)=>{tone(f,v,.7,'triangle');tone(f,v*.6,.5,'sine');};
+const CHD=[[50,53,57,60],[53,59,62,55],[52,55,59,62],[55,61,64,57]],BAS=[[38,41,45,48],[43,47,50,53],[48,52,55,47],[45,49,52,55]];
+const PCH=[[57,60,64,67],[50,57,60,65],[55,59,62,65],[48,55,59,64]],ROOT=[45,45,45,45,50,50,45,45,40,50,45,40];
+const RND=a=>a[Math.floor(Math.random()*a.length)];
+function tick(){
+  if(!on)return;
+  if(ctx.state!=='running'){tm=setTimeout(tick,200);return;}
+  let d=430;
+  if(game==='chouhan'){
+    if(step%16===0)phrase=PH[Math.floor(Math.random()*PH.length)];
+    const m=step%16,i=phrase[m];
+    if(trk===0){if(i>=0)pluck(SC[i],.22);if(step%8===0)pluck(SC[(step/8)%2?1:0],.25);}
+    else{d=520;if(m%4===0){const j=i>=0?i:phrase[(m+1)%16];if(j>=0)flute(SC[j],.16);}}
+  }else if(game==='roulette'){
+    if(trk===0){
+      d=step%2?210:290;
+      const bar=Math.floor(step/8)%4,s=step%8;
+      if(s%2===0)bass(mf(BAS[bar][s/2]),.3);
+      if(s===0||s===3||s===6)CHD[bar].forEach((n,k)=>setTimeout(()=>{if(on)epiano(mf(n),.08);},k*14));
+      if(Math.random()<.45)epiano(mf(RND(CHD[bar])+12+(Math.random()<.4?12:0)),.1);
+    }else{
+      d=420;
+      if(step%8===0)tone(mf(36),.2,3.4,'sine');
+      if(Math.random()<.7)vibe(mf(RND([72,74,76,79,81,84])),.1);
+    }
+  }else if(game==='poker'){
+    if(trk===0){
+      d=step%2?200:300;
+      const bar=Math.floor(step/8)%12,s=step%8,root=ROOT[bar];
+      if(s%2===0)bass(mf(root+[0,4,7,9][s/2]),.3);
+      if(s===2||s===6)[0,4,7,10].forEach((o,k)=>setTimeout(()=>{if(on)pluck(mf(root+12+o),.14);},k*18));
+      if(Math.random()<.18)pluck(mf(RND([69,72,74,75,76,79])),.2);
+    }else{
+      d=380;
+      const p=PCH[Math.floor(step/8)%4];
+      epiano(mf(p[[0,1,2,3,2,1,0,1][step%8]]),.11);
+      if(Math.random()<.25)epiano(mf(p[3]+12+RND([0,2])),.1);
+    }
+  }else if(game==='blackjack'){
+    if(trk===0){
+      d=280;
+      const bar=Math.floor(step/16)%4,s=step%16;
+      const ch=[[57,60,64,67],[50,57,60,65],[55,59,62,65],[48,55,59,64]][bar],bs=[45,50,43,48][bar];
+      if([0,3,6,10,12].indexOf(s)>=0)ch.forEach((n,k)=>setTimeout(()=>{if(on)pluck(mf(n),.1);},k*10));
+      if(s%4===0)bass(mf(bs-12+(s%8===0?0:7)),.26);
+      if(s%2===1)hat(.05);
+    }else{
+      d=330;
+      const bar=Math.floor(step/6)%4,s=step%6;
+      const p=[[57,60,64],[50,53,57],[55,59,62],[48,52,55]][bar];
+      if(s===0)bass(mf(p[0]-12),.3);
+      if(s===2||s===4)p.forEach(n=>epiano(mf(n+12),.07));
+      if(s%2===0&&Math.random()<.5)epiano(mf(RND(p)+24),.07);
+    }
+  }else if(game==='keiba'){
+    if(trk===0){
+      d=190;
+      const F=[72,72,72,67,72,76,79,-1,77,77,77,72,77,81,84,-1],n=F[step%16];
+      if(n>0)sq(mf(n),.06,.22);
+      if(step%4===0)sq(mf([48,48,53,55][Math.floor(step/4)%4]),.07,.3);
+      if(step%2===1)hat(.03);
+    }else{
+      d=135;
+      const s=step%8;
+      if(s===0||s===3||s===5)kick(.5);
+      if(s%2===1)hat(.05);
+      if(s%4===0)sq(mf([57,60,64,60][Math.floor(step/4)%4]+12),.05,.18);
+    }
+  }
+  step++;
+  tm=setTimeout(tick,d);
+}
+const sq=(f,v,dur)=>tone(f,v,dur,'square');
+function kick(v){const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(g);g.connect(out);o.start(t);o.stop(t+.3);}
+function hat(v){const t=ctx.currentTime,n=Math.floor(ctx.sampleRate*.05),b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const so=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();so.buffer=b;f.type='highpass';f.frequency.value=7000;g.gain.value=v;so.connect(f);f.connect(g);g.connect(out);so.start(t);}
+function setSndLabel(){$('snd').textContent=on?'♪'+MUS[game][trk]:'♪消';}
+function sfx(win){
+  if(!ctx||!on)return;
+  if(win)[5,7,8,10].forEach((k,j)=>setTimeout(()=>{if(on)pluck(SC[k],.3);},j*110));
+  else pluck(SC[2],.3);
+}
+function startAudio(){
+  try{
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    out=ctx.createGain();out.gain.value=.7;const cmp=ctx.createDynamicsCompressor();out.connect(cmp);cmp.connect(ctx.destination);
+    if(ctx.resume)ctx.resume();
+    on=GS[game].on;trk=GS[game].trk;setSndLabel();if(on)tick();
+  }catch(e){ctx=null;}
+}
+$('snd').onclick=()=>{
+  if(!ctx){startAudio();return;}
+  if(ctx.state!=='running'){ctx.resume();return;}
+  clearTimeout(tm);
+  if(!on){on=true;trk=0;}
+  else if(trk<MUS[game].length-1)trk++;
+  else on=false;
+  step=0;setSndLabel();
+  if(on)tick();
+};
+function unlock(e){if(ctx&&ctx.state!=='running'&&!(e.target.closest&&e.target.closest('#snd')))ctx.resume();}
+['pointerdown','touchend','click','keydown'].forEach(v=>document.addEventListener(v,unlock));
+function fitMon(el){
+  const cs=getComputedStyle(el),pad=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight);
+  const maxW=el.clientWidth-pad,maxH=el.clientHeight-2;
+  if(maxW<=0||maxH<=0)return;
+  let sz=Math.floor(maxH*1.12);
+  el.style.fontSize=sz+'px';
+  const r=document.createRange();r.selectNodeContents(el);
+  while(sz>12&&r.getBoundingClientRect().width>maxW){sz-=2;el.style.fontSize=sz+'px';}
+  sz=Math.max(10,Math.round(sz*2/3));el.style.fontSize=sz+'px';
+}
+let debt=0,bank=0,plays=0;
+const RATE=1.1,MAXD=100000,KEY=[7,13,3,19,11,5,17,2,23,9],AL='0123456789abcdefghijklmnopqrstuvwxyz';
+function hash6(str){let h=1234567;for(const c of str)h=(h*31+c.charCodeAt(0))%2176782336;return h.toString(36).padStart(6,'0');}
+function encodePw(){
+  const d=balance.toString(36).padStart(8,'0')+debt.toString(36).padStart(6,'0')+Math.floor(bank*100).toString(36).padStart(8,'0')+(plays%10).toString(36),raw=d+hash6(d);
+  let o='';for(let i=0;i<raw.length;i++)o+=AL[(AL.indexOf(raw[i])+KEY[i%KEY.length])%36];
+  return o.toUpperCase().replace(/(.{4})(?=.)/g,'$1-');
+}
+function decodePw(pw){
+  const t=pw.toLowerCase().replace(/[^0-9a-z]/g,''),n=t.length;
+  if(n!==20&&n!==29)return null;
+  let raw='';for(let i=0;i<n;i++)raw+=AL[(AL.indexOf(t[i])-KEY[i%KEY.length]+360)%36];
+  const k=n-6;
+  if(hash6(raw.slice(0,k))!==raw.slice(k))return null;
+  return {b:parseInt(raw.slice(0,8),36),d:parseInt(raw.slice(8,14),36),k:n===29?parseInt(raw.slice(14,22),36)/100:0,p:n===29?parseInt(raw.slice(22,23),36):0};
+}
+function refreshTools(){
+  $('loan').textContent='借金';
+  $('loan').classList.toggle('alert',balance<=0);
+}
+function openModal(h){$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').classList.remove('sheet');}
+function closeModal(){$('modal').hidden=true;}
+function loanModal(note){
+  openModal('<h2>金貸し</h2><div>所持金 <b>'+balance+'</b>／借金 <b>'+debt+'</b></div><small>利息は1割。借金の上限は'+MAXD+'です。</small>'
+    +'<div class="mr">'+[1000,5000,10000].map(a=>'<button data-bo="'+a+'">'+a+'借りる</button>').join('')+'</div>'
+    +'<div class="mr"><button data-rp="1000">1000返す</button><button data-rp="all">全額返す</button></div>'
+    +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
+}
+function pwModal(note){
+  openModal('<h2>パスワード</h2><div>今のパスワード（控えておくと、途中から再開できます）</div><div class="code">'+encodePw()+'</div>'
+    +'<div style="margin-top:14px">再開するパスワード</div><input id="pwin" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">'
+    +'<div class="mr"><button data-rs="1">再開する</button><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
+}
+$('mbox').onclick=e=>{
+  const t=e.target.dataset;
+  if(t.x){closeModal();return;}
+  if(t.bo||t.rp){
+    if(busy||pPhase===1||bjOn){loanModal('勝負の最中どすえ');return;}
+    if(t.bo){
+      const a=Number(t.bo),add=Math.round(a*RATE);
+      if(debt+add>MAXD){loanModal('これ以上は貸せませんえ');return;}
+      balance+=a;debt+=add;update();loanModal(a+'お貸ししました。返すのは'+add+'どす');
+    }else{
+      const want=t.rp==='all'?debt:Number(t.rp),pay=Math.min(want,debt,balance);
+      if(debt<=0){loanModal('借金はありませんえ');return;}
+      if(pay<=0){loanModal('お金が足りませんえ');return;}
+      balance-=pay;debt-=pay;update();loanModal(pay+'返しました');
+    }
+    return;
+  }
+  if(t.rs){
+    if(busy||pPhase===1||rBets.length>0||bjOn){pwModal('勝負の最中、またはチップが出ているときは再開できません');return;}
+    const r=decodePw($('pwin').value);
+    if(!r){pwModal('パスワードが違います');return;}
+    balance=r.b;debt=r.d;bank=r.k;plays=r.p;bet=0;update();closeModal();
+    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+'）';
+  }
+};
+$('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
+$('pw').onclick=()=>pwModal();
+$('loan').onclick=()=>loanModal();
+
+/* ディーラー（上部中央に表示するバストアップ） */
+function dealerSVG(k){
+  const P={
+    roulette:{skin:'#f1c7a1',hair:'#241812',coat:'#1c1c26',shirt:'#fff'},
+    poker:{skin:'#f6d2b5',hair:'#7a4220',coat:'#14513a',shirt:'#f4f4f4'},
+    blackjack:{skin:'#e9b894',hair:'#1a1a1a',coat:'#8a1426',shirt:'#fff'},
+    keiba:{skin:'#f1c7a1',hair:'#3a2a1a',coat:'#3b5a2a',shirt:'#fff'},
+  }[k];
+  let back='',front='',acc='';
+  if(k==='roulette'){
+    front='<path d="M32 36Q28 11 50 11Q72 11 68 36Q66 23 50 22Q34 23 32 36Z" fill="'+P.hair+'"/><path d="M42 47Q50 44 58 47Q54 51 50 49Q46 51 42 47Z" fill="'+P.hair+'"/>';
+    acc='<path d="M47 68H53L55 92L50 97L45 92Z" fill="#b3261e"/><circle cx="50" cy="94" r="0"/><circle cx="36" cy="88" r="1.6" fill="#d4af37"/><circle cx="64" cy="88" r="1.6" fill="#d4af37"/>';
+  }else if(k==='poker'){
+    back='<path d="M30 40Q26 12 50 12Q74 12 70 40L74 66Q60 56 50 56Q40 56 26 66Z" fill="'+P.hair+'"/>';
+    front='<path d="M33 34Q50 22 67 34Q60 28 50 28Q40 28 33 34Z" fill="'+P.hair+'"/><path d="M26 28Q50 12 74 28L80 34Q50 24 20 34Z" fill="#1f8a4c" stroke="#0b4a28" stroke-width="1"/><path d="M26 28Q50 12 74 28" stroke="#ffd54f" stroke-width="1.6" fill="none"/>';
+    acc='<path d="M47 68H53L55 90L50 95L45 90Z" fill="#ffd54f"/><path d="M26 80Q22 90 20 100M74 80Q78 90 80 100" stroke="#ffd54f" stroke-width="2" fill="none"/>';
+  }else if(k==='blackjack'){
+    back='<path d="M29 44Q24 10 50 11Q76 10 71 44Q73 58 66 61L34 61Q27 58 29 44Z" fill="'+P.hair+'"/>';
+    front='<path d="M32 36Q36 22 50 22Q64 22 68 36Q58 28 50 30Q42 28 32 36Z" fill="'+P.hair+'"/>';
+    acc='<path d="M36 68L50 76L36 84Z M64 68L50 76L64 84Z" fill="#111"/><circle cx="50" cy="76" r="3" fill="#222"/><rect x="62" y="86" width="14" height="6" rx="1" fill="#fff"/><path d="M38 66L50 100L24 100Z M62 66L50 100L76 100Z" fill="#000" opacity=".28"/>';
+  }else if(k==='keiba'){
+    back='<path d="M31 34Q30 48 33 53L67 53Q70 48 69 34Z" fill="'+P.hair+'"/>';
+    front='<path d="M31 30Q50 7 70 30L72 32L28 32Z" fill="#9c7a45"/><path d="M28 31Q50 35 74 31L79 33Q50 39 23 33Z" fill="#6d5230"/><circle cx="50" cy="12" r="2.4" fill="#6d5230"/>';
+    acc='<path d="M47 68H53L55 92L50 97L45 92Z" fill="#d32f2f"/><path d="M64 84L82 77L82 97L64 91Z" fill="#e53935"/><ellipse cx="82" cy="87" rx="3" ry="10" fill="#b71c1c"/>';
+  }
+  const face='<ellipse cx="33" cy="41" rx="3" ry="4.5" fill="'+P.skin+'"/><ellipse cx="67" cy="41" rx="3" ry="4.5" fill="'+P.skin+'"/><ellipse cx="50" cy="38" rx="17" ry="20" fill="'+P.skin+'"/>'
+    +'<path d="M34 46Q36 60 50 59Q64 60 66 46Q64 64 50 62Q36 64 34 46Z" fill="#000" opacity=".08"/>'
+    +'<ellipse cx="43" cy="40" rx="3.3" ry="2.4" fill="#fff"/><circle cx="43" cy="40" r="1.9" fill="#3b2415"/><circle cx="43" cy="40" r=".9" fill="#050505"/><circle cx="43.7" cy="39.3" r=".6" fill="#fff"/>'
+    +'<ellipse cx="57" cy="40" rx="3.3" ry="2.4" fill="#fff"/><circle cx="57" cy="40" r="1.9" fill="#3b2415"/><circle cx="57" cy="40" r=".9" fill="#050505"/><circle cx="57.7" cy="39.3" r=".6" fill="#fff"/>'
+    +'<path d="M39.6 39.2Q43 36.6 46.4 39.2M53.6 39.2Q57 36.6 60.4 39.2" stroke="#171010" stroke-width="1.1" fill="none"/>'
+    +'<path d="M39 35Q43 33 47 35M53 35Q57 33 61 35" stroke="'+P.hair+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>'
+    +'<path d="M50 41Q48 46 50 47" stroke="#c9937a" stroke-width="1" fill="none"/>'
+    +'<path d="M45 50.6Q50 49 55 50.6Q50 56.5 45 50.6Z" fill="#d9605a"/><path d="M45 50.6Q50 51.6 55 50.6" stroke="#9c3a35" stroke-width=".6" fill="none"/>'
+    +'<circle cx="38" cy="47" r="3" fill="#ff8a80" opacity=".35"/><circle cx="62" cy="47" r="3" fill="#ff8a80" opacity=".35"/>';
+  return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+back
+    +'<path d="M4 100Q6 70 32 65L68 65Q94 70 96 100Z" fill="'+P.coat+'"/>'
+    +'<rect x="44" y="52" width="12" height="16" rx="4" fill="'+P.skin+'"/>'
+    +'<path d="M38 65L50 88L62 65Z" fill="'+P.shirt+'"/><path d="M38 65L50 88L28 100L20 100Q24 78 38 65Z M62 65L50 88L72 100L80 100Q76 78 62 65Z" fill="#000" opacity=".22"/><path d="M42 64L50 74L58 64L55 62L50 68L45 62Z" fill="#fff" stroke="#ccc" stroke-width=".5"/>'
+    +face+front+acc+'</svg>';
+}
+const GAMES=['chouhan','roulette','poker','blackjack','keiba'],GN={chouhan:'丁半',roulette:'ルーレット',poker:'ポーカー',blackjack:'ブラックジャック',keiba:'競馬'};
+const DEFMSG={chouhan:'賭け方と掛け金を選んでください',roulette:'「賭け台」で賭け先を選び、「追加」→「勝負！」',poker:'ブラインド（掛け金）を決めて「ディール」',blackjack:'掛け金を決めて「ディール」',keiba:'馬と賭け方（単勝・複勝）、掛け金を選んで「発走！」'};
+const GS={chouhan:{on:true,trk:0},roulette:{on:true,trk:0},poker:{on:true,trk:0},blackjack:{on:true,trk:0},keiba:{on:true,trk:0}};
+let game='chouhan',rBets=[],rSel=[],rSelName='',rSelKind='',pPhase=0,pBtn=1,H=null,wAngle=0,bAngle=0;
+function curLabel(){
+  if(game==='chouhan')return choice===null?'—':choice==='even'?'丁':choice==='odd'?'半':choice;
+  if(game==='roulette')return rSel.length?rSelName:(rBets.length?'計'+rBets.reduce((a,b)=>a+b.amt,0):'—');
+  if(game==='poker')return H&&H.on?H.pot+H.cur[0]+H.cur[1]:'—';
+  if(game==='blackjack')return bjOn&&B?bjVal(B.hands[B.cur].cards).t:'—';
+  if(game==='keiba')return kPick<0?'—':(kMode==='win'?'単':'複')+(kPick+1);
+  return '—';
+}
+function fitCh(){const L=String($('ch').textContent).length;$('ch').style.fontSize=L>8?'.65rem':L>6?'.85rem':L>4?'1.05rem':L>3?'1.3rem':L>2?'1.6rem':'';}
+function ready(){
+  if(game==='chouhan')return choice!==null&&bet>=1;
+  if(game==='roulette')return rBets.length>0;
+  if(game==='poker')return pPhase===0&&bet>=2;
+  if(game==='blackjack')return !bjOn&&bet>=1&&bet<=balance;
+  if(game==='keiba')return kPick>=0&&bet>=1&&bet<=balance&&!kRacing;
+  return false;
+}
+function setGoLabel(){$('go').textContent=(game==='poker'||game==='blackjack')?'ディール':game==='keiba'?'発走！':'勝負！';}
+function showGame(){
+  document.body.dataset.g=game;
+  $('stage').hidden=game!=='chouhan';
+  GAMES.forEach(g=>{const e=$('sc-'+g);if(e)e.hidden=g!==game;$('gp-'+g).hidden=g!==game;});
+  $('gtxt').textContent=GN[game];$('gname').classList.toggle('hasd',game!=='chouhan');{const dl=$('dealer'),sc=$('sc-'+game);dl.innerHTML=game==='chouhan'?'':dealerSVG(game);if(sc)sc.insertBefore(dl,sc.firstChild);}
+  $('gname').style.fontSize=GN[game].length>5?'.8rem':'';
+  setGoLabel();fitCards();
+  if(game==='poker')pkRender();
+  if(game==='blackjack')bjRender();
+  if(game==='keiba')kDraw();
+}
+const canSwitch=()=>!(busy||pPhase===1||bjOn);
+function switchGame(dir){
+  if(!canSwitch())return;
+  game=GAMES[(GAMES.indexOf(game)+dir+GAMES.length)%GAMES.length];
+  step=0;clearTimeout(tm);
+  showGame();setSndLabel();
+  $('msg').className='msg';$('msg').textContent=DEFMSG[game];
+  if(ctx&&on)tick();
+  update();
+}
+$('aL').onclick=()=>switchGame(-1);
+$('aR').onclick=()=>switchGame(1);
+$('go').addEventListener('click',()=>{if(game==='roulette')goRoulette();else if(game==='poker')startHand();else if(game==='blackjack')bjDeal();else if(game==='keiba')goKeiba();});
+const brokeNote=()=>balance<=0?' ／ 所持金がなくなりました。上の「借金」で借りられます':'';
+
+/* ルーレット（ヨーロピアン：シングルゼロ） */
+const WH=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const rcol=n=>n===0?'#0a7a3a':REDS.has(n)?'#c62828':'#1a1a1a';
+function buildWheel(){
+  const st=360/37,pt=(r,a)=>{const t=(a-90)*Math.PI/180;return (100+r*Math.cos(t)).toFixed(2)+' '+(100+r*Math.sin(t)).toFixed(2);};
+  let h='<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="99" fill="#4a2c12" stroke="#d4af37" stroke-width="1.5"/><g id="wheel">';
+  WH.forEach((n,i)=>{
+    const a0=i*st-st/2,a1=i*st+st/2;
+    h+='<path d="M'+pt(92,a0)+' A92 92 0 0 1 '+pt(92,a1)+' L'+pt(62,a1)+' A62 62 0 0 0 '+pt(62,a0)+'Z" fill="'+rcol(n)+'" stroke="#d4af37" stroke-width=".6"/>';
+    h+='<text x="100" y="27" font-size="7.5" font-weight="bold" fill="#fff" text-anchor="middle" transform="rotate('+(i*st).toFixed(2)+' 100 100)">'+n+'</text>';
+  });
+  h+='</g><circle cx="100" cy="100" r="58" fill="#2a1a0a" stroke="#d4af37" stroke-width="1"/><circle cx="100" cy="100" r="46" fill="#8b6b2e"/><path d="M100 54V146M54 100H146" stroke="#d4af37" stroke-width="3"/><circle cx="100" cy="100" r="9" fill="#d4af37"/>';
+  h+='<g id="ballg"><circle id="ball" cx="100" cy="6" r="3.4" fill="#fff" stroke="#999" stroke-width=".5"/></g></svg>';
+  $('rsv').innerHTML=h;
+}
+function spinWheel(iw){
+  const st=360/37,delta=(((-iw*st-wAngle)%360)+360)%360;
+  wAngle+=1800+delta;bAngle-=2880;
+  $('wheel').style.transform='rotate('+wAngle+'deg)';
+  $('ballg').style.transform='rotate('+bAngle+'deg)';
+  setTimeout(()=>{$('ball').style.transform='translateY(17px)';},4300);
+}
+const OUTS={low:['1〜18',n=>n<=18],high:['19〜36',n=>n>=19],even:['偶数',n=>n%2===0],odd:['奇数',n=>n%2===1],red:['赤',n=>REDS.has(n)],black:['黒',n=>!REDS.has(n)],
+  d1:['1〜12',n=>n<=12],d2:['13〜24',n=>n>=13&&n<=24],d3:['25〜36',n=>n>=25],c1:['列1',n=>n%3===1],c2:['列2',n=>n%3===2],c3:['列3',n=>n%3===0]};
+const OUTPOS={low:[1,2,4],even:[1,4,6],red:[1,6,8],black:[1,8,10],odd:[1,10,12],high:[1,12,14],d1:[2,2,6],d2:[2,6,10],d3:[2,10,14]};
+function outSet(k){const a=[];for(let n=1;n<=36;n++)if(OUTS[k][1](n))a.push(n);return a;}
+function validInside(a){
+  const n=a.length;
+  if(n===1)return true;
+  const nz=a.filter(x=>x>0).sort((x,y)=>x-y);
+  if(a.indexOf(0)>=0){
+    if(n===2)return nz[0]<=3;
+    if(n===3)return nz.length===2&&nz[1]<=3&&nz[1]-nz[0]===1;
+    if(n===4)return nz.length===3&&nz[2]<=3;
+    return false;
+  }
+  const P=a.map(x=>({r:Math.floor((x-1)/3),c:(x-1)%3}));
+  const rows=Array.from(new Set(P.map(q=>q.r))).sort((x,y)=>x-y),cols=Array.from(new Set(P.map(q=>q.c))).sort((x,y)=>x-y);
+  const contig=v=>v[v.length-1]-v[0]===v.length-1;
+  if(n===2)return (rows.length===1&&contig(cols))||(cols.length===1&&contig(rows));
+  if(n===3)return rows.length===1&&cols.length===3;
+  if(n===4)return rows.length===2&&cols.length===2&&contig(rows)&&contig(cols);
+  if(n===6)return rows.length===2&&cols.length===3&&contig(rows);
+  return false;
+}
+const rTotal=()=>rBets.reduce((a,b)=>a+b.amt,0);
+function placeBet(){
+  if(!rSel.length)return '賭け先を選んでください';
+  if(rSelKind==='in'&&!validInside(rSel))return 'その組み合わせは賭けられません（隣り合う1・2・3・4・6個）';
+  if(bet<1)return '掛け金を入れてください';
+  if(bet>balance)return '所持金が足りません';
+  const key=rSel.join(','),b=rBets.find(x=>x.key===key);
+  if(b)b.amt+=bet;else rBets.push({key:key,nums:rSel.slice(),name:rSelName,amt:bet});
+  balance-=bet;bet=Math.min(bet,balance);
+  return '✔ '+rSelName+' に追加（賭け合計 '+rTotal()+'）';
+}
+function rSheet(note){
+  const keep=$('mbox').scrollTop,sel=new Set(rSel);
+  let g='<button class="rc g'+(sel.has(0)?' on':'')+'" data-rn="0" style="grid-row:1;grid-column:3/6">0</button>';
+  for(let n=1;n<=36;n++)g+='<button class="rc '+(REDS.has(n)?'r':'k')+(sel.has(n)?' on':'')+'" data-rn="'+n+'" style="grid-row:'+(Math.floor((n-1)/3)+2)+';grid-column:'+((n-1)%3+3)+'">'+n+'</button>';
+  const isOn=k=>rSelKind==='out'&&rSelName===OUTS[k][0]?' on':'';
+  Object.keys(OUTPOS).forEach(k=>{const q=OUTPOS[k];g+='<button class="rc o'+(k==='red'?' r':k==='black'?' k':'')+isOn(k)+'" data-ro="'+k+'" style="grid-column:'+q[0]+';grid-row:'+q[1]+'/'+q[2]+'">'+OUTS[k][0]+'</button>';});
+  ['c1','c2','c3'].forEach((k,i)=>{g+='<button class="rc o'+isOn(k)+'" data-ro="'+k+'" style="grid-row:14;grid-column:'+(i+3)+'">'+OUTS[k][0]+'</button>';});
+  const mult=rSel.length?36/rSel.length:0;
+  openModal('<h2>ルーレットの賭け台</h2>'
+    +'<div class="rinfo2">選択：<b>'+(rSel.length?rSelName:'なし')+'</b>'+(rSel.length&&Number.isInteger(mult)?'（配当 '+mult+'倍）':'')+'　所持金 <b>'+balance+'</b></div>'
+    +'<div class="rgrid">'+g+'</div>'
+    +'<div class="rinfo2">賭け：'+(rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'まだありません')+'</div>'
+    +'<div class="mr"><button data-rt="clr">選択解除</button><button data-rt="undo">全て取り消す</button></div>'
+    +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
+  $('modal').classList.add('sheet');$('mbox').scrollTop=keep;
+}
+$('mbox').addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b||$('modal').hidden||!$('modal').classList.contains('sheet')||busy)return;
+  const d=b.dataset;let note='';
+  if(d.rn!==undefined){
+    const n=Number(d.rn);
+    if(rSelKind!=='in'){rSel=[];rSelKind='in';}
+    const i=rSel.indexOf(n);if(i>=0)rSel.splice(i,1);else rSel.push(n);
+    rSel.sort((x,y)=>x-y);rSelName=rSel.join('・');
+  }else if(d.ro){rSel=outSet(d.ro);rSelName=OUTS[d.ro][0];rSelKind='out';}
+  else if(d.rt==='clr'){rSel=[];rSelName='';rSelKind='';}
+  else if(d.rt==='undo'){balance+=rTotal();rBets=[];note='全て取り消しました';}
+  else return;
+  update();rSheet(note);
+});
+$('rtable').onclick=()=>rSheet();
+$('radd').onclick=()=>{const t=placeBet();update();$('msg').className='msg';$('msg').textContent=t;};
+async function goRoulette(){
+  if($('go').disabled)return;
+  busy=true;update();$('go').disabled=true;
+  const msg=$('msg'),total=rTotal(),bets=rBets.slice();
+  msg.className='msg';msg.textContent='ボールが回ります…（賭け合計 '+total+'）';
+  $('ball').style.transform='translateY(0)';
+  const w=Math.floor(rr()*37);
+  await wait(400);spinWheel(WH.indexOf(w));await wait(5400);
+  const col=w===0?'緑':REDS.has(w)?'赤':'黒';
+  let pay=0;
+  bets.forEach(b=>{if(b.nums.indexOf(w)>=0)pay+=b.amt*36/b.nums.length;});
+  rBets=[];balance+=pay;sfx(pay>total);
+  const eo=w===0?'':(w%2===0?'・偶数':'・奇数');
+  const net=pay-total;
+  msg.className='msg '+(net>0?'win':net<0?'lose':'');
+  msg.textContent=col+'の'+w+eo+'！ '+(pay>0?pay+'獲得':'的中なし')+'（賭け'+total+'／'+(net>=0?'+':'')+net+'）'+brokeNote();
+  busy=false;update();
+}
+
+/* ポーカー（テキサスホールデム：1対1・ノーリミット） */
+function newDeck(){const d=[];for(let s=0;s<4;s++)for(let r=2;r<=14;r++)d.push({r:r,s:s});for(let i=d.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+const RN=r=>r<=10?String(r):'JQKA'[r-11];
+const HN=['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'],SN=['プリフロップ','フロップ','ターン','リバー'];
+function rank5(c){
+  const rs=c.map(x=>x.r).sort((a,b)=>b-a),flush=c.every(x=>x.s===c[0].s),cnt={};
+  rs.forEach(r=>{cnt[r]=(cnt[r]||0)+1;});
+  const grp=Object.keys(cnt).map(Number).sort((a,b)=>cnt[b]-cnt[a]||b-a),u=Array.from(new Set(rs));
+  let sh=0;
+  if(u.length===5){if(u[0]-u[4]===4)sh=u[0];else if(u.join()==='14,5,4,3,2')sh=5;}
+  let cat,ks;
+  if(sh&&flush){cat=8;ks=[sh];}
+  else if(cnt[grp[0]]===4){cat=7;ks=grp;}
+  else if(cnt[grp[0]]===3&&cnt[grp[1]]===2){cat=6;ks=grp;}
+  else if(flush){cat=5;ks=rs;}
+  else if(sh){cat=4;ks=[sh];}
+  else if(cnt[grp[0]]===3){cat=3;ks=grp;}
+  else if(cnt[grp[0]]===2&&cnt[grp[1]]===2){cat=2;ks=grp;}
+  else if(cnt[grp[0]]===2){cat=1;ks=grp;}
+  else{cat=0;ks=rs;}
+  let v=cat;for(let i=0;i<5;i++)v=v*15+(ks[i]||0);
+  return v;
+}
+function best7(cs){
+  let b=-1;
+  for(let i=0;i<6;i++)for(let j=i+1;j<7;j++){const h=[];for(let k=0;k<7;k++)if(k!==i&&k!==j)h.push(cs[k]);const v=rank5(h);if(v>b)b=v;}
+  return b;
+}
+function handName(v){const cat=Math.floor(v/759375);return cat===8&&Math.floor(v/50625)%15===14?'ロイヤルフラッシュ':HN[cat];}
+function equity(hole,board,sims){
+  const used=new Set(hole.concat(board).map(c=>c.r*4+c.s)),rest=[];
+  for(let s=0;s<4;s++)for(let r=2;r<=14;r++)if(!used.has(r*4+s))rest.push({r:r,s:s});
+  const need=2+(5-board.length);let w=0;
+  for(let k=0;k<sims;k++){
+    const d=rest.slice();
+    for(let i=0;i<need;i++){const j=i+Math.floor(rr()*(d.length-i));const t=d[i];d[i]=d[j];d[j]=t;}
+    const run=board.concat(d.slice(2,need)),a=best7(hole.concat(run)),b=best7([d[0],d[1]].concat(run));
+    w+=a>b?1:a===b?.5:0;
+  }
+  return w/sims;
+}
+const cardHTML=(c,up)=>!c?'<div class="card ph"></div>':!up?'<div class="card back"></div>':'<div class="card'+(c.s%2===1?' red':'')+'"><span class="rk">'+RN(c.r)+'</span><span class="su">'+'♠♥♣♦'[c.s]+'\uFE0E</span></div>';
+function pkRender(){
+  const o=H?H.oh:[null,null],h=H?H.hole:[null,null],sh=H&&H.show;
+  $('ocards').innerHTML=o.map(c=>c?cardHTML(c,sh):'<div class="card ph"></div>').join('');
+  let b='';for(let i=0;i<5;i++)b+=cardHTML(H?H.board[i]:null,true);
+  $('bcards').innerHTML=b;
+  $('hcards').innerHTML=h.map(c=>cardHTML(c,true)).join('');
+  const pot=H?H.pot+H.cur[0]+H.cur[1]:0;
+  $('pinfo').textContent='ポット '+pot+(H&&H.on?'　'+SN[H.street]:'');
+  $('olabel').textContent='相手'+(H&&H.btn===1?'（ボタン）':'')+(H&&H.cur[1]?'　賭け '+H.cur[1]:'');
+  $('plabel').textContent='あなた'+(H&&H.btn===0?'（ボタン）':'')+(H&&H.cur[0]?'　賭け '+H.cur[0]:'');
+}
+const toCall=p=>H.betTo-H.cur[p];
+const canPlay=()=>!!(H&&H.on&&H.toAct===0&&!busy);
+function post(p,amt){
+  if(p===0){const a=Math.min(amt,balance);balance-=a;H.cur[0]+=a;H.inv+=a;}else H.cur[1]+=amt;
+}
+function apply(p,type,amt){
+  if(type==='fold'){H.folded=p;return;}
+  if(type==='call'){
+    const need=toCall(p);
+    if(p===0){const a=Math.min(need,balance);balance-=a;H.cur[0]+=a;H.inv+=a;}else H.cur[1]+=need;
+    H.acted[p]=true;
+  }else{
+    const need=amt-H.cur[p];
+    if(p===0){balance-=need;H.cur[0]+=need;H.inv+=need;}else H.cur[1]+=need;
+    H.minRaise=Math.max(H.minRaise,amt-H.betTo);H.betTo=amt;
+    H.acted=[false,false];H.acted[p]=true;
+  }
+}
+function oppDecide(){
+  const potT=H.pot+H.cur[0]+H.cur[1],tc=toCall(1),cap=H.cur[0]+balance,canRaise=cap>H.betTo;
+  const eq=equity(H.oh,H.board,140);
+  const sized=f=>Math.min(cap,Math.max(H.betTo+1,H.betTo+Math.max(H.minRaise,Math.round(potT*f))));
+  if(tc===0){
+    if(canRaise&&(eq>.65||(Math.random()<.14&&eq>.3)))return{type:'raise',amt:Math.max(sized(.45+eq*.35),Math.min(H.bb,cap))};
+    return{type:'call'};
+  }
+  const odds=tc/(potT+tc);
+  if(canRaise&&eq>.82&&Math.random()<.8)return{type:'raise',amt:sized(.75)};
+  if(eq>odds+.03||Math.random()<.05)return{type:'call'};
+  return{type:'fold'};
+}
+async function startHand(){
+  if(pPhase!==0||bet<2||busy)return;
+  const BB=Math.min(bet,balance),SB=Math.max(1,Math.floor(BB/2));
+  pBtn=1-pBtn;
+  H={on:true,deck:newDeck(),board:[],pot:0,street:0,cur:[0,0],betTo:BB,minRaise:BB,bb:BB,sb:SB,acted:[false,false],toAct:0,btn:pBtn,inv:0,show:false,folded:-1,last:''};
+  H.hole=H.deck.splice(0,2);H.oh=H.deck.splice(0,2);
+  pPhase=1;
+  const sbP=pBtn===0?0:1,bbP=1-sbP;
+  post(sbP,SB);post(bbP,BB);
+  H.toAct=sbP;
+  const msg=$('msg');msg.className='msg';
+  msg.textContent='ブラインド '+SB+'／'+BB+(pBtn===0?'（あなたがボタン）':'（相手がボタン）');
+  pkRender();update();
+  await pkLoop();
+}
+async function pkLoop(){
+  while(H&&H.on&&H.toAct===1){
+    busy=true;update();pkRender();
+    await wait(900);
+    const d=oppDecide(),pre=H.betTo,tc=toCall(1);
+    apply(1,d.type,d.amt);
+    H.last='相手：'+(d.type==='fold'?'フォールド':d.type==='raise'?(pre===0?'ベット ':'レイズ ')+d.amt:(tc>0?'コール '+tc:'チェック'));
+    $('msg').className='msg';$('msg').textContent=H.last;
+    await afterAction(1);
+  }
+  busy=false;
+  if(H&&H.on)playerTurn();else update();
+}
+async function afterAction(p){
+  if(H.folded>=0){finish(1-H.folded,'fold');return;}
+  if(H.acted[0]&&H.acted[1]&&(H.cur[0]===H.cur[1]||balance===0)){await endStreet();return;}
+  H.toAct=1-p;pkRender();update();
+}
+async function endStreet(){
+  if(H.cur[1]>H.cur[0]&&balance===0)H.cur[1]=H.cur[0];
+  H.pot+=H.cur[0]+H.cur[1];H.cur=[0,0];H.betTo=0;H.acted=[false,false];H.minRaise=H.bb;
+  const allIn=balance===0;
+  for(;;){
+    if(H.street===3){await showdown();return;}
+    H.street++;
+    H.board=H.board.concat(H.deck.splice(0,H.street===1?3:1));
+    pkRender();
+    if(allIn){await wait(1100);continue;}
+    break;
+  }
+  H.toAct=H.btn===0?1:0;
+  pkRender();update();
+}
+async function showdown(){
+  H.show=true;pkRender();await wait(700);
+  const a=best7(H.hole.concat(H.board)),b=best7(H.oh.concat(H.board));
+  finish(a>b?0:a<b?1:-1,'show',handName(a),handName(b));
+}
+function finish(w,mode,na,nb){
+  H.on=false;pPhase=0;busy=false;
+  const pot=H.pot+H.cur[0]+H.cur[1];H.pot=pot;H.cur=[0,0];
+  const back=w===0?pot:w===-1?Math.floor(pot/2):0;
+  balance+=back;
+  const net=back-H.inv,msg=$('msg');
+  const t=mode==='fold'?(w===0?'相手がフォールド。ポット '+pot+' を獲得':'あなたはフォールド'):(w===0?'勝ち！ ':w===1?'負け… ':'引き分け ')+'あなた：'+na+'／相手：'+nb;
+  msg.className='msg '+(net>0?'win':net<0?'lose':'');
+  msg.textContent=t+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
+  sfx(net>0);
+  bet=Math.min(H.bb,balance);
+  pkRender();update();
+}
+function playerTurn(){
+  const tc=toCall(0),minTo=H.betTo===0?H.bb:H.betTo+H.minRaise;
+  bet=Math.min(minTo,H.cur[0]+balance);
+  $('msg').className='msg';
+  $('msg').textContent=(H.last?H.last+' ／ ':'')+'あなたの番です'+(tc>0?'（コール '+Math.min(tc,balance)+'）':'');
+  pkRender();update();
+}
+async function playerAct(type,amt){
+  if(!canPlay())return;
+  busy=true;
+  apply(0,type,amt);H.last='';
+  await afterAction(0);
+  if(H.on)await pkLoop();
+  busy=false;update();
+}
+function raiseOk(){
+  if(!canPlay())return false;
+  const minTo=H.betTo===0?H.bb:H.betTo+H.minRaise,maxTo=H.cur[0]+balance;
+  return bet<=maxTo&&(bet>=minTo||(bet===maxTo&&bet>H.betTo));
+}
+function pkUI(){
+  const my=canPlay(),tc=H&&H.on?Math.min(toCall(0),balance):0;
+  $('pfold').disabled=!my;
+  $('pcall').disabled=!my;
+  $('pcall').innerHTML=tc>0?'コール<br>'+tc:'チェック';
+  $('praise').disabled=!raiseOk();
+  $('pallin').disabled=!(my&&balance>0);
+  $('pallin').innerHTML='オールイン'+(my?'<br>'+(H.cur[0]+balance):'');
+  $('praise').innerHTML=((H&&H.on&&H.betTo>0)?'レイズ':'ベット')+'<br>'+(bet>0?bet:'');
+}
+function gameUI(){
+  const sw=canSwitch()?'visible':'hidden';$('aL').style.visibility=sw;$('aR').style.visibility=sw;
+  if(game==='roulette'){
+    $('radd').disabled=busy||!rSel.length||bet<1||bet>balance;
+    $('rinfo').textContent=rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'賭けはまだありません';
+  }else if(game==='poker')pkUI();
+  else if(game==='blackjack')bjUI();
+  else if(game==='keiba')kUI();
+
+}
+$('pfold').onclick=()=>playerAct('fold');
+$('pcall').onclick=()=>playerAct('call');
+$('praise').onclick=()=>{if(raiseOk())playerAct('raise',bet);};
+$('pallin').onclick=()=>{if(!canPlay()||balance<=0)return;const mx=H.cur[0]+balance;if(mx>H.betTo)playerAct('raise',mx);else playerAct('call');};
+/* ブラックジャック */
+let B=null,bjOn=false,shoe=[];
+const bjCV=c=>c.r===14?11:c.r>=10?10:c.r;
+function bjVal(cs){let t=0,a=0;cs.forEach(c=>{if(c.r===14){a++;t+=11;}else t+=c.r>=10?10:c.r;});while(t>21&&a>0){t-=10;a--;}return{t:t,soft:a>0};}
+function bjShoe(){let a=[];for(let i=0;i<6;i++)a=a.concat(newDeck());for(let i=a.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function bjDraw(){if(shoe.length<60)shoe=bjShoe();return shoe.pop();}
+const isNat=h=>B.hands.length===1&&!h.sp&&h.cards.length===2&&bjVal(h.cards).t===21;
+function bjRender(){
+  const d=B?B.dealer:[],hs=B?B.hands:[];
+  $('dcards').innerHTML=d.length?d.map((c,i)=>cardHTML(c,!(B.hole&&i===1))).join(''):'<div class="card ph"></div><div class="card ph"></div>';
+  $('dlabel').textContent='ディーラー'+(B&&d.length?'　'+(B.hole?bjVal([d[0]]).t+' ＋ ？':bjVal(d).t):'');
+  for(let i=0;i<2;i++){
+    const h=hs[i],cs=$('h'+(i+1)+'cards'),lab=$('h'+(i+1)+'label');
+    if(h){
+      const v=bjVal(h.cards);
+      cs.innerHTML=h.cards.map(c=>cardHTML(c,true)).join('');
+      lab.textContent=(B.cur===i&&bjOn&&!B.over?'▶ ':'')+'あなた'+(hs.length>1?(i+1):'')+'　'+v.t+(v.soft&&v.t<21?'（ソフト）':'')+(v.t>21?' バースト':'')+'　掛け金 '+h.bet;
+    }else{cs.innerHTML=i===0?'<div class="card ph"></div><div class="card ph"></div>':'';lab.textContent=i===0?'あなた':'';}
+  }
+}
+async function bjDeal(){
+  if(bjOn||busy||bet<1||bet>balance)return;
+  const stake=bet;balance-=stake;
+  B={dealer:[],hands:[{cards:[],bet:stake,done:false,dbl:false,sp:false}],cur:0,hole:true,over:false};
+  bjOn=true;busy=true;update();
+  const h=B.hands[0];
+  h.cards.push(bjDraw());bjRender();await wait(250);
+  B.dealer.push(bjDraw());bjRender();await wait(250);
+  h.cards.push(bjDraw());bjRender();await wait(250);
+  B.dealer.push(bjDraw());bjRender();await wait(250);
+  if(bjVal(h.cards).t===21||bjVal(B.dealer).t===21){B.hole=false;bjRender();await wait(600);await bjSettle();return;}
+  $('msg').className='msg';$('msg').textContent='ヒット・スタンド・ダブル・スプリットから選んでください';
+  busy=false;bjRender();update();
+}
+async function bjSettle(){
+  B.over=true;B.hole=false;busy=true;bjRender();
+  const dNat=B.dealer.length===2&&bjVal(B.dealer).t===21;
+  const alive=B.hands.some(h=>bjVal(h.cards).t<=21);
+  if(alive&&!dNat&&!isNat(B.hands[0])){
+    while(bjVal(B.dealer).t<17){await wait(700);B.dealer.push(bjDraw());bjRender();}
+  }
+  const dt=bjVal(B.dealer).t;let back=0;const res=[];
+  B.hands.forEach(h=>{
+    const pt=bjVal(h.cards).t,nat=isNat(h);let m,txt;
+    if(pt>21){m=0;txt='バースト';}
+    else if(nat&&!dNat){m=2.5;txt='ブラックジャック！';}
+    else if(nat&&dNat){m=1;txt='引き分け';}
+    else if(dNat){m=0;txt='ディーラーのブラックジャック';}
+    else if(dt>21){m=2;txt='ディーラーがバースト';}
+    else if(pt>dt){m=2;txt='勝ち';}
+    else if(pt===dt){m=1;txt='引き分け';}
+    else{m=0;txt='負け';}
+    back+=h.bet*m;res.push(txt);
+  });
+  balance+=back;
+  const inv=B.hands.reduce((a,h)=>a+h.bet,0),net=back-inv,msg=$('msg');
+  msg.className='msg '+(net>0?'win':net<0?'lose':'');
+  msg.textContent=res.join(' ／ ')+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
+  sfx(net>0);
+  bjOn=false;busy=false;bet=Math.min(bet,balance);
+  bjRender();update();
+}
+async function bjAct(a){
+  if(!bjOn||busy||B.over)return;
+  const h=B.hands[B.cur];
+  busy=true;
+  if(a==='hit')h.cards.push(bjDraw());
+  else if(a==='dbl'){balance-=h.bet;h.bet*=2;h.dbl=true;h.cards.push(bjDraw());h.done=true;}
+  else if(a==='split'){
+    balance-=h.bet;
+    const nh={cards:[h.cards.pop()],bet:h.bet,done:false,dbl:false,sp:true};
+    h.sp=true;B.hands.push(nh);
+    h.cards.push(bjDraw());nh.cards.push(bjDraw());
+    if(h.cards[0].r===14){h.done=true;nh.done=true;}
+  }else h.done=true;
+  B.hands.forEach(x=>{if(x.cards.length>=2&&bjVal(x.cards).t>=21)x.done=true;});
+  bjRender();update();await wait(450);
+  const nx=B.hands.findIndex(x=>!x.done);
+  if(nx>=0){B.cur=nx;busy=false;$('msg').className='msg';$('msg').textContent='あなたの番です';bjRender();update();}
+  else await bjSettle();
+}
+function bjUI(){
+  const my=bjOn&&!busy&&B&&!B.over,h=my?B.hands[B.cur]:null;
+  $('bhit').disabled=!my;
+  $('bstand').disabled=!my;
+  $('bdbl').disabled=!(my&&h.cards.length===2&&!h.dbl&&balance>=h.bet);
+  $('bsplit').disabled=!(my&&B.hands.length===1&&h.cards.length===2&&bjCV(h.cards[0])===bjCV(h.cards[1])&&balance>=h.bet);
+}
+$('bhit').onclick=()=>bjAct('hit');
+$('bstand').onclick=()=>bjAct('stand');
+$('bdbl').onclick=()=>bjAct('dbl');
+$('bsplit').onclick=()=>bjAct('split');
+
+
+/* 競馬（6頭立て・単勝／複勝） */
+const KN=6,KCOL=['#f5f5f5','#222','#d32f2f','#1976d2','#fbc02d','#2e7d32'],KBODY=['#7b4a22','#3e2414','#a0662d','#2b2b2b','#b88a52','#6e6e6e'];
+let K=null,kPick=-1,kMode='win',kRacing=false,kRaf=0;
+function kOrder(w){
+  const idx=w.map((_,i)=>i),ws=w.slice(),o=[];
+  while(idx.length){const t=ws.reduce((a,b)=>a+b,0);let r=rr()*t,j=0;while(j<ws.length-1&&r>=ws[j]){r-=ws[j];j++;}o.push(idx[j]);idx.splice(j,1);ws.splice(j,1);}
+  return o;
+}
+function kField(){
+  const w=[];for(let i=0;i<KN;i++)w.push(Math.pow(.5+1.5*rr(),1.5));
+  const sw=w.reduce((a,b)=>a+b,0),pl=new Array(KN).fill(0),SIM=600,rd=x=>Math.round(x*10)/10;
+  for(let t=0;t<SIM;t++){const o=kOrder(w);for(let r=0;r<3;r++)pl[o[r]]++;}
+  return {w:w,ow:w.map(x=>Math.min(99,Math.max(1.1,rd(.8*sw/x)))),op:pl.map(c=>Math.min(30,Math.max(1.1,rd(.8/Math.max(.02,c/SIM)))))};
+}
+let KF=kField();
+function kHorse(g,x,y,s,body,silk,num,ph,run){
+  const dark='#1a1008';
+  g.lineCap='round';g.strokeStyle=dark;g.lineWidth=Math.max(2,s*.07);
+  [[.32,0],[.2,Math.PI],[-.3,Math.PI*.5],[-.42,Math.PI*1.5]].forEach(q=>{
+    const lx=x+q[0]*s,sw=run?Math.sin(ph+q[1]):.2,lift=run?Math.max(0,Math.cos(ph+q[1])):0;
+    g.beginPath();g.moveTo(lx,y+.1*s);g.lineTo(lx+sw*.24*s,y+(.5-lift*.12)*s);g.stroke();
+  });
+  g.strokeStyle=dark;g.lineWidth=Math.max(2,s*.08);
+  g.beginPath();g.moveTo(x-.44*s,y-.08*s);g.quadraticCurveTo(x-.72*s,y+(run?Math.sin(ph)*.08:0)*s,x-.62*s,y+.28*s);g.stroke();
+  g.fillStyle=body;
+  g.beginPath();g.ellipse(x,y,.5*s,.22*s,0,0,6.2832);g.fill();
+  g.beginPath();g.moveTo(x+.3*s,y-.12*s);g.lineTo(x+.48*s,y-.4*s);g.lineTo(x+.64*s,y-.3*s);g.lineTo(x+.44*s,y+.06*s);g.closePath();g.fill();
+  g.beginPath();g.ellipse(x+.64*s,y-.25*s,.17*s,.08*s,.55,0,6.2832);g.fill();
+  g.fillStyle=dark;g.beginPath();g.arc(x+.7*s,y-.3*s,Math.max(1,s*.025),0,6.2832);g.fill();
+  g.fillStyle=silk;g.beginPath();g.ellipse(x-.02*s,y-.34*s,.12*s,.15*s,-.4,0,6.2832);g.fill();
+  g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;g.stroke();
+  g.fillStyle='#f1c7a1';g.beginPath();g.arc(x+.08*s,y-.53*s,.075*s,0,6.2832);g.fill();
+  g.fillStyle=silk;g.beginPath();g.arc(x+.08*s,y-.55*s,.08*s,3.3,6.1);g.fill();
+  g.fillStyle=(silk==='#f5f5f5'||silk==='#fbc02d')?'#000':'#fff';
+  g.font='bold '+Math.max(8,s*.2)+'px sans-serif';g.textAlign='center';g.textBaseline='middle';
+  g.fillText(num,x-.04*s,y-.33*s);
+}
+function kDraw(){
+  const c=$('kcv');if(!c)return;
+  const W=c.clientWidth,H=c.clientHeight;if(W<=0||H<=0)return;
+  if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
+  const g=c.getContext('2d');g.clearRect(0,0,W,H);
+  const top=3,lh=(H-top*2)/KN,sz=Math.min(lh*1.15,46),x0=Math.max(30,sz*.62),xf=W-sz*.7-22;
+  for(let i=0;i<KN;i++){const y=top+i*lh;g.fillStyle=i%2?'#a9743a':'#b8834a';g.fillRect(0,y,W,lh);g.fillStyle='rgba(255,255,255,.5)';g.fillRect(0,y+lh-1,W,1.5);}
+  g.fillStyle='#fff';g.fillRect(x0-sz*.55-3,top,2,H-top*2);
+  const fx=xf+sz*.55;
+  for(let r=0;r<Math.ceil((H-top*2)/6);r++)for(let k=0;k<2;k++){g.fillStyle=(r+k)%2?'#fff':'#111';g.fillRect(fx+k*5,top+r*6,5,Math.min(6,H-top-(top+r*6)));}
+  for(let i=0;i<KN;i++){
+    const yc=top+i*lh+lh/2,p=K?K.pos[i]:0,x=x0+p*(xf-x0);
+    const run=!!(K&&K.racing&&p>0&&p<1);
+    kHorse(g,x,yc-.08*sz,sz,KBODY[i],KCOL[i],i+1,K?K.t*16+i*1.3:0,run);
+    g.textAlign='center';g.textBaseline='middle';
+    if(K&&K.fin){g.fillStyle='#ffe082';g.font='bold '+Math.max(10,lh*.38)+'px sans-serif';g.strokeStyle='#000';g.lineWidth=3;const t=(K.ord.indexOf(i)+1)+'着';g.strokeText(t,15,yc);g.fillText(t,15,yc);}
+    else{g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.arc(13,yc,Math.max(7,lh*.26),0,6.2832);g.fill();g.fillStyle='#fff';g.font='bold '+Math.max(9,lh*.34)+'px sans-serif';g.fillText(i+1,13,yc+.5);}
+  }
+}
+function kUI(){
+  for(let i=0;i<KN;i++){
+    const b=$('kh'+i);
+    b.innerHTML=(i+1)+'<br>'+(kMode==='win'?KF.ow[i]:KF.op[i])+'倍';
+    b.classList.toggle('sel',kPick===i);b.disabled=busy;
+  }
+  $('kwin').classList.toggle('sel',kMode==='win');$('kplace').classList.toggle('sel',kMode==='place');
+  $('kwin').disabled=busy;$('kplace').disabled=busy;
+}
+document.querySelectorAll('#gp-keiba .kh').forEach(b=>{b.onclick=()=>{if(busy)return;kPick=Number(b.dataset.h);update();};});
+$('kwin').onclick=()=>{if(busy)return;kMode='win';update();};
+$('kplace').onclick=()=>{if(busy)return;kMode='place';update();};
+async function goKeiba(){
+  if($('go').disabled||kPick<0||bet<1||bet>balance)return;
+  busy=true;kRacing=true;
+  const stake=bet,pick=kPick,mode=kMode,F=KF,msg=$('msg');
+  balance-=stake;bet=Math.min(bet,balance);update();$('go').disabled=true;
+  msg.className='msg';msg.textContent='ゲートが開きます…（'+(mode==='win'?'単勝':'複勝')+' '+(pick+1)+'番 '+stake+'）';
+  const ord=kOrder(F.w),T=new Array(KN),A=[],Kk=[],Ph=[];
+  ord.forEach((h,r)=>{T[h]=8+.32*r+Math.random()*.1;});
+  for(let i=0;i<KN;i++){A[i]=.03+Math.random()*.03;Kk[i]=2+Math.floor(Math.random()*2);Ph[i]=Math.random()*6.2832;}
+  K={pos:new Array(KN).fill(0),t:0,ord:ord,racing:true,fin:false};
+  kDraw();await wait(500);
+  const t0=performance.now();
+  await new Promise(res=>{
+    function f(now){
+      const t=(now-t0)/1000;K.t=t;
+      for(let i=0;i<KN;i++){
+        const Ti=T[i];let p;
+        if(t<Ti)p=t/Ti+A[i]*Math.sin(6.2832*Kk[i]*t/Ti+Ph[i])*Math.sin(Math.PI*t/Ti);
+        else p=1+.06*(1-Math.exp(-(t-Ti)*3));
+        K.pos[i]=Math.max(K.pos[i],p);
+      }
+      kDraw();
+      if(t>=T[ord[KN-1]]+.8){res();return;}
+      kRaf=requestAnimationFrame(f);
+    }
+    kRaf=requestAnimationFrame(f);
+  });
+  K.racing=false;K.fin=true;kDraw();
+  const r=ord.indexOf(pick);let pay=0;
+  if(mode==='win'&&r===0)pay=Math.floor(stake*F.ow[pick]);
+  if(mode==='place'&&r<3)pay=Math.floor(stake*F.op[pick]);
+  balance+=pay;sfx(pay>0);
+  const net=pay-stake;
+  msg.className='msg '+(net>0?'win':net<0?'lose':'');
+  msg.textContent='1着'+(ord[0]+1)+'番／2着'+(ord[1]+1)+'番／3着'+(ord[2]+1)+'番　'+(pay>0?'的中！'+pay+'獲得':'外れ。'+stake+'失いました')+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
+  KF=kField();kRacing=false;busy=false;bet=Math.min(bet,balance);update();
+}
+window.addEventListener('resize',kDraw);
+function fitCards(){
+  const f=$('field'),availH=f.clientHeight-212-62,cwH=(availH-95)/3/1.4,cwW=(f.clientWidth-12-16)/5;
+  f.style.setProperty('--cw',Math.max(28,Math.min(cwH,cwW,84)).toFixed(1)+'px');
+}
+window.addEventListener('resize',fitCards);
+buildWheel();pkRender();
+function fit(){
+  const f=$('field'),R=f.clientHeight-272;
+  const k=Math.max(.7,Math.min(R/285,f.clientWidth/190));
+  $('stage').style.transform='translateX(-50%) scale('+k+')';fitMon($('bet'));fitMon($('numv'));
+}
+window.addEventListener('resize',fit);
+fit();
+showGame();
+startAudio();
+update();
+$('field').appendChild($('helpbtn'));$('field').appendChild($('onbtn'));$('field').appendChild($('oppbar'));
+function openHelp(){document.querySelectorAll('#help p[data-g]').forEach(p=>p.classList.toggle('cur',p.dataset.g===game));$('help').hidden=false;}
+$('helpbtn').onclick=openHelp;
+$('helpx').onclick=()=>{$('help').hidden=true;};
+$('help').onclick=e=>{if(e.target===$('help'))$('help').hidden=true;};
+/* オープニング用の明るい音楽 */
+let imOn=true,imStep=0,imTm=null;
+const IM_M=[72,76,79,84,83,79,76,79,77,81,84,89,88,84,81,84,79,83,86,91,89,86,83,86,84,79,76,79,84,-1,-1,-1];
+const IM_B=[48,55,52,55,53,57,53,57,55,59,55,59,48,55,52,55];
+function imTick(){
+  if(!imOn)return;
+  if(ctx){try{
+    const s=imStep%32,m=IM_M[s];
+    if(m>0){tone(mf(m),.1,.28,'triangle');if(s%2===0)tone(mf(m-12),.05,.3,'square');}
+    if(s%2===0)tone(mf(IM_B[(s/2)%16]-12),.09,.4,'triangle');
+    if(s%4===0)kick(.35);
+    if(s%2===1)hat(.04);
+    if(s===0||s===16)[60,64,67].forEach(n=>tone(mf(n),.05,.9,'triangle'));
+  }catch(e){}}
+  imStep++;imTm=setTimeout(imTick,150);
+}
+function imStart(){clearTimeout(tm);if(!ctx)startAudio();clearTimeout(tm);try{if(ctx&&ctx.resume)ctx.resume();}catch(e){}if(!imTm)imTick();}
+imStart();
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,function f(){if(!imOn)return;imStart();document.removeEventListener(ev,f);},{once:true}));
+$('introgo').onclick=()=>{imOn=false;clearTimeout(imTm);try{if(ctx&&ctx.resume)ctx.resume();clearTimeout(tm);step=0;if(on)tick();}catch(e){}$('intro').classList.add('out');setTimeout(()=>$('intro').remove(),700);};
+/* オンライン対戦（PeerJS） */
+let net=null,conn=null,room='',cnt={},opp=null;
+const hs=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
+const onNote=m=>{$('onn').textContent=m;};
+function showOpp(){const b=$('oppbar');if(!online||!opp){b.hidden=true;return;}const d=balance-opp.b;b.hidden=false;b.textContent='相手 '+opp.b+'（'+GN[opp.g]+'）差 '+(d>=0?'+':'')+d;}
+function sendSt(){try{if(conn&&conn.open)conn.send({b:balance,g:game});}catch(e){}}
+function netOff(m){online=false;conn=null;opp=null;try{net&&net.destroy();}catch(e){}net=null;showOpp();$('onbtn').classList.remove('live');$('onbtn').textContent='オンライン';if(m)onNote(m);}
+function link(c){
+  c.on('open',()=>{
+    if(online){c.close();return;}
+    conn=c;online=true;cnt={};opp=null;$('onbtn').classList.add('live');$('onbtn').textContent='接続中●';
+    if(!busy&&!kRacing){_sd=hs(room+'kf');KF=kField();}
+    onNote('接続しました！同じ条件で勝負です');sendSt();update();setTimeout(()=>{$('onl').hidden=true;},900);
+  });
+  c.on('data',d=>{opp=d;showOpp();});
+  c.on('close',()=>netOff('相手との接続が切れました'));
+}
+function goOnline(code){
+  if(typeof Peer==='undefined'){onNote('通信ライブラリを読み込めません。ネット接続を確認して開き直してください');return;}
+  netOff();room=code;const id='sekaicasino-'+hs(code).toString(36);onNote('接続中…');
+  const p=new Peer(id);net=p;
+  p.on('open',()=>onNote('相手を待っています…（相手も同じコードで接続）'));
+  p.on('connection',c=>link(c));
+  p.on('error',e=>{
+    if(e.type==='unavailable-id'){
+      try{p.destroy();}catch(x){}
+      const q=new Peer();net=q;
+      q.on('open',()=>link(q.connect(id,{reliable:true})));
+      q.on('error',er=>netOff('接続できませんでした（'+er.type+'）'));
+    }else netOff('接続エラー：'+e.type);
+  });
+}
+$('go').addEventListener('click',()=>{if(!online)return;cnt[game]=(cnt[game]||0)+1;_sd=hs(room+game+cnt[game]);},true);
+const _upd=update;update=function(){_upd.apply(this,arguments);sendSt();showOpp();};
+$('onbtn').onclick=()=>{$('onl').hidden=false;};
+$('onx').onclick=()=>{$('onl').hidden=true;};
+$('onoff').onclick=()=>netOff('切断しました');
+$('onok').onclick=()=>{const c=$('onc').value.trim();if(!c){onNote('合言葉を入力してください');return;}goOnline(c);};
+/* 銀行 */
+function bankModal(note){
+  openModal('<h2>銀行</h2><div>所持金 <b>'+balance+'</b>／預金 <b>'+bank.toFixed(2)+'</b></div><small>ゲームを10回プレイするごとに預金が1%増えます（あと'+(10-plays%10)+'回）。引き出すと小数部分は消えます。</small>'
+    +'<div class="mr"><button data-dp="1000">1000預ける</button><button data-dp="10000">10000預ける</button><button data-dp="all">全額預ける</button></div>'
+    +'<div class="mr"><button data-wd="1000">1000引き出す</button><button data-wd="all">全額引き出す</button></div>'
+    +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
+}
+$('bank').onclick=()=>bankModal();
+$('mbox').addEventListener('click',e=>{
+  const t=e.target.dataset;if(!(t.dp||t.wd))return;
+  if(busy||pPhase===1||bjOn||rBets.length>0){bankModal('勝負の最中は使えません');return;}
+  if(t.dp){const a=t.dp==='all'?balance:Number(t.dp);if(a<=0||a>balance){bankModal('所持金が足りません');return;}balance-=a;bank+=a;update();bankModal(a+'預けました');}
+  else{const f=Math.floor(bank),a=t.wd==='all'?f:Number(t.wd);if(a<=0||a>f){bankModal('預金が足りません');return;}balance+=a;bank=t.wd==='all'?0:bank-a;update();bankModal(a+'引き出しました'+(t.wd==='all'?'（小数部分は消えました）':''));}
+});
+$('go').addEventListener('click',()=>{plays++;if(plays%10===0)bank*=1.01;},true);
+</script>
+</body>
+</html>
