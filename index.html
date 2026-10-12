@@ -225,7 +225,7 @@ button.b:disabled{opacity:.45}
   <div class="scene wide" id="sc-blackjack" hidden><div class="pk">
     <div class="plabel" id="dlabel">ディーラー</div><div class="pcards" id="dcards"></div>
     <div class="plabel" id="h1label">あなた</div><div class="pcards" id="h1cards"></div>
-    <div class="plabel" id="h2label"></div><div class="pcards" id="h2cards"></div>
+    <div class="plabel" id="h2label"></div><div class="pcards" id="h2cards"></div><div class="plabel" id="obj"></div>
   </div></div>
   <div class="scene" id="sc-keiba" hidden><div class="sv" id="ksv"><canvas id="kcv"></canvas></div></div>
   <button class="arw" id="aL">◀</button><button class="arw" id="aR">▶</button>
@@ -271,7 +271,7 @@ button.b:disabled{opacity:.45}
 <button id="onbtn">オンライン</button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
-<p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力した2人がつながります。全ゲームで「同じ出目・同じ配札・同じレース」になるので、所持金の差で勝負しましょう。</p>
+<p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力した2人がつながります。丁半・ルーレット・競馬は同じ結果、ポーカーは1対1、ブラックジャックは同じディーラーで勝負。所持金の差で競いましょう。</p>
 <input id="onc" maxlength="16" placeholder="合言葉（例：sakura）" autocomplete="off">
 <div class="note" id="onn"></div>
 <div class="mr"><button id="onok">接続</button><button id="onoff">切断</button><button id="onx">閉じる</button></div>
@@ -284,7 +284,7 @@ button.b:disabled{opacity:.45}
 <h3>ポーカー</h3><p data-g="poker">テキサスホールデムの1対1（ノーリミット）。フォールド／チェック・コール／ベット・レイズ／オールインで相手と勝負。</p>
 <h3>ブラックジャック</h3><p data-g="blackjack">21に近い方が勝ち、超えるとバースト。ヒット＝カードを引く、スタンド＝止める。ダブル、スプリットも可能。ブラックジャックは2.5倍。</p>
 <h3>競馬</h3><p data-g="keiba">6頭から1頭を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。</p>
-<h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続。相手の所持金が上に表示されます。ポーカーは同じ配札でCPUと勝負です。</p>
+<h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続。相手の所持金が上に表示されます。オンライン中のポーカーは人間同士の1対1です。ブラックジャックはディーラーのカードが同じで、相手の手札が画面下に出ます。</p>
 <div class="mr"><button id="helpx">閉じる</button></div>
 </div></div>
 <div id="intro">
@@ -859,22 +859,29 @@ function oppDecide(){
   if(eq>odds+.03||Math.random()<.05)return{type:'call'};
   return{type:'fold'};
 }
-async function startHand(){
-  if(pPhase!==0||bet<2||busy)return;
-  const BB=Math.min(bet,balance),SB=Math.max(1,Math.floor(BB/2));
-  pBtn=1-pBtn;
-  H={on:true,deck:newDeck(),board:[],pot:0,street:0,cur:[0,0],betTo:BB,minRaise:BB,bb:BB,sb:SB,acted:[false,false],toAct:0,btn:pBtn,inv:0,show:false,folded:-1,last:''};
-  H.hole=H.deck.splice(0,2);H.oh=H.deck.splice(0,2);
+async function startHand(R){
+  if(pPhase!==0||busy)return;
+  const pv=PVP();
+  if(!R&&bet<2)return;
+  let BB;
+  if(pv&&R){BB=R.bb;pBtn=1-R.btn;_sd=R.seed;}
+  else if(pv){BB=Math.max(2,Math.min(bet,balance,opp?opp.b:balance));pBtn=1-pBtn;_sd=(Math.random()*4294967296)>>>0;}
+  else{BB=Math.min(bet,balance);pBtn=1-pBtn;}
+  const SB=Math.max(1,Math.floor(BB/2)),seedv=_sd;
+  H={on:true,deck:newDeck(),board:[],pot:0,street:0,cur:[0,0],betTo:BB,minRaise:BB,bb:BB,sb:SB,acted:[false,false],toAct:0,btn:pBtn,inv:0,show:false,folded:-1,last:'',oppAI:false};
+  if(pv&&R){H.oh=H.deck.splice(0,2);H.hole=H.deck.splice(0,2);}else{H.hole=H.deck.splice(0,2);H.oh=H.deck.splice(0,2);}
   pPhase=1;
   const sbP=pBtn===0?0:1,bbP=1-sbP;
   post(sbP,SB);post(bbP,BB);
   H.toAct=sbP;
+  if(pv&&!R)conn.send({t:'ps',bb:BB,seed:seedv,btn:pBtn});
   const msg=$('msg');msg.className='msg';
   msg.textContent='ブラインド '+SB+'／'+BB+(pBtn===0?'（あなたがボタン）':'（相手がボタン）');
   pkRender();update();
   await pkLoop();
 }
 async function pkLoop(){
+  if(PVP()){busy=false;if(H&&H.on){if(H.toAct===0)playerTurn();else{$('msg').className='msg';$('msg').textContent=(H.last?H.last+' ／ ':'')+'相手の番です…';pkRender();update();}}else update();return;}
   while(H&&H.on&&H.toAct===1){
     busy=true;update();pkRender();
     await wait(900);
@@ -889,13 +896,14 @@ async function pkLoop(){
 }
 async function afterAction(p){
   if(H.folded>=0){finish(1-H.folded,'fold');return;}
-  if(H.acted[0]&&H.acted[1]&&(H.cur[0]===H.cur[1]||balance===0)){await endStreet();return;}
+  if(H.acted[0]&&H.acted[1]&&(H.cur[0]===H.cur[1]||balance===0||H.oppAI)){await endStreet();return;}
   H.toAct=1-p;pkRender();update();
 }
 async function endStreet(){
   if(H.cur[1]>H.cur[0]&&balance===0)H.cur[1]=H.cur[0];
+  if(H.oppAI&&H.cur[0]>H.cur[1]){const x=H.cur[0]-H.cur[1];balance+=x;H.inv-=x;H.cur[0]=H.cur[1];}
   H.pot+=H.cur[0]+H.cur[1];H.cur=[0,0];H.betTo=0;H.acted=[false,false];H.minRaise=H.bb;
-  const allIn=balance===0;
+  const allIn=balance===0||H.oppAI;
   for(;;){
     if(H.street===3){await showdown();return;}
     H.street++;
@@ -935,10 +943,31 @@ function playerTurn(){
 async function playerAct(type,amt){
   if(!canPlay())return;
   busy=true;
-  apply(0,type,amt);H.last='';
+  const b0=balance;apply(0,type,amt);H.last='';
+  if(PVP())conn.send({t:'pa',type:type,amt:amt,add:b0-balance,ai:balance===0});
   await afterAction(0);
   if(H.on)await pkLoop();
   busy=false;update();
+}
+async function pkRemote(d){
+  if(!H||!H.on||H.toAct!==1)return;
+  busy=true;
+  const pre=H.betTo,tc=toCall(1);
+  if(d.type==='fold')H.folded=1;
+  else{
+    H.cur[1]+=d.add;if(d.ai)H.oppAI=true;H.acted[1]=true;
+    if(d.type==='raise'){H.minRaise=Math.max(H.minRaise,d.amt-H.betTo);H.betTo=d.amt;H.acted=[false,false];H.acted[1]=true;}
+  }
+  H.last='相手：'+(d.type==='fold'?'フォールド':d.type==='raise'?(pre===0?'ベット ':'レイズ ')+d.amt:(tc>0?'コール '+d.add:'チェック'));
+  $('msg').className='msg';$('msg').textContent=H.last;
+  await afterAction(1);
+  await pkLoop();
+}
+function pkAbort(){
+  if(!(H&&H.on&&H.street===0&&!H.last))return;
+  balance+=H.inv;H.on=false;H=null;pPhase=0;busy=false;
+  $('msg').className='msg';$('msg').textContent='相手がポーカー画面にいないため、配り直しになりました';
+  pkRender();update();
 }
 function raiseOk(){
   if(!canPlay())return false;
@@ -970,11 +999,14 @@ $('pcall').onclick=()=>playerAct('call');
 $('praise').onclick=()=>{if(raiseOk())playerAct('raise',bet);};
 $('pallin').onclick=()=>{if(!canPlay()||balance<=0)return;const mx=H.cur[0]+balance;if(mx>H.betTo)playerAct('raise',mx);else playerAct('call');};
 /* ブラックジャック */
-let B=null,bjOn=false,shoe=[];
+let B=null,bjOn=false,shoe=[],bjN=0,bjDR=null;
+const rcard=f=>({r:2+Math.floor(f()*13),s:Math.floor(f()*4)});
+function mkr(sd){let a=sd|0;return()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const bjCV=c=>c.r===14?11:c.r>=10?10:c.r;
 function bjVal(cs){let t=0,a=0;cs.forEach(c=>{if(c.r===14){a++;t+=11;}else t+=c.r>=10?10:c.r;});while(t>21&&a>0){t-=10;a--;}return{t:t,soft:a>0};}
 function bjShoe(){let a=[];for(let i=0;i<6;i++)a=a.concat(newDeck());for(let i=a.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
-function bjDraw(){if(shoe.length<60)shoe=bjShoe();return shoe.pop();}
+function bjDraw(w){if(PVP()&&bjDR)return w==='d'?rcard(bjDR):rcard(Math.random);if(shoe.length<60)shoe=bjShoe();return shoe.pop();}
+function bjSend(){if(!PVP()||!B)return;try{conn.send({t:'bj',txt:B.hands.map(h=>h.cards.map(c=>RN(c.r)+'♠♥♣♦'[c.s]).join(' ')+'('+bjVal(h.cards).t+')').join(' / ')+(B.over?' 決着':'')});}catch(e){}}
 const isNat=h=>B.hands.length===1&&!h.sp&&h.cards.length===2&&bjVal(h.cards).t===21;
 function bjRender(){
   const d=B?B.dealer:[],hs=B?B.hands:[];
@@ -988,17 +1020,19 @@ function bjRender(){
       lab.textContent=(B.cur===i&&bjOn&&!B.over?'▶ ':'')+'あなた'+(hs.length>1?(i+1):'')+'　'+v.t+(v.soft&&v.t<21?'（ソフト）':'')+(v.t>21?' バースト':'')+'　掛け金 '+h.bet;
     }else{cs.innerHTML=i===0?'<div class="card ph"></div><div class="card ph"></div>':'';lab.textContent=i===0?'あなた':'';}
   }
+  bjSend();
 }
 async function bjDeal(){
   if(bjOn||busy||bet<1||bet>balance)return;
   const stake=bet;balance-=stake;
+  if(PVP()){bjN++;bjDR=mkr(hs(room+'bj'+bjN));}else bjDR=null;
   B={dealer:[],hands:[{cards:[],bet:stake,done:false,dbl:false,sp:false}],cur:0,hole:true,over:false};
   bjOn=true;busy=true;update();
   const h=B.hands[0];
   h.cards.push(bjDraw());bjRender();await wait(250);
-  B.dealer.push(bjDraw());bjRender();await wait(250);
+  B.dealer.push(bjDraw('d'));bjRender();await wait(250);
   h.cards.push(bjDraw());bjRender();await wait(250);
-  B.dealer.push(bjDraw());bjRender();await wait(250);
+  B.dealer.push(bjDraw('d'));bjRender();await wait(250);
   if(bjVal(h.cards).t===21||bjVal(B.dealer).t===21){B.hole=false;bjRender();await wait(600);await bjSettle();return;}
   $('msg').className='msg';$('msg').textContent='ヒット・スタンド・ダブル・スプリットから選んでください';
   busy=false;bjRender();update();
@@ -1008,7 +1042,7 @@ async function bjSettle(){
   const dNat=B.dealer.length===2&&bjVal(B.dealer).t===21;
   const alive=B.hands.some(h=>bjVal(h.cards).t<=21);
   if(alive&&!dNat&&!isNat(B.hands[0])){
-    while(bjVal(B.dealer).t<17){await wait(700);B.dealer.push(bjDraw());bjRender();}
+    while(bjVal(B.dealer).t<17){await wait(700);B.dealer.push(bjDraw('d'));bjRender();}
   }
   const dt=bjVal(B.dealer).t;let back=0;const res=[];
   B.hands.forEach(h=>{
@@ -1216,16 +1250,26 @@ const hs=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h
 const onNote=m=>{$('onn').textContent=m;};
 function showOpp(){const b=$('oppbar');if(!online||!opp){b.hidden=true;return;}const d=balance-opp.b;b.hidden=false;b.textContent='相手 '+opp.b+'（'+GN[opp.g]+'）差 '+(d>=0?'+':'')+d;}
 function sendSt(){try{if(conn&&conn.open)conn.send({b:balance,g:game});}catch(e){}}
-function netOff(m){online=false;conn=null;opp=null;try{net&&net.destroy();}catch(e){}net=null;showOpp();$('onbtn').classList.remove('live');$('onbtn').textContent='オンライン';if(m)onNote(m);}
+function netOff(m){online=false;if($('obj'))$('obj').textContent='';conn=null;opp=null;try{net&&net.destroy();}catch(e){}net=null;showOpp();$('onbtn').classList.remove('live');$('onbtn').textContent='オンライン';if(m)onNote(m);}
+function PVP(){return online&&conn&&conn.open;}
+function netMsg(d){
+  if(d.t==='ps'){
+    if(game!=='poker'&&canSwitch()){let k=0;while(game!=='poker'&&k++<6)switchGame(1);}
+    if(game!=='poker'||(H&&H.on)||busy||pPhase!==0){try{conn.send({t:'pn'});}catch(e){}return;}
+    startHand(d);
+  }else if(d.t==='pn')pkAbort();
+  else if(d.t==='pa')pkRemote(d);
+  else if(d.t==='bj')$('obj').textContent='相手：'+d.txt;
+}
 function link(c){
   c.on('open',()=>{
     if(online){c.close();return;}
-    conn=c;online=true;cnt={};opp=null;$('onbtn').classList.add('live');$('onbtn').textContent='接続中●';
+    conn=c;online=true;cnt={};opp=null;bjN=0;$('onbtn').classList.add('live');$('onbtn').textContent='接続中●';
     if(!busy&&!kRacing){_sd=hs(room+'kf');KF=kField();}
     onNote('接続しました！同じ条件で勝負です');sendSt();update();setTimeout(()=>{$('onl').hidden=true;},900);
   });
-  c.on('data',d=>{opp=d;showOpp();});
-  c.on('close',()=>netOff('相手との接続が切れました'));
+  c.on('data',d=>{if(d.t)netMsg(d);else{opp=d;showOpp();}});
+  c.on('close',()=>{if(online&&H&&H.on&&game==='poker'){H.folded=1;finish(0,'fold');}netOff('相手との接続が切れました');});
 }
 function goOnline(code){
   if(typeof Peer==='undefined'){onNote('通信ライブラリを読み込めません。ネット接続を確認して開き直してください');return;}
