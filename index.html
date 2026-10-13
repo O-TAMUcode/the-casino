@@ -266,6 +266,10 @@ button.b:disabled{opacity:.45}
 .slnote:empty{display:none}
 #gp-slot .r{flex:0 0 52px}
 #gor button:disabled{opacity:.45}
+#waitov{position:fixed;z-index:40;background:rgba(10,8,6,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;font-weight:bold;font-size:1.3rem;text-align:center}
+#waitov[hidden],#waitbn[hidden]{display:none}
+#waitov button{font:inherit;font-size:1rem;padding:8px 28px;border-radius:20px;border:1px solid #c9a227;background:#3a2a10;color:#f2d27a}
+#waitbn{position:fixed;z-index:40;height:28px;line-height:28px;text-align:center;font-weight:bold;font-size:1rem;color:#fff;background:rgba(180,30,20,.92);pointer-events:none}
 #gp-slot button.b{font-size:.8rem;line-height:1.1;padding:0}
 body[data-g="slot"] #gor{justify-content:flex-end;gap:4px;flex:0 0 52px;margin-top:auto}
 body[data-g="slot"] #gor button.b{flex:0 1 34px;font-size:.62rem;line-height:1.1;padding:0;border-radius:6px}
@@ -410,6 +414,7 @@ body[data-g="slot"] #gor button.go{flex:0 1 52px;font-size:.72rem;font-weight:bo
 <button id="introgo">START</button>
 <div class="ver">Version 1.1.1</div>
 </div>
+<div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
 <script>
 const START=10000;var online=false,_sd=1;
 function rr(){if(!online)return Math.random();_sd=(_sd+0x6D2B79F5)|0;let t=Math.imul(_sd^_sd>>>15,1|_sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
@@ -853,6 +858,7 @@ function showGame(){
   if(game==='slot'){slUI();fitSlot();slLcd();}
 }
 const canSwitch=()=>!(busy||pPhase===1||bjOn);
+var wt=null,wtMine=false,goPass=false;
 function setGameTo(g){
   if(game===g)return;
   game=g;if(trk>=MUS[g].length)trk=0;
@@ -863,7 +869,7 @@ function setGameTo(g){
   update();
 }
 function switchGame(dir){
-  if(!canSwitch())return;
+  if(!canSwitch()||wt)return;
   pendG=null;
   setGameTo(GAMES[(GAMES.indexOf(game)+dir+GAMES.length)%GAMES.length]);
   try{if(online){if(isHost)gsBcast(game);else if(hostConn&&hostConn.open)hostConn.send({t:'gs',g:game});}}catch(e){}
@@ -1192,7 +1198,7 @@ function pkUI(){
   $('praise').innerHTML=((H&&H.on&&H.betTo>0)?'レイズ':'ベット')+'<br>'+(bet>0?bet:'');
 }
 function gameUI(){
-  const sw=canSwitch()?'visible':'hidden';$('aL').style.visibility=sw;$('aR').style.visibility=sw;
+  const sw=(canSwitch()&&!wt)?'visible':'hidden';$('aL').style.visibility=sw;$('aR').style.visibility=sw;
   if(game==='roulette'){
     $('radd').disabled=busy||!rSel.length||bet<1||bet>balance;
     $('rinfo').textContent=rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'賭けはまだありません';
@@ -1568,7 +1574,7 @@ function refreshBtn(){$('onbtn').classList.add('live');$('onbtn').textContent='�
 function netOff(m){
   online=false;if($('obj'))$('obj').textContent='';
   const ps=[...peers.values()];peers=new Map();hostRoster=new Map();hostConn=null;roster=[];lastSig='';
-  clearTimeout(roTimer);roTimer=null;pendG=null;
+  clearTimeout(roTimer);roTimer=null;pendG=null;rdMap=new Map();rdG=null;rdFirst=null;wt=null;wtMine=false;try{waitUI();}catch(e){}
   ps.forEach(c=>{try{c.close();}catch(e){}});
   try{net&&net.destroy();}catch(e){}net=null;
   showOpp();$('onbtn').classList.remove('live');$('onbtn').textContent='オンライン';
@@ -1597,6 +1603,7 @@ function hostLink(c){
     const first=!online;
     if(first)startSession();
     peers.set(c.peer,c);
+    if(rdG||wt)clearWaitHost();
     hostRoster.set(c.peer,{i:c.peer,n:'…',b:START,d:0,g:'chouhan'});
     bcastRo();refreshBtn();
     onNote('参加者が増えました（'+(1+peers.size)+'/'+MAXP+'人）');
@@ -1607,12 +1614,14 @@ function hostLink(c){
     if(!d||typeof d!=='object')return;
     if(d.t==='st'){const e=hostRoster.get(c.peer);if(e){e.n=cleanName(d.n);e.b=Number(d.b)||0;e.d=Number(d.d)||0;if(GAMES.includes(d.g))e.g=d.g;schedRo();}}
     else if(d.t==='gs'){gsApply(d.g);gsBcast(d.g);}
+    else if(d.t==='rd'||d.t==='rc')hostWait(d,c.peer);
     else netMsg(d);
   });
   c.on('close',()=>{
     if(peers.get(c.peer)!==c)return;
     partnerGone();
     peers.delete(c.peer);hostRoster.delete(c.peer);
+    if(rdG||wt)clearWaitHost();
     bcastRo();refreshBtn();
     onNote('参加者が退出しました（'+(1+peers.size)+'/'+MAXP+'人）');
   });
@@ -1629,6 +1638,10 @@ function guestLink(c){
     if(!d||typeof d!=='object')return;
     if(d.t==='ro'&&Array.isArray(d.l)){applyRoster(d.l.slice(0,MAXP).map(cleanEntry));refreshBtn();}
     else if(d.t==='gs')gsApply(d.g);
+    else if(d.t==='rw')waitSet(d);
+    else if(d.t==='rg'&&GAMES.includes(d.g))waitGo(d.g,d.f);
+    else if(d.t==='rx')waitClear();
+    else if(d.t==='rn')waitClear('他のプレイヤーが別のゲームで待っています');
     else if(d.t==='full')netOff('満員です（最大'+MAXP+'人）');
     else netMsg(d);
   });
@@ -1649,8 +1662,58 @@ function goOnline(code){
     }else netOff('接続エラー：'+e.type);
   });
 }
-$('go').addEventListener('click',()=>{if(!online)return;cnt[game]=(cnt[game]||0)+1;_sd=hs(room+game+cnt[game]);},true);
-const _upd=update;update=function(){_upd.apply(this,arguments);sendSt();showOpp();if(pendG&&canSwitch()){const g=pendG;pendG=null;setGameTo(g);$('msg').textContent='他のプレイヤーが「'+GN[g]+'」を選びました';}};
+/* 勝負ボタンの同期待ち：誰かが押すと全員が同じゲームへ移動して待ち、全員が押したら一斉に開始 */
+let rdMap=new Map(),rdG=null,rdFirst=null;
+const waitNeeded=()=>online&&roster.length>=2&&game!=='slot'&&!(game==='poker'&&!PVP());
+const bcastAll=m=>peers.forEach(c=>{try{if(c.open)c.send(m);}catch(e){}});
+function sendHost(m){if(isHost)hostWait(m,'host');else{try{if(hostConn&&hostConn.open)hostConn.send(m);}catch(e){}}}
+function waitUI(){
+  const ov=$('waitov'),bn=$('waitbn');if(!ov||!bn)return;
+  const R=document.querySelector('.panel').getBoundingClientRect(),n=wt&&wt.tot>2?'（'+wt.c+'/'+wt.tot+'人）':'';
+  ov.hidden=!(wt&&wtMine);bn.hidden=!(wt&&!wtMine);
+  ov.style.cssText='left:'+R.left+'px;top:'+R.top+'px;width:'+R.width+'px;height:'+R.height+'px';
+  bn.style.cssText='left:'+R.left+'px;width:'+R.width+'px;top:'+(R.top-34)+'px';
+  $('waitov-t').textContent='相手を待っています。'+n;bn.textContent='相手が待っています。'+n;
+}
+function waitSet(m){
+  if(!GAMES.includes(m.g))return;
+  wt={g:m.g,f:m.f,c:Number(m.c)||1,tot:Number(m.tot)||2};
+  if(game!==m.g){if(canSwitch()){setGameTo(m.g);}else pendG=m.g;}
+  waitUI();update();
+}
+function waitClear(msg){wt=null;wtMine=false;waitUI();if(msg)$('msg').textContent=msg;update();}
+function waitGo(g,f){
+  const first=f===myId;waitClear();
+  if(game!==g)return;
+  goPass=true;try{if(!(game==='poker'&&!first))$('go').click();}finally{goPass=false;}
+}
+function clearWaitHost(){rdMap=new Map();rdG=null;rdFirst=null;bcastAll({t:'rx'});waitClear();}
+function hostWait(d,id){
+  if(d.t==='rc'){clearWaitHost();return;}
+  if(d.t!=='rd'||!GAMES.includes(d.g))return;
+  if(rdG&&rdG!==d.g){
+    if(id==='host')waitClear('他のプレイヤーが別のゲームで待っています');
+    else{const c=peers.get(id);try{if(c&&c.open)c.send({t:'rn'});}catch(e){}}
+    return;
+  }
+  if(!rdG){rdG=d.g;rdFirst=id;}
+  rdMap.set(id,1);
+  const tot=hostRoster.size;
+  if(rdMap.size>=tot){const g=rdG,f=rdFirst;rdMap=new Map();rdG=null;rdFirst=null;bcastAll({t:'rg',g:g,f:f});waitGo(g,f);}
+  else{const m={t:'rw',g:rdG,f:rdFirst,c:rdMap.size,tot:tot};bcastAll(m);waitSet(m);}
+}
+$('go').addEventListener('click',e=>{
+  if(!online)return;
+  if(!goPass&&waitNeeded()){
+    e.stopImmediatePropagation();e.preventDefault();
+    if(wtMine)return;
+    wtMine=true;wt=wt||{g:game,f:myId,c:1,tot:roster.length};waitUI();sendHost({t:'rd',g:game});return;
+  }
+  cnt[game]=(cnt[game]||0)+1;_sd=hs(room+game+cnt[game]);
+},true);
+$('waitcx').onclick=()=>{if(isHost)clearWaitHost();else{try{if(hostConn&&hostConn.open)hostConn.send({t:'rc'});}catch(e){}waitClear();}};
+window.addEventListener('resize',waitUI);
+const _upd=update;update=function(){_upd.apply(this,arguments);sendSt();showOpp();if(wt)waitUI();if(pendG&&canSwitch()){const g=pendG;pendG=null;setGameTo(g);$('msg').textContent='他のプレイヤーが「'+GN[g]+'」を選びました';}};
 $('onbtn').onclick=()=>{const r=$('orank');if(r)r.innerHTML=rankHTML();$('onl').hidden=false;};
 $('oppbar').onclick=()=>openModal('<h2>ランキング</h2>'+rankHTML()+'<div class="mr"><button data-x="1">閉じる</button></div>');
 $('onx').onclick=()=>{$('onl').hidden=true;};
