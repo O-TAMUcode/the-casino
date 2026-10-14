@@ -264,18 +264,43 @@ button.b:disabled{opacity:.45}
 #help p.warn{white-space:nowrap;color:#b3261e;font-weight:bold;border-left:4px solid #b3261e;padding-left:8px}
 #sc-slot{padding:172px 6px 58px}
 .slnote:empty{display:none}
-#gp-slot .r{flex:0 0 52px}
+#gp-slot .r{flex:1 1 0}
 #gor button:disabled{opacity:.45}
 #waitov{position:fixed;z-index:40;background:rgba(10,8,6,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;font-weight:bold;font-size:1.3rem;text-align:center}
 #waitov[hidden],#waitbn[hidden]{display:none}
 #waitov button{font:inherit;font-size:1rem;padding:8px 28px;border-radius:20px;border:1px solid #c9a227;background:#3a2a10;color:#f2d27a}
 #waitbn{position:fixed;z-index:40;height:28px;line-height:28px;text-align:center;font-weight:bold;font-size:1rem;color:#fff;background:rgba(180,30,20,.92);pointer-events:none}
-#gp-slot button.b{font-size:.8rem;line-height:1.1;padding:0}
-body[data-g="slot"] #gor{justify-content:flex-end;gap:4px;flex:0 0 52px;margin-top:auto}
-body[data-g="slot"] #gor button.b{flex:0 1 34px;font-size:.62rem;line-height:1.1;padding:0;border-radius:6px}
-body[data-g="slot"] #gor button.go{flex:0 1 52px;font-size:.72rem;font-weight:bold}
+#gp-slot button.b{font-size:1.1rem;font-weight:bold;line-height:1.2;padding:0}
+body[data-g="slot"] #gor{justify-content:stretch;gap:5px;flex:0 0 88px;margin-top:auto}
+body[data-g="slot"] #gor .gp{display:contents}
+body[data-g="slot"] #gor button.b{flex:1 1 0;min-width:0;font-size:1.05rem;font-weight:bold;line-height:1.1;padding:0;border-radius:10px}
+body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:nowrap}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* 通信ライブラリ（PeerJS）を複数の配信元から順に読み込む（学校などで1つが止められていてもつながるように） */
+window.__peerLoad=(function(){
+  const src=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js','https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'];
+  let pr=null;
+  return function(){
+    if(typeof Peer!=='undefined')return Promise.resolve(true);
+    if(pr)return pr;
+    pr=new Promise(res=>{
+      let i=0;
+      const next=()=>{
+        if(typeof Peer!=='undefined'){res(true);return;}
+        if(i>=src.length){pr=null;res(false);return;}
+        const el=document.createElement('script');let done=false;
+        const go=()=>{if(done)return;done=true;clearTimeout(tt);next();};
+        const tt=setTimeout(go,8000);
+        el.src=src[i++];el.onload=go;el.onerror=go;document.head.appendChild(el);
+      };
+      next();
+    });
+    return pr;
+  };
+})();
+window.__peerLoad();
+</script>
 </head>
 <body>
 <div class="field" id="field">
@@ -761,6 +786,16 @@ function loanModal(note){
     +'<div class="mr"><button data-rp="1000">1000返す</button><button data-rp="all">全額返す</button></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
 }
+/* パスワードの巻き戻し防止：このブラウザ内で、同じパスワードの最新の状態を覚えておく */
+var LK='casinoLin',curLin=null,linTm=null;
+function linLoad(){try{const o=JSON.parse(localStorage.getItem(LK));if(o&&o.m&&o.l)return o;}catch(e){}return{m:{},l:{}};}
+function linSave(o){try{localStorage.setItem(LK,JSON.stringify(o));}catch(e){}}
+const pwKey=t=>{t=String(t).toLowerCase().replace(/[^0-9a-z]/g,'');return hash6(t)+hash6(t.split('').reverse().join(''));};
+function linFlush(){clearTimeout(linTm);linTm=null;if(!curLin)return;try{const o=linLoad();o.l[curLin]=encodePw();linSave(o);}catch(e){}}
+function linTouch(){if(!curLin||linTm)return;linTm=setTimeout(linFlush,400);}
+window.addEventListener('pagehide',()=>{if(linTm)linFlush();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&linTm)linFlush();});
+{const _u0=update;update=function(){_u0.apply(this,arguments);linTouch();};}
 function pwModal(note,made){
   openModal('<h2>パスワード</h2>'
     +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off">'
@@ -790,7 +825,9 @@ $('mbox').onclick=e=>{
     const v=($('pnm').value||'').trim();
     if(v)myName=cleanName(v);
     pname();lastSig='';sendSt();
-    pwModal('パスワードを作成しました（名前：'+myName+'）',true);return;
+    pwModal('パスワードを作成しました（名前：'+myName+'）',true);
+    {if(!curLin)curLin=Math.random().toString(36).slice(2,10);const o=linLoad(),c=encodePw();o.m[pwKey(c)]=curLin;o.l[curLin]=c;linSave(o);}
+    return;
   }
   if(t.cp){
     const code=document.querySelector('#mbox .code').textContent;
@@ -799,10 +836,14 @@ $('mbox').onclick=e=>{
   }
   if(t.rs){
     if(busy||pPhase===1||rBets.length>0||bjOn){pwModal('勝負の最中、またはチップが出ているときは再開できません');return;}
-    const r=decodePw($('pwin').value);
+    const code=$('pwin').value;let r=decodePw(code);
     if(!r){pwModal('パスワードが違います');return;}
-    balance=r.b+Math.floor(r.k);debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm){myName=cleanName(r.nm);lastSig='';}update();closeModal();
-    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+(r.nm?'／名前：'+r.nm:'')+(r.sk?'／ガチャのアイテムも復元':'')+'）';
+    let lat=false;
+    {const o=linLoad(),k=pwKey(code),lid=o.m[k];
+     if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
+     curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
+    balance=r.b+Math.floor(r.k);debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
+    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+(r.nm?'／名前：'+r.nm:'')+(r.sk?'／ガチャのアイテムも復元':'')+'）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
   }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
@@ -1647,19 +1688,53 @@ function guestLink(c){
   });
   c.on('close',()=>{if(hostConn!==c)return;partnerGone();netOff('部屋を作った人との接続が切れました（部屋が閉じられました）');});
 }
-function goOnline(code){
-  if(typeof Peer==='undefined'){onNote('通信ライブラリを読み込めません。ネット接続を確認して開き直してください');return;}
-  netOff();room=code;const id='sekaicasino-'+hs(code).toString(36);onNote('接続中…');
-  const p=new Peer(id);net=p;
+/* 中継サーバー（TURN）：端末同士を直接つなげない回線（学校など）でもつながるようにする。
+   自分用の無料アカウント（metered.ca の Open Relay）を作った場合は、下の2つに名前とAPIキーを入れると安定します */
+const TURN_APP='',TURN_KEY='';
+async function getIce(){
+  const base=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];
+  if(TURN_APP&&TURN_KEY){
+    try{
+      const ac=new AbortController(),tt=setTimeout(()=>ac.abort(),5000);
+      const r=await fetch('https://'+TURN_APP+'.metered.live/api/v1/turn/credentials?apiKey='+encodeURIComponent(TURN_KEY),{signal:ac.signal});
+      clearTimeout(tt);const j=await r.json();
+      if(Array.isArray(j)&&j.length)return base.concat(j);
+    }catch(e){}
+  }
+  return base.concat([{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turns:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}]);
+}
+function netErrText(t){
+  if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed')return '接続用サーバーに届きません。学校などのネットワークでこのゲームの通信が止められている可能性があります（携帯回線やテザリングを試してください）';
+  if(t==='webrtc')return '端末同士の直接通信に失敗しました。ネットワークの制限が原因の可能性があります（携帯回線やテザリングを試してください）';
+  if(t==='browser-incompatible')return 'このブラウザはオンライン対戦に対応していません';
+  return '接続エラー：'+t;
+}
+let goSeq=0;
+async function goOnline(code){
+  const my=++goSeq;
+  netOff();onNote('通信の準備中…');
+  if(typeof Peer==='undefined'){
+    const ok=await window.__peerLoad();
+    if(my!==goSeq)return;
+    if(!ok){onNote('通信ライブラリを読み込めません。ネットワークが外部サイトを止めている可能性があります（携帯回線やテザリングで開き直してください）');return;}
+  }
+  const ice=await getIce();
+  if(my!==goSeq)return;
+  room=code;const id='sekaicasino-'+hs(code).toString(36);onNote('接続中…');
+  const opt={config:{iceServers:ice}};
+  const p=new Peer(id,opt);net=p;
   p.on('open',()=>{isHost=true;myId='host';hostRoster=new Map();onNote('部屋を作りました。同じ合言葉で最大'+MAXP+'人まで参加できます');});
   p.on('connection',c=>hostLink(c));
   p.on('error',e=>{
     if(e.type==='unavailable-id'){
       try{p.destroy();}catch(x){}
-      const q=new Peer();net=q;
-      q.on('open',qid=>{isHost=false;myId=qid;guestLink(q.connect(id,{reliable:true}));});
-      q.on('error',er=>netOff('接続できませんでした（'+er.type+'）'));
-    }else netOff('接続エラー：'+e.type);
+      const q=new Peer(opt);net=q;
+      q.on('open',qid=>{
+        isHost=false;myId=qid;guestLink(q.connect(id,{reliable:true}));
+        setTimeout(()=>{if(net===q&&!online)netOff('部屋の人とつなげませんでした。ネットワークの制限（学校のWi-Fiなど）の可能性があります。携帯回線やテザリングで試すか、合言葉が同じか確認してください');},20000);
+      });
+      q.on('error',er=>netOff(netErrText(er.type)));
+    }else netOff(netErrText(e.type));
   });
 }
 /* 勝負ボタンの同期待ち：誰かが押すと全員が同じゲームへ移動して待ち、全員が押したら一斉に開始 */
