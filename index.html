@@ -84,7 +84,9 @@ button.b:disabled{opacity:.45}
 .gname #gtxt,.gname.hasd #gtxt{font-size:1.25rem;line-height:1.15;white-space:pre;text-align:center;padding:3px 6px;border-radius:8px;background:rgba(0,0,0,.5)}
 #sc-keiba{padding:292px 48px 62px}
 #kcv{width:100%;height:100%;display:block;border-radius:8px}
-#gp-keiba .kh{font-size:.78rem;line-height:1.15}
+#gp-keiba .kh{font-size:.7rem;line-height:1.12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px;overflow:hidden}
+#gp-keiba .kh .kod{font-size:.82rem;white-space:nowrap;flex:none;display:block;text-align:center}
+#gp-keiba .kh .knm{white-space:nowrap;font-size:.64rem;line-height:1.1;font-weight:normal;flex:none}
 #bets{flex:.75}
 #aL{left:2px}#aR{right:2px}
 .scene{position:absolute;inset:0;z-index:3;padding:212px 48px 62px;display:flex;align-items:center;justify-content:center;background:var(--felt,radial-gradient(ellipse at center,#1f8a4c 0%,#0e5430 70%,#083a20 100%))}
@@ -124,6 +126,11 @@ button.b:disabled{opacity:.45}
 #help .mbox p.cur{background:rgba(201,162,39,.18);border-radius:6px;padding:4px 6px}
 #onbtn,#pw{position:absolute;top:32px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
 #pw{top:61px}
+#newsbtn{position:absolute;top:90px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#newsdot{display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#e53935;border:1px solid #fff}
+#newsbtn.new #newsdot{display:block}
+.nws{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.07)}
+.nws b{color:#f2d27a}
 #onbtn.live{background:#1b6b3a;color:#fff;border-color:#7be0a0}
 #oppbar{position:absolute;top:3px;left:3px;right:84px;z-index:8;height:26px;line-height:26px;padding:0 8px;border-radius:13px;background:rgba(30,22,16,.85);color:#fff;font-size:.72rem;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #oppbar[hidden]{display:none}
@@ -230,10 +237,8 @@ button.b:disabled{opacity:.45}
 .slm{position:absolute;left:0;top:0;width:310px;height:314px;transform-origin:0 0}
 .slbody{position:absolute;left:0;top:0;width:280px;height:300px;border-radius:18px 18px 6px 6px;background:var(--slbg,linear-gradient(#8a2020,#4a0f0f));border:4px solid var(--slt,#d4af37);box-shadow:0 0 0 3px #2a1608,0 10px 18px rgba(0,0,0,.65),inset 0 0 22px rgba(0,0,0,.35)}
 .slmq{position:absolute;left:12px;right:12px;top:8px;height:30px;border-radius:8px;background:rgba(0,0,0,.55);border:2px solid var(--slt,#d4af37);display:flex;align-items:center;justify-content:center;font-weight:bold;letter-spacing:.28em;font-size:15px;color:var(--slt,#d4af37);text-shadow:0 0 6px var(--sll,#ffeb3b);overflow:hidden}
-.slmq::before,.slmq::after{content:"";position:absolute;left:4px;right:4px;height:6px;background:radial-gradient(circle,var(--sll,#ffeb3b) 0 2px,transparent 3px) 0 0/14px 6px repeat-x;animation:slbk .8s steps(1) infinite}
-.slmq::before{top:1px}.slmq::after{bottom:1px;animation-delay:.4s}
-.slm.jp .slmq::before,.slm.jp .slmq::after{animation-duration:.2s}
-@keyframes slbk{0%{opacity:1}50%{opacity:.15}}
+.slmq i{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--sll,#ffeb3b);opacity:.18;pointer-events:none}
+.slmq i.on{opacity:1;box-shadow:0 0 5px 1px var(--sll,#ffeb3b)}
 .slbd{position:absolute;left:12px;top:46px;width:248px;height:116px;display:flex;gap:6px;padding:6px;justify-content:center;align-items:center;border-radius:10px;background:#0c0806;border:4px solid #2a1608;box-shadow:inset 0 0 10px #000,0 0 0 2px var(--slt,#d4af37)}
 .slbd::before{content:"";position:absolute;inset:0;border-radius:6px;background:linear-gradient(115deg,rgba(255,255,255,.18) 0 22%,transparent 23% 100%);z-index:3;pointer-events:none}
 .slr{width:72px;height:96px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--slrb,#fff);border:3px solid #333;font-size:2.9rem;line-height:1;box-shadow:inset 0 8px 10px rgba(0,0,0,.35),inset 0 -8px 10px rgba(0,0,0,.35);overflow:hidden}
@@ -406,7 +411,7 @@ window.__peerLoad();
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
 <button id="helpbtn">？説明</button>
-<button id="onbtn">オンライン</button><button id="pw">パスワード</button><div id="oppbar" hidden></div>
+<button id="onbtn">オンライン</button><button id="pw">パスワード</button><button id="newsbtn">お知らせ<i id="newsdot"></i></button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
 <p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前は「パスワード」で決められます。部屋を作った人が抜けると部屋は閉じます。</p>
@@ -437,7 +442,7 @@ window.__peerLoad();
 <div class="sub">丁半からスロットまで、八つの勝負</div>
 <div class="gl"><span>丁半</span><span>チンチロ</span><span>ルーレット</span><span>ポーカー</span></div><div class="gl"><span>ブラックジャック</span><span>バカラ</span><span>競馬</span><span>スロット</span></div>
 <button id="introgo">START</button>
-<div class="ver">Version 1.1.1</div>
+<div class="ver">Version 1.2.0</div>
 </div>
 <div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
 <script>
@@ -736,7 +741,7 @@ function fitMon(el){
 }
 let debt=0;
 const RATE=1.1,MAXD=100000,KEY=[7,13,3,19,11,5,17,2,23,9],AL='0123456789abcdefghijklmnopqrstuvwxyz';
-function hash6(str){let h=1234567;for(const c of str)h=(h*31+c.charCodeAt(0))%2176782336;return h.toString(36).padStart(6,'0');}
+function hash6(str){let h=7654321;for(const c of str)h=(h*31+c.charCodeAt(0))%2176782336;return h.toString(36).padStart(6,'0');}
 const SKB={d:0,c:20,m:40,t:60},SKT=['d','c','m','t'];
 function skMask(){let m=0n;SKINS.forEach(k=>{if(k.t!=='s'&&own[k.id])m|=1n<<BigInt(SKB[k.t]+Number(k.id.slice(1)));});return m;}
 function slMask(){let m=0n;SKINS.forEach(k=>{if(k.t==='s'&&own[k.id])m|=1n<<BigInt(Number(k.id.slice(1)));});return m;}
@@ -787,7 +792,7 @@ function loanModal(note){
     +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
 }
 /* パスワードの巻き戻し防止：このブラウザ内で、同じパスワードの最新の状態を覚えておく */
-var LK='casinoLin',curLin=null,linTm=null;
+var LK='casinoLin2',curLin=null,linTm=null;
 function linLoad(){try{const o=JSON.parse(localStorage.getItem(LK));if(o&&o.m&&o.l)return o;}catch(e){}return{m:{},l:{}};}
 function linSave(o){try{localStorage.setItem(LK,JSON.stringify(o));}catch(e){}}
 const pwKey=t=>{t=String(t).toLowerCase().replace(/[^0-9a-z]/g,'');return hash6(t)+hash6(t.split('').reverse().join(''));};
@@ -796,13 +801,42 @@ function linTouch(){if(!curLin||linTm)return;linTm=setTimeout(linFlush,400);}
 window.addEventListener('pagehide',()=>{if(linTm)linFlush();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&linTm)linFlush();});
 {const _u0=update;update=function(){_u0.apply(this,arguments);linTouch();};}
+/* ギフトコード */
+const GIFTS={VIP777:77777};   /* 配布用：コード（大文字）:もらえる金額。1つのブラウザで1回だけ使える。ここに足せば増やせる */
+const GCH={adm:'uitwhm.1iwispn',all:'bwpgde.14cdwnn',none:'1nmfm4a.1q4zniz'};   /* 運営用（中身は暗号化してあります） */
+function gcHash(t){let a=2166136261,b=2166136261;const u=t+'#';for(const c of t){a^=c.charCodeAt(0);a=Math.imul(a,16777619);}for(const c of u){b^=c.charCodeAt(0);b=Math.imul(b,16777619);}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36);}
+function giftUsed(){try{return JSON.parse(localStorage.getItem('casinoGift'))||[];}catch(e){return[];}}
+function giftMark(c){try{const u=giftUsed();u.push(c);localStorage.setItem('casinoGift',JSON.stringify(u));}catch(e){}}
+function giftMoney(d){balance=Math.max(0,Math.min(1e12,balance+d));update();}
+function useGift(raw){
+  const c=String(raw||'').toUpperCase().replace(/[\s\u3000]/g,'');
+  if(!c)return 'コードを入力してください';
+  if(busy||pPhase===1||rBets.length>0||bjOn)return '勝負の最中、またはチップが出ているときは使えません';
+  if(gcHash(c)===GCH.all){SKINS.forEach(k=>{own[k.id]=1;});update();return 'ガチャのアイテムをすべて手に入れました';}
+  if(gcHash(c)===GCH.none){own={d0:1,c0:1,m0:1,t0:1,s0:1};eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};applySkin();update();return 'ガチャのアイテムをすべて消しました';}
+  for(let i=1;i<c.length;i++){
+    const rest=c.slice(i);
+    if(/^-?[0-9]{1,12}$/.test(rest)&&gcHash(c.slice(0,i))===GCH.adm){
+      const d=parseInt(rest,10);giftMoney(d);
+      return (d>=0?d+' 増えました':(-d)+' 減りました')+'（所持金 '+balance+'）';
+    }
+  }
+  if(GIFTS[c]!==undefined){
+    if(giftUsed().includes(c))return 'このコードは使用済みです';
+    giftMark(c);giftMoney(GIFTS[c]);return GIFTS[c]+' 手に入れました！（所持金 '+balance+'）';
+  }
+  return 'コードが違います';
+}
 function pwModal(note,made){
   openModal('<h2>パスワード</h2>'
     +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off">'
     +'<div class="mr"><button data-mk="1">パスワードを作成</button></div>'
     +(made?'<div>今のパスワード（名前・所持金・借金・ガチャのアイテムが入っています。控えておくと途中から再開できます）</div><div class="code">'+encodePw()+'</div><div class="mr"><button data-cp="1">コピー</button></div>':'<small>名前を決めて「パスワードを作成」を押すと、名前・所持金・借金・ガチャのアイテムが入ったパスワードができます。ページを更新するとガチャのアイテムは消え、パスワードでしか戻せません。</small>')
     +'<div style="margin-top:14px">再開するパスワード</div><input id="pwin" placeholder="パスワードを入力" autocomplete="off" autocapitalize="characters">'
-    +'<div class="mr"><button data-rs="1">再開する</button><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
+    +'<div class="mr"><button data-rs="1">再開する</button></div><div class="note">'+(note||'')+'</div>'
+    +'<div style="margin-top:14px">ギフトコード</div><input id="gcin" placeholder="コードを入力" autocomplete="off" autocapitalize="characters">'
+    +'<div class="mr"><button data-gc="1">コードを使う</button></div><div class="note" id="gcnote"></div>'
+    +'<div class="mr" style="margin-top:14px"><button data-x="1">閉じる</button></div>');
 }
 $('mbox').onclick=e=>{
   const t=e.target.dataset;
@@ -829,6 +863,7 @@ $('mbox').onclick=e=>{
     {if(!curLin)curLin=Math.random().toString(36).slice(2,10);const o=linLoad(),c=encodePw();o.m[pwKey(c)]=curLin;o.l[curLin]=c;linSave(o);}
     return;
   }
+  if(t.gc){const m=useGift($('gcin').value);const n=$('gcnote');if(n)n.textContent=m;return;}
   if(t.cp){
     const code=document.querySelector('#mbox .code').textContent;
     try{navigator.clipboard.writeText(code).then(()=>{const n=document.querySelector('#mbox .note');if(n)n.textContent='コピーしました';},()=>{});}catch(e){}
@@ -843,11 +878,18 @@ $('mbox').onclick=e=>{
      if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
      curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
     balance=r.b+Math.floor(r.k);debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
-    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+(r.nm?'／名前：'+r.nm:'')+(r.sk?'／ガチャのアイテムも復元':'')+'）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
+    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
   }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 $('pw').onclick=()=>pwModal();
+const NEWS_VER='1.2.0';
+(function(){let seen='';try{seen=localStorage.getItem('casinoNews')||'';}catch(e){}if(seen!==NEWS_VER)$('newsbtn').classList.add('new');})();
+$('newsbtn').onclick=()=>{
+  try{localStorage.setItem('casinoNews',NEWS_VER);}catch(e){}
+  $('newsbtn').classList.remove('new');
+  openModal('<h2>お知らせ</h2><div class="nws"><b>Version 1.2.0</b><br>新機能一部追加<br>パスワードのリセット<br><small>これまでのパスワードは使えなくなりました。</small></div><div class="mr"><button data-x="1">閉じる</button></div>');
+};
 $('loan').onclick=()=>loanModal();
 
 /* ディーラー（上部中央に表示するバストアップ） */
@@ -1453,12 +1495,24 @@ function kDraw(){
     else{g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.arc(13,yc,Math.max(7,lh*.26),0,6.2832);g.fill();g.fillStyle='#fff';g.font='bold '+Math.max(9,lh*.34)+'px sans-serif';g.fillText(i+1,13,yc+.5);}
   }
 }
+function kFit(){
+  document.querySelectorAll('#gp-keiba .kh').forEach(b=>{
+    const k=b.querySelector('.kod'),n=b.querySelector('.knm');if(!k||!n||b.clientWidth<=0)return;
+    k.style.fontSize='';n.style.fontSize='';
+    let z=parseFloat(getComputedStyle(k).fontSize);
+    while(z>7&&k.scrollWidth>b.clientWidth-6){z-=.5;k.style.fontSize=z+'px';}
+    let y=parseFloat(getComputedStyle(n).fontSize);
+    while(y>5&&n.scrollWidth>b.clientWidth-4){y-=.5;n.style.fontSize=y+'px';}
+  });
+}
+window.addEventListener('resize',kFit);
 function kUI(){
   for(let i=0;i<KN;i++){
     const b=$('kh'+i);
-    b.innerHTML=(i+1)+'番<br>'+HORSES[KF.h[i]].n+'<br>'+(kMode==='win'?KF.ow[i]:KF.op[i])+'倍';
+    b.innerHTML='<b class="kod">'+(i+1)+'番 '+(kMode==='win'?KF.ow[i]:KF.op[i])+'倍</b><span class="knm">'+HORSES[KF.h[i]].n+'</span>';
     b.classList.toggle('sel',kPick===i);b.disabled=busy;
   }
+  kFit();
   $('kwin').classList.toggle('sel',kMode==='win');$('kplace').classList.toggle('sel',kMode==='place');
   $('kwin').disabled=busy;$('kplace').disabled=busy;
 }
@@ -1645,7 +1699,8 @@ function hostLink(c){
     if(first)startSession();
     peers.set(c.peer,c);
     if(rdG||wt)clearWaitHost();
-    hostRoster.set(c.peer,{i:c.peer,n:'…',b:START,d:0,g:'chouhan'});
+    if(!hostRoster.has(c.peer))hostRoster.set(c.peer,{i:c.peer,n:'…',b:START,d:0,g:'chouhan'});
+    try{c.send({t:'sq'});}catch(x){}
     bcastRo();refreshBtn();
     onNote('参加者が増えました（'+(1+peers.size)+'/'+MAXP+'人）');
     update();
@@ -1653,7 +1708,7 @@ function hostLink(c){
   });
   c.on('data',d=>{
     if(!d||typeof d!=='object')return;
-    if(d.t==='st'){const e=hostRoster.get(c.peer);if(e){e.n=cleanName(d.n);e.b=Number(d.b)||0;e.d=Number(d.d)||0;if(GAMES.includes(d.g))e.g=d.g;schedRo();}}
+    if(d.t==='st'){let e=hostRoster.get(c.peer);if(!e){e={i:c.peer,n:'…',b:START,d:0,g:'chouhan'};hostRoster.set(c.peer,e);}e.n=cleanName(d.n);e.b=Number(d.b)||0;e.d=Number(d.d)||0;if(GAMES.includes(d.g))e.g=d.g;schedRo();}
     else if(d.t==='gs'){gsApply(d.g);gsBcast(d.g);}
     else if(d.t==='rd'||d.t==='rc')hostWait(d,c.peer);
     else netMsg(d);
@@ -1677,7 +1732,8 @@ function guestLink(c){
   });
   c.on('data',d=>{
     if(!d||typeof d!=='object')return;
-    if(d.t==='ro'&&Array.isArray(d.l)){applyRoster(d.l.slice(0,MAXP).map(cleanEntry));refreshBtn();}
+    if(d.t==='ro'&&Array.isArray(d.l)){applyRoster(d.l.slice(0,MAXP).map(cleanEntry));refreshBtn();{const me=roster.find(e=>e.i===myId);if(me&&(me.b!==balance||me.d!==debt)){lastSig='';sendSt();}}}
+    else if(d.t==='sq'){lastSig='';sendSt();}
     else if(d.t==='gs')gsApply(d.g);
     else if(d.t==='rw')waitSet(d);
     else if(d.t==='rg'&&GAMES.includes(d.g))waitGo(d.g,d.f);
@@ -1709,6 +1765,8 @@ function netErrText(t){
   if(t==='browser-incompatible')return 'このブラウザはオンライン対戦に対応していません';
   return '接続エラー：'+t;
 }
+const SIGMSG='接続用サーバー（0.peerjs.com）から返事がありません。学校のネットワークが止めている可能性が高いです。携帯回線やテザリングで試すか、先生に「0.peerjs.com」の許可を頼んでください';
+function sigWatch(pr){setTimeout(()=>{if(net===pr&&!pr.open&&!online)netOff(SIGMSG);},12000);}
 let goSeq=0;
 async function goOnline(code){
   const my=++goSeq;
@@ -1722,13 +1780,13 @@ async function goOnline(code){
   if(my!==goSeq)return;
   room=code;const id='sekaicasino-'+hs(code).toString(36);onNote('接続中…');
   const opt={config:{iceServers:ice}};
-  const p=new Peer(id,opt);net=p;
+  const p=new Peer(id,opt);net=p;sigWatch(p);
   p.on('open',()=>{isHost=true;myId='host';hostRoster=new Map();onNote('部屋を作りました。同じ合言葉で最大'+MAXP+'人まで参加できます');});
   p.on('connection',c=>hostLink(c));
   p.on('error',e=>{
     if(e.type==='unavailable-id'){
       try{p.destroy();}catch(x){}
-      const q=new Peer(opt);net=q;
+      const q=new Peer(opt);net=q;sigWatch(q);
       q.on('open',qid=>{
         isHost=false;myId=qid;guestLink(q.connect(id,{reliable:true}));
         setTimeout(()=>{if(net===q&&!online)netOff('部屋の人とつなげませんでした。ネットワークの制限（学校のWi-Fiなど）の可能性があります。携帯回線やテザリングで試すか、合言葉が同じか確認してください');},20000);
@@ -1908,6 +1966,27 @@ function fitSlot(){
   m.style.transform='scale('+k.toFixed(3)+')';w.style.width=(SLW*k)+'px';w.style.height=(SLH*k)+'px';
 }
 window.addEventListener('resize',fitSlot);
+/* ラッキーセブンの電球：端から右回りに、つく・消えるが回る */
+const MQN=42;let mqT=0,mqB=null;
+function mqBuild(){
+  const q=document.querySelector('.slmq');if(!q)return;
+  const W=q.clientWidth,H=q.clientHeight,a=20,x0=7,x1=W-7,yt=5,yb=H-5;
+  q.querySelectorAll('i').forEach(e=>e.remove());mqB=[];
+  const add=(x,y)=>{const e=document.createElement('i');e.style.left=x+'px';e.style.top=y+'px';q.appendChild(e);mqB.push(e);};
+  for(let k=0;k<a;k++)add(x0+(x1-x0)*k/(a-1),yt);
+  add(W-4,H/2);
+  for(let k=a-1;k>=0;k--)add(x0+(x1-x0)*k/(a-1),yb);
+  add(4,H/2);
+}
+setInterval(()=>{
+  if(game!=='slot'||document.hidden)return;
+  if(!mqB||!mqB.length||!mqB[0].isConnected)mqBuild();
+  if(!mqB)return;
+  mqT=(mqT+1)%MQN;
+  const jp=document.getElementById('slm')&&document.getElementById('slm').classList.contains('jp');
+  mqB.forEach((e,i)=>e.classList.toggle('on',((i-mqT)%3+3)%3===0));
+  if(jp)mqB.forEach((e,i)=>{if(((i-mqT)%3+3)%3===1)e.classList.add('on');});
+},110);
 function slLcd(){const a=$('slcr'),b=$('slbt');if(a)a.textContent=fmt(balance,2);if(b)b.textContent=fmt(bet,2);}
 const slSnd=(f,v,d)=>{try{if(ctx&&on&&ctx.state==='running')tone(f,v,d,'square');}catch(e){}};
 function slCoins(n){
