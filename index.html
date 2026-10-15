@@ -886,7 +886,7 @@ const NEWS_VER='1.2.0';
 $('newsbtn').onclick=()=>{
   try{localStorage.setItem('casinoNews',NEWS_VER);}catch(e){}
   $('newsbtn').classList.remove('new');
-  openModal('<h2>お知らせ</h2><div class="nws"><b>Version 1.2.0</b><br>新機能一部追加<br>パスワードのリセット<br><small>これまでのパスワードは使えなくなりました。</small></div><div class="mr"><button data-x="1">閉じる</button></div>');
+  openModal('<h2>お知らせ</h2><div class="nws"><b>Version 1.0.0</b><br>サービス開始</div><div class="nws"><b>Version 1.1.0</b><br>バカラと競馬を追加</div><div class="nws"><b>Version 1.1.1</b><br>新機能一部追加</div><div class="nws"><b>Version 1.2.0</b><br>新機能一部追加<br>パスワードのリセット<br><small>これまでのパスワードは使えなくなりました。</small></div><div class="mr"><button data-x="1">閉じる</button></div>');
 };
 $('loan').onclick=()=>loanModal();
 
