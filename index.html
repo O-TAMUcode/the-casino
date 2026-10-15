@@ -237,8 +237,6 @@ button.b:disabled{opacity:.45}
 .slm{position:absolute;left:0;top:0;width:310px;height:314px;transform-origin:0 0}
 .slbody{position:absolute;left:0;top:0;width:280px;height:300px;border-radius:18px 18px 6px 6px;background:var(--slbg,linear-gradient(#8a2020,#4a0f0f));border:4px solid var(--slt,#d4af37);box-shadow:0 0 0 3px #2a1608,0 10px 18px rgba(0,0,0,.65),inset 0 0 22px rgba(0,0,0,.35)}
 .slmq{position:absolute;left:12px;right:12px;top:8px;height:30px;border-radius:8px;background:rgba(0,0,0,.55);border:2px solid var(--slt,#d4af37);display:flex;align-items:center;justify-content:center;font-weight:bold;letter-spacing:.28em;font-size:15px;color:var(--slt,#d4af37);text-shadow:0 0 6px var(--sll,#ffeb3b);overflow:hidden}
-.slmq i{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--sll,#ffeb3b);opacity:.18;pointer-events:none}
-.slmq i.on{opacity:1;box-shadow:0 0 5px 1px var(--sll,#ffeb3b)}
 .slbd{position:absolute;left:12px;top:46px;width:248px;height:116px;display:flex;gap:6px;padding:6px;justify-content:center;align-items:center;border-radius:10px;background:#0c0806;border:4px solid #2a1608;box-shadow:inset 0 0 10px #000,0 0 0 2px var(--slt,#d4af37)}
 .slbd::before{content:"";position:absolute;inset:0;border-radius:6px;background:linear-gradient(115deg,rgba(255,255,255,.18) 0 22%,transparent 23% 100%);z-index:3;pointer-events:none}
 .slr{width:72px;height:96px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--slrb,#fff);border:3px solid #333;font-size:2.9rem;line-height:1;box-shadow:inset 0 8px 10px rgba(0,0,0,.35),inset 0 -8px 10px rgba(0,0,0,.35);overflow:hidden}
@@ -1966,27 +1964,6 @@ function fitSlot(){
   m.style.transform='scale('+k.toFixed(3)+')';w.style.width=(SLW*k)+'px';w.style.height=(SLH*k)+'px';
 }
 window.addEventListener('resize',fitSlot);
-/* ラッキーセブンの電球：端から右回りに、つく・消えるが回る */
-const MQN=42;let mqT=0,mqB=null;
-function mqBuild(){
-  const q=document.querySelector('.slmq');if(!q)return;
-  const W=q.clientWidth,H=q.clientHeight,a=20,x0=7,x1=W-7,yt=5,yb=H-5;
-  q.querySelectorAll('i').forEach(e=>e.remove());mqB=[];
-  const add=(x,y)=>{const e=document.createElement('i');e.style.left=x+'px';e.style.top=y+'px';q.appendChild(e);mqB.push(e);};
-  for(let k=0;k<a;k++)add(x0+(x1-x0)*k/(a-1),yt);
-  add(W-4,H/2);
-  for(let k=a-1;k>=0;k--)add(x0+(x1-x0)*k/(a-1),yb);
-  add(4,H/2);
-}
-setInterval(()=>{
-  if(game!=='slot'||document.hidden)return;
-  if(!mqB||!mqB.length||!mqB[0].isConnected)mqBuild();
-  if(!mqB)return;
-  mqT=(mqT+1)%MQN;
-  const jp=document.getElementById('slm')&&document.getElementById('slm').classList.contains('jp');
-  mqB.forEach((e,i)=>e.classList.toggle('on',((i-mqT)%3+3)%3===0));
-  if(jp)mqB.forEach((e,i)=>{if(((i-mqT)%3+3)%3===1)e.classList.add('on');});
-},110);
 function slLcd(){const a=$('slcr'),b=$('slbt');if(a)a.textContent=fmt(balance,2);if(b)b.textContent=fmt(bet,2);}
 const slSnd=(f,v,d)=>{try{if(ctx&&on&&ctx.state==='running')tone(f,v,d,'square');}catch(e){}};
 function slCoins(n){
