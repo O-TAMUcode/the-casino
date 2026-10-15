@@ -84,9 +84,14 @@ button.b:disabled{opacity:.45}
 .gname #gtxt,.gname.hasd #gtxt{font-size:1.25rem;line-height:1.15;white-space:pre;text-align:center;padding:3px 6px;border-radius:8px;background:rgba(0,0,0,.5)}
 #sc-keiba{padding:292px 48px 62px}
 #kcv{width:100%;height:100%;display:block;border-radius:8px}
-#gp-keiba .kh{font-size:.7rem;line-height:1.12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px;overflow:hidden}
-#gp-keiba .kh .kod{font-size:.82rem;white-space:nowrap;flex:none;display:block;text-align:center}
-#gp-keiba .kh .knm{white-space:nowrap;font-size:.64rem;line-height:1.1;font-weight:normal;flex:none}
+#krank{position:absolute;left:10px;right:10px;top:174px;height:110px;z-index:2;pointer-events:none;display:flex;flex-direction:column;gap:3px}
+#krank .krh{flex:none;text-align:center;font-size:.74rem;font-weight:bold;color:#ffe082;text-shadow:0 1px 2px #000}
+#krank .krg{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);grid-auto-flow:column;gap:2px 4px}
+#krank .krc{display:flex;align-items:center;gap:3px;min-width:0;padding:0 4px;border-radius:6px;background:rgba(0,0,0,.45);color:#fff;font-size:.62rem;white-space:nowrap;overflow:hidden}
+#krank .krc.top{background:rgba(201,162,39,.65)}
+#krank .krc b{flex:none;font-size:.62rem}
+#krank .krc i{flex:none;width:14px;height:14px;line-height:14px;border-radius:50%;text-align:center;font-style:normal;font-weight:bold;font-size:.58rem;border:1px solid rgba(255,255,255,.6)}
+#krank .krc span{overflow:hidden;text-overflow:ellipsis}
 #bets{flex:.75}
 #aL{left:2px}#aR{right:2px}
 .scene{position:absolute;inset:0;z-index:3;padding:212px 48px 62px;display:flex;align-items:center;justify-content:center;background:var(--felt,radial-gradient(ellipse at center,#1f8a4c 0%,#0e5430 70%,#083a20 100%))}
@@ -97,7 +102,8 @@ button.b:disabled{opacity:.45}
 #ballg{transform-origin:100px 100px;transition:transform 4.4s cubic-bezier(.2,.6,.2,1)}
 #ball{transition:transform .5s}
 .ptxt{font-size:1.05rem!important;white-space:normal;text-align:center;justify-content:center!important;line-height:1.2;padding:2px 4px}
-#sc-roulette{flex-direction:column;padding:172px 8px 82px}
+#sc-roulette{flex-direction:column;padding:184px 8px 66px}
+#sc-roulette .rinfo{display:none}
 #sc-roulette .sv{height:auto;flex:1}
 .rinfo{color:#fff;font-size:.85rem;text-align:center;text-shadow:0 0 3px #000;min-height:1.2em;margin-top:4px;width:100%}
 .pk{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%}
@@ -265,7 +271,7 @@ button.b:disabled{opacity:.45}
 .slnote{color:#fff;font-weight:bold;font-size:.8rem;text-align:center;text-shadow:0 0 3px #000;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:8px;line-height:1.35;max-width:100%}
 .slnote.warn{color:#ffd54f;border:1px solid #ffd54f}
 #help p.warn{white-space:nowrap;color:#b3261e;font-weight:bold;border-left:4px solid #b3261e;padding-left:8px}
-#sc-slot{padding:172px 6px 58px}
+#sc-slot{padding:192px 6px 38px}
 .slnote:empty{display:none}
 #gp-slot .r{flex:1 1 0}
 #gor button:disabled{opacity:.45}
@@ -337,7 +343,7 @@ window.__peerLoad();
     <div class="plabel" id="h2label"></div><div class="pcards" id="h2cards"></div><div class="plabel" id="obj"></div>
   </div></div>
   <div class="scene wide" id="sc-chinchiro" hidden><div class="pk"><div class="plabel" id="cdl">親</div><div class="cdice" id="cdd"></div><div class="plabel" id="cpl">あなた</div><div class="cdice" id="cpd"></div></div></div>
-<div class="scene" id="sc-keiba" hidden><div class="sv" id="ksv"><canvas id="kcv"></canvas></div></div>
+<div class="scene" id="sc-keiba" hidden><div class="sv" id="ksv"><canvas id="kcv"></canvas></div><div id="krank"></div></div>
   <div class="scene wide" id="sc-baccarat" hidden><div class="pk">
     <div class="plabel" id="baBl">バンカー</div><div class="pcards" id="baBc"></div>
     <div class="pinfo" id="baInfo">プレイヤー・バンカー・タイから選びます</div>
@@ -387,13 +393,11 @@ window.__peerLoad();
     <div class="r" style="flex:1.2"><button class="b" id="bdbl" style="font-size:1rem">ダブル</button><button class="b" id="bsplit" style="font-size:.85rem">スプリット</button></div>
   </div>
   <div class="gp" id="gp-keiba" hidden>
-    <div class="r"><button class="b kh" id="kh0" data-h="0"></button><button class="b kh" id="kh1" data-h="1"></button><button class="b kh" id="kh2" data-h="2"></button></div>
-    <div class="r"><button class="b kh" id="kh3" data-h="3"></button><button class="b kh" id="kh4" data-h="4"></button><button class="b kh" id="kh5" data-h="5"></button></div>
-    <div class="r"><button class="b" id="kwin" style="font-size:1.1rem">単勝</button><button class="b" id="kplace" style="font-size:1rem">複勝</button><button class="b" id="kinfo" style="font-size:1rem">出走表</button></div>
+    <div class="r" style="flex:1"><button class="b" id="kinfo" style="font-size:1rem;line-height:1.3"></button></div>
   </div>
   <div class="gp" id="gp-baccarat" hidden>
     <div class="r"><button class="b" id="ba-p" style="font-size:1rem;line-height:1.1">プレイヤー</button><button class="b" id="ba-b" style="font-size:1rem;line-height:1.1">バンカー</button></div>
-    <div class="r"><button class="b" id="ba-t" style="font-size:1.2rem">タイ</button><button class="b" id="ba-i" style="font-size:.95rem;line-height:1.1">配当・ルール</button></div>
+    <div class="r"><button class="b" id="ba-t" style="font-size:1.2rem">タイ</button><button class="b" id="ba-i" style="font-size:.95rem;line-height:1.1">配当</button></div>
   </div>
   <div class="gp" id="gp-slot" hidden>
     <div class="r"><button class="b" id="sl-i">配当表</button><button class="b" id="sl-m">停止：自動</button></div>
@@ -426,7 +430,7 @@ window.__peerLoad();
 <h3>ポーカー</h3><p data-g="poker">テキサスホールデムの1対1（ノーリミット）。フォールド／チェック・コール／ベット・レイズ／オールインで相手と勝負。</p>
 <h3>ブラックジャック</h3><p data-g="blackjack">21に近い方が勝ち、超えるとバースト。ヒット＝カードを引く、スタンド＝止める。ダブル、スプリットも可能。ブラックジャックは2.5倍。</p>
 <h3>バカラ</h3><p data-g="baccarat">「プレイヤー」「バンカー」「タイ」のどれかに賭け、合計が9に近い方が勝ち。数字は下1桁で数え、A＝1、2〜9はそのまま、10・J・Q・Kは0。最初の2枚で8か9（ナチュラル）なら勝負が決まり、そうでなければ決まりに従って3枚目が自動で配られます。プレイヤーが勝つと2倍、バンカーが勝つと約1.95倍（5%の手数料）、タイは9倍。タイのときプレイヤー／バンカーへの賭けは戻ります。</p>
-<h3>競馬</h3><p data-g="keiba">36頭の中から毎回6頭が出走します。「出走表」で名前・能力・エピソードを見て、1頭を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。</p>
+<h3>競馬</h3><p data-g="keiba">36頭の中から毎回9頭が出走します。「出走表」で名前・能力・エピソードを見て、賭ける馬と賭け方（単勝・複勝）を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。馬の能力はレースごとに少しずつ変わります。</p>
 <h3>スロット</h3><p data-g="slot">「スピン！」で3つのリールが回ります。絵柄が3つ揃えば当たり（7️⃣ 100倍、⭐ 50倍、🔔 20倍、🍇 10倍、🍋 5倍、🍒 3倍）。🍒が2つで1.5倍、1つなら賭け金が戻ります。どれにも当てはまらない「はずれ」もあり、そのときは賭け金を失います。画面右のレバーをタップしても回せます。</p>
 <p class="warn" data-g="slot">⚠ スロットはオンライン要素がありません。</p>
 <h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。ページを更新するとアイテムは消え、パスワードでしか戻せません。</p>
@@ -704,8 +708,14 @@ function setSndLabel(){let n=on?'♪'+MUS[game][trk]:'♪消';if(n==='♪ジャ�
 window.addEventListener('resize',fitSnd);
 function sfx(win){
   if(!ctx||!on)return;
-  if(win)[5,7,8,10].forEach((k,j)=>setTimeout(()=>{if(on)pluck(SC[k],.3);},j*110));
-  else pluck(SC[2],.3);
+  /* 当たり：明るい上昇2音（ピロリン） / 外れ：低い下降2音（ブブー） */
+  if(win){
+    tone(mf(88),.16,.16,'triangle',2);
+    setTimeout(()=>{if(ctx)tone(mf(95),.18,.38,'triangle',2);},110);
+  }else{
+    tone(mf(50),.09,.2,'sawtooth');
+    setTimeout(()=>{if(ctx)tone(mf(45),.1,.4,'sawtooth');},150);
+  }
 }
 function startAudio(){
   try{
@@ -1015,7 +1025,7 @@ function placeBet(){
   const key=rSel.join(','),b=rBets.find(x=>x.key===key);
   if(b)b.amt+=bet;else rBets.push({key:key,nums:rSel.slice(),name:rSelName,amt:bet});
   balance-=bet;bet=Math.min(bet,balance);
-  return '✔ '+rSelName+' に追加（賭け合計 '+rTotal()+'）';
+  return rSelName+'に追加しました';
 }
 function rSheet(note){
   const keep=$('mbox').scrollTop,sel=new Set(rSel);
@@ -1049,7 +1059,8 @@ $('mbox').addEventListener('click',e=>{
   update();rSheet(note);
 });
 $('rtable').onclick=()=>rSheet();
-$('radd').onclick=()=>{const t=placeBet();update();$('msg').className='msg';$('msg').textContent=t;};
+let rNote=false,rNoteT=0;
+$('radd').onclick=()=>{const t=placeBet();rNote=true;update();$('msg').className='msg';$('msg').textContent=t;delete $('msg').dataset.res;clearTimeout(rNoteT);rNoteT=setTimeout(()=>{rNote=false;if(game==='roulette'&&!busy)gameUI();},3000);};
 async function goRoulette(){
   if($('go').disabled)return;
   busy=true;update();$('go').disabled=true;
@@ -1065,7 +1076,7 @@ async function goRoulette(){
   const eo=w===0?'':(w%2===0?'・偶数':'・奇数');
   const net=pay-total;
   msg.className='msg '+(net>0?'win':net<0?'lose':'');
-  msg.textContent=col+'の'+w+eo+'！ '+(pay>0?pay+'獲得':'的中なし')+'（賭け'+total+'／'+(net>=0?'+':'')+net+'）'+brokeNote();
+  msg.dataset.res='1';msg.textContent=col+'の'+w+eo+'！ '+(pay>0?pay+'獲得':'的中なし')+'（賭け'+total+'／'+(net>=0?'+':'')+net+'）'+brokeNote();
   busy=false;update();
 }
 
@@ -1279,10 +1290,11 @@ function pkUI(){
   $('praise').innerHTML=((H&&H.on&&H.betTo>0)?'レイズ':'ベット')+'<br>'+(bet>0?bet:'');
 }
 function gameUI(){
+  if(game!=='roulette')delete $('msg').dataset.res;
   const sw=(canSwitch()&&!wt)?'visible':'hidden';$('aL').style.visibility=sw;$('aR').style.visibility=sw;
   if(game==='roulette'){
     $('radd').disabled=busy||!rSel.length||bet<1||bet>balance;
-    $('rinfo').textContent=rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'賭けはまだありません';
+    {const m=$('msg');if(rBets.length||!m.dataset.res){if(!busy&&!rNote){m.className='msg';m.textContent=rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'賭けはまだありません';delete m.dataset.res;}}}
   }else if(game==='poker')pkUI();
   else if(game==='blackjack')bjUI();
   else if(game==='keiba')kUI();
@@ -1393,8 +1405,8 @@ $('bdbl').onclick=()=>bjAct('dbl');
 $('bsplit').onclick=()=>bjAct('split');
 
 
-/* 競馬（6頭立て・単勝／複勝） */
-const KN=6,KCOL=['#f5f5f5','#222','#d32f2f','#1976d2','#fbc02d','#2e7d32'];
+/* 競馬（9頭立て・単勝／複勝） */
+const KN=9,KCOL=['#f5f5f5','#222','#d32f2f','#1976d2','#fbc02d','#2e7d32','#fb8c00','#f48fb1','#7e57c2'];
 const COATS=[{n:'鹿毛',b:'#6b3a1f',m:'#1a1008'},{n:'黒鹿毛',b:'#2f1d12',m:'#0d0805'},{n:'栗毛',b:'#b5651d',m:'#7a3f10'},{n:'芦毛',b:'#cfd2d8',m:'#8d9099'},{n:'青毛',b:'#1c1c1f',m:'#000'},{n:'白毛',b:'#f4f0e6',m:'#d8d2c2'},{n:'月毛',b:'#e8cf8f',m:'#c7a55a'},{n:'栃栗毛',b:'#8a4a1e',m:'#4a2410'},{n:'河原毛',b:'#c9a46a',m:'#6d5430'}];
 const HORSES=`ハヤテノツバサ|0|88|62|70|55|疾風の逃げが武器。ゲートが開いた瞬間に先頭へ飛び出す。
 ミカヅキダンサー|3|65|78|72|60|月夜に舞うような末脚。直線でふわりと伸びる。
@@ -1432,6 +1444,10 @@ const HORSES=`ハヤテノツバサ|0|88|62|70|55|疾風の逃げが武器。ゲ
 ユメノツヅキ|5|63|76|70|72|夢の続きを見せる晩成型。年齢を重ねて強くなった。
 キタカゼワカ|8|86|52|80|57|北風を切って走る若駒。若さが武器。
 ワダツミ|1|72|80|85|74|海神の名を持つ大器。覚醒すれば手がつけられない。`.split('\n').map(l=>{const a=l.split('|');return{n:a[0],c:+a[1],s:+a[2],t:+a[3],b:+a[4],g:+a[5],e:a[6]};});
+HORSES.forEach(o=>{o.s0=o.s;o.t0=o.t;o.b0=o.b;o.g0=o.g;o.d={s:0,t:0,b:0,g:0};});
+function kReset(){HORSES.forEach(o=>{o.s=o.s0;o.t=o.t0;o.b=o.b0;o.g=o.g0;o.d={s:0,t:0,b:0,g:0};});}
+/* レースごとに能力が少しずつ変わる（元の値から±10まで） */
+function kDrift(o){['s','t','b','g'].forEach(k=>{const b=o[k+'0'];let v=o[k]+Math.round((rr()-.5)*6);v=Math.max(b-10,Math.min(b+10,v));v=Math.max(30,Math.min(99,v));o.d[k]=v-o[k];o[k]=v;});}
 let K=null,kPick=-1,kMode='win',kRacing=false,kRaf=0;
 function kOrder(w){
   const idx=w.map((_,i)=>i),ws=w.slice(),o=[];
@@ -1441,12 +1457,13 @@ function kOrder(w){
 function kField(){
   const idx=[...Array(HORSES.length).keys()];
   for(let i=0;i<KN;i++){const j=i+Math.floor(rr()*(idx.length-i));const t=idx[i];idx[i]=idx[j];idx[j]=t;}
-  const h=idx.slice(0,KN),w=h.map(k=>{const o=HORSES[k],p=(o.s*.35+o.t*.25+o.b*.25+o.g*.15)/100;return Math.pow((.35+1.8*p)*(.85+.3*rr()),5);});
+  const h=idx.slice(0,KN);h.forEach(k=>kDrift(HORSES[k]));const w=h.map(k=>{const o=HORSES[k],p=(o.s*.35+o.t*.25+o.b*.25+o.g*.15)/100;return Math.pow((.35+1.8*p)*(.85+.3*rr()),5);});
   const sw=w.reduce((a,b)=>a+b,0),pl=new Array(KN).fill(0),SIM=600,rd=x=>Math.round(x*10)/10;
   for(let t=0;t<SIM;t++){const o=kOrder(w);for(let r=0;r<3;r++)pl[o[r]]++;}
   return {h:h,w:w,ow:w.map(x=>Math.min(99,Math.max(1.1,rd(.8*sw/x)))),op:pl.map(c=>Math.min(30,Math.max(1.1,rd(.8/Math.max(.02,c/SIM)))))};
 }
 let KF=kField();
+let kTA=0,kTM=1;
 function kHorse(g,x,y,s,coat,silk,num,ph,run){
   const B=coat.b,M=coat.m,rim='rgba(255,255,255,.7)';
   g.lineCap='round';g.lineJoin='round';
@@ -1470,58 +1487,82 @@ function kHorse(g,x,y,s,coat,silk,num,ph,run){
   g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;g.stroke();
   g.fillStyle='#f1c7a1';g.beginPath();g.arc(x+.1*s,y-.53*s,.075*s,0,6.2832);g.fill();
   g.fillStyle=silk;g.beginPath();g.arc(x+.1*s,y-.55*s,.08*s,3.3,6.1);g.fill();
-  g.fillStyle=(silk==='#f5f5f5'||silk==='#fbc02d')?'#000':'#fff';
+  g.fillStyle=(silk==='#f5f5f5'||silk==='#fbc02d'||silk==='#fb8c00'||silk==='#f48fb1')?'#000':'#fff';
   g.font='bold '+Math.max(8,s*.2)+'px sans-serif';g.textAlign='center';g.textBaseline='middle';
-  g.fillText(num,x-.04*s,y-.33*s);
+  g.save();g.translate(x-.04*s,y-.33*s);g.scale(kTM,1);g.rotate(-kTA);g.fillText(num,0,0);g.restore();
 }
 function kDraw(){
   const c=$('kcv');if(!c)return;
   const W=c.clientWidth,H=c.clientHeight;if(W<=0||H<=0)return;
   if(c.width!==W||c.height!==H){c.width=W;c.height=H;}
   const g=c.getContext('2d');g.clearRect(0,0,W,H);
-  const top=3,lh=(H-top*2)/KN,sz=Math.min(lh*1.15,46),x0=Math.max(30,sz*.62),xf=W-sz*.7-22;
-  for(let i=0;i<KN;i++){const y=top+i*lh;g.fillStyle=i%2?'#2e7d3a':'#38924a';g.fillRect(0,y,W,lh);g.fillStyle='rgba(255,255,255,.5)';g.fillRect(0,y+lh-1,W,1.5);}
-  g.fillStyle='#fff';g.fillRect(x0-sz*.55-3,top,2,H-top*2);
-  const fx=xf+sz*.55;
-  for(let r=0;r<Math.ceil((H-top*2)/6);r++)for(let k=0;k<2;k++){g.fillStyle=(r+k)%2?'#fff':'#111';g.fillRect(fx+k*5,top+r*6,5,Math.min(6,H-top-(top+r*6)));}
+  const PI=Math.PI,vert=H>W,Wc=vert?H:W,Hc=vert?W:H,mg=6;
+  const Bo=Math.max(20,Hc/2-mg),rin=Bo*.22,lw=(Bo-rin)/KN,Ls=Math.max(0,Wc/2-mg-Bo);
+  const rc=rin+KN*lw/2,Lc=4*Ls+2*PI*rc,cx=W/2,cy=H/2;
+  g.fillStyle='#14502a';g.fillRect(0,0,W,H);
+  /* コース（楕円トラック） */
+  g.save();g.translate(cx,cy);if(vert)g.rotate(PI/2);
+  const stad=r=>{g.beginPath();g.moveTo(-Ls,-r);g.lineTo(Ls,-r);g.arc(Ls,0,r,-PI/2,PI/2);g.lineTo(-Ls,r);g.arc(-Ls,0,r,PI/2,PI*1.5);g.closePath();};
+  for(let i=KN-1;i>=0;i--){stad(rin+(i+1)*lw);g.fillStyle=i%2?'#2e7d3a':'#38924a';g.fill();}
+  stad(rin);g.fillStyle='#1d6b2f';g.fill();
+  for(let k=0;k<=KN;k++){stad(rin+k*lw);const e=k===0||k===KN;g.strokeStyle=e?'#fff':'rgba(255,255,255,.35)';g.lineWidth=e?2:1;g.stroke();}
+  const cell=lw/2;
+  for(let k=0;k<KN*2;k++)for(let q=0;q<2;q++){g.fillStyle=(k+q)%2?'#fff':'#111';g.fillRect(-cell+q*cell,rin+k*cell,cell,cell);}
+  g.restore();
+  /* 馬の位置（レーンごとの半径で同じ進行度の位置に並ぶ） */
+  const trk=(u,r)=>{
+    const a=(((u%1)+1)%1)*Lc;let x,y,h,th;
+    if(a<Ls){x=a;y=r;h=0;}
+    else if(a<Ls+PI*rc){th=PI/2-(a-Ls)/rc;x=Ls+r*Math.cos(th);y=r*Math.sin(th);h=th-PI/2;}
+    else if(a<3*Ls+PI*rc){x=Ls-(a-Ls-PI*rc);y=-r;h=PI;}
+    else if(a<3*Ls+2*PI*rc){th=-PI/2-(a-3*Ls-PI*rc)/rc;x=-Ls+r*Math.cos(th);y=r*Math.sin(th);h=th-PI/2;}
+    else{x=-Ls+(a-3*Ls-2*PI*rc);y=r;h=0;}
+    return{x:x,y:y,h:h};
+  };
+  const sz=Math.min(lw*1.12,46);
   for(let i=0;i<KN;i++){
-    const yc=top+i*lh+lh/2,p=K?K.pos[i]:0,x=x0+p*(xf-x0);
-    const run=!!(K&&K.racing&&p>0&&p<1);
-    kHorse(g,x,yc-.08*sz,sz,COATS[HORSES[(K&&K.hh?K.hh:KF.h)[i]].c],KCOL[i],i+1,K?K.t*16+i*1.3:0,run);
-    g.textAlign='center';g.textBaseline='middle';
-    if(K&&K.fin){g.fillStyle='#ffe082';g.font='bold '+Math.max(10,lh*.38)+'px sans-serif';g.strokeStyle='#000';g.lineWidth=3;const t=(K.ord.indexOf(i)+1)+'着';g.strokeText(t,15,yc);g.fillText(t,15,yc);}
-    else{g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.arc(13,yc,Math.max(7,lh*.26),0,6.2832);g.fill();g.fillStyle='#fff';g.font='bold '+Math.max(9,lh*.34)+'px sans-serif';g.fillText(i+1,13,yc+.5);}
+    const p=K?K.pos[i]:0,pt=trk(p>=1?p-1:p,rin+(i+.5)*lw);
+    const X=vert?cx-pt.y:cx+pt.x,Y=vert?cy+pt.x:cy+pt.y,hs=pt.h+(vert?PI/2:0);
+    const mir=Math.cos(hs)<-1e-9,a=mir?hs-PI:hs,run=!!(K&&K.racing&&p>0&&p<1);
+    g.save();g.translate(X,Y);g.rotate(a);if(mir)g.scale(-1,1);
+    kTA=a;kTM=mir?-1:1;
+    kHorse(g,0,.045*sz,sz,COATS[HORSES[(K&&K.hh?K.hh:KF.h)[i]].c],KCOL[i],i+1,K?K.t*16+i*1.3:0,run);
+    g.restore();kTA=0;kTM=1;
   }
+  kRank();
 }
-function kFit(){
-  document.querySelectorAll('#gp-keiba .kh').forEach(b=>{
-    const k=b.querySelector('.kod'),n=b.querySelector('.knm');if(!k||!n||b.clientWidth<=0)return;
-    k.style.fontSize='';n.style.fontSize='';
-    let z=parseFloat(getComputedStyle(k).fontSize);
-    while(z>7&&k.scrollWidth>b.clientWidth-6){z-=.5;k.style.fontSize=z+'px';}
-    let y=parseFloat(getComputedStyle(n).fontSize);
-    while(y>5&&n.scrollWidth>b.clientWidth-4){y-=.5;n.style.fontSize=y+'px';}
-  });
+let kRkSig='';
+function kRank(){
+  const el=$('krank');if(!el)return;
+  const hh=(K&&K.hh)?K.hh:KF.h;let ord,head,live=false;
+  if(K&&K.fin){ord=K.ord.slice();head='着順（確定）';live=true;}
+  else if(K&&K.racing){ord=[...Array(KN).keys()].sort((a,b)=>K.pos[b]-K.pos[a]||a-b);head='現在の順位';live=true;}
+  else{ord=[...Array(KN).keys()];head='出走馬';}
+  const sig=head+'|'+ord.join(',')+'|'+hh.join(',');
+  if(sig===kRkSig)return;kRkSig=sig;
+  const cells=ord.map((i,r)=>{
+    const sc=KCOL[i],tc=(sc==='#f5f5f5'||sc==='#fbc02d'||sc==='#fb8c00'||sc==='#f48fb1')?'#000':'#fff';
+    return '<div class="krc'+(live&&r===0?' top':'')+'">'+(live?'<b>'+(r+1)+'位</b>':'')+'<i style="background:'+sc+';color:'+tc+'">'+(i+1)+'</i><span>'+HORSES[hh[i]].n+'</span></div>';
+  }).join('');
+  el.innerHTML='<div class="krh">'+head+'</div><div class="krg">'+cells+'</div>';
 }
-window.addEventListener('resize',kFit);
 function kUI(){
-  for(let i=0;i<KN;i++){
-    const b=$('kh'+i);
-    b.innerHTML='<b class="kod">'+(i+1)+'番 '+(kMode==='win'?KF.ow[i]:KF.op[i])+'倍</b><span class="knm">'+HORSES[KF.h[i]].n+'</span>';
-    b.classList.toggle('sel',kPick===i);b.disabled=busy;
-  }
-  kFit();
-  $('kwin').classList.toggle('sel',kMode==='win');$('kplace').classList.toggle('sel',kMode==='place');
-  $('kwin').disabled=busy;$('kplace').disabled=busy;
+  const b=$('kinfo');
+  if(kPick<0)b.innerHTML='出走表を開いて<br>賭ける馬を選ぶ';
+  else{const o=HORSES[KF.h[kPick]];b.innerHTML='<b style="font-size:1.05rem">'+(kMode==='win'?'単勝':'複勝')+' '+(kPick+1)+'番 '+o.n+'</b><br><span style="font-size:.85rem">'+(kMode==='win'?KF.ow[kPick]:KF.op[kPick])+'倍（タップで出走表）</span>';}
+  b.disabled=busy;
+  kRank();
 }
-document.querySelectorAll('#gp-keiba .kh').forEach(b=>{b.onclick=()=>{if(busy)return;kPick=Number(b.dataset.h);update();};});
+function kDelta(d){return d>0?'<span style="color:#7ed68a">▲'+d+'</span>':d<0?'<span style="color:#ff8a80">▼'+(-d)+'</span>':'';}
 function kInfo(){
-  const rows=KF.h.map((hi,i)=>{const o=HORSES[hi],c=COATS[o.c];return '<div class="gr" style="align-items:flex-start"><span class="gpv" style="background:'+c.b+';color:'+(o.c===3||o.c===5||o.c===6?'#222':'#fff')+'">'+(i+1)+'</span><div style="flex:1;font-size:.85rem;line-height:1.35"><b style="font-size:1rem">'+o.n+'</b>（'+c.n+'）単勝'+KF.ow[i]+'倍／複勝'+KF.op[i]+'倍<br>スピード'+o.s+' スタミナ'+o.t+' 瞬発力'+o.b+' 根性'+o.g+'<br>'+o.e+'</div></div>';}).join('');
-  openModal('<h2>出走表</h2><div style="max-height:55vh;overflow:auto">'+rows+'</div><div class="mr"><button data-x="1">閉じる</button></div>');
+  if(busy)return;
+  const btn=(i,m,odds)=>'<button data-kp="'+i+'" data-km="'+m+'" style="flex:none;width:64px;padding:5px 0;font-size:.85rem;line-height:1.2;'+(kPick===i&&kMode===m?'background:#c9a227;color:#222;font-weight:bold;border-color:#ffe082':'')+'">'+(m==='win'?'単勝':'複勝')+'<br>'+odds+'倍</button>';
+  const rows=KF.h.map((hi,i)=>{const o=HORSES[hi],c=COATS[o.c],d=o.d;
+    return '<div class="gr" style="align-items:center;padding:6px 0"><span class="gpv" style="background:'+KCOL[i]+';color:'+((KCOL[i]==='#f5f5f5'||KCOL[i]==='#fbc02d'||KCOL[i]==='#fb8c00'||KCOL[i]==='#f48fb1')?'#000':'#fff')+'">'+(i+1)+'</span><div style="flex:1;min-width:0;font-size:.8rem;line-height:1.35"><b style="font-size:.95rem">'+o.n+'</b>（'+c.n+'）<br>スピード'+o.s+kDelta(d.s)+' スタミナ'+o.t+kDelta(d.t)+' 瞬発力'+o.b+kDelta(d.b)+' 根性'+o.g+kDelta(d.g)+'<br><small>'+o.e+'</small></div><div style="display:flex;flex-direction:column;gap:4px">'+btn(i,'win',KF.ow[i])+btn(i,'place',KF.op[i])+'</div></div>';}).join('');
+  openModal('<h2>出走表</h2><div style="font-size:.8rem;opacity:.85;margin-bottom:4px">賭ける馬と賭け方（単勝＝1着／複勝＝3着以内）をタップで選びます。▲▼は前回からの能力の変化です。</div><div style="max-height:60vh;overflow:auto">'+rows+'</div><div class="mr"><button data-x="1">閉じる</button></div>');
+  $('mbox').querySelectorAll('[data-kp]').forEach(b=>{b.onclick=()=>{kPick=Number(b.dataset.kp);kMode=b.dataset.km;closeModal();update();};});
 }
 $('kinfo').onclick=kInfo;
-$('kwin').onclick=()=>{if(busy)return;kMode='win';update();};
-$('kplace').onclick=()=>{if(busy)return;kMode='place';update();};
 async function goKeiba(){
   if($('go').disabled||kPick<0||bet<1||bet>balance)return;
   busy=true;kRacing=true;
@@ -1688,7 +1729,7 @@ function netMsg(d){
 }
 function startSession(){
   online=true;cnt={};bjN=0;bjOppN=0;lastSig='';
-  if(!busy&&!kRacing){_sd=hs(room+'kf');KF=kField();}
+  if(!busy&&!kRacing){kReset();_sd=hs(room+'kf');KF=kField();}
 }
 function hostLink(c){
   c.on('open',()=>{
@@ -1940,7 +1981,7 @@ async function goBaccarat(){
   }
   msg.textContent=txt+brokeNote();busy=false;update();
 }
-$('ba-i').onclick=()=>openModal('<h2>バカラのルール</h2><p style="line-height:1.6;font-size:.95rem">合計が9に近い方が勝ち（下1桁で数えます）。<br>A＝1、2〜9＝そのまま、10・J・Q・K＝0。<br>最初の2枚で8か9（ナチュラル）なら即決着。<br>プレイヤーは0〜5で3枚目を引き、6〜7で止まります。バンカーは決まりに従って自動で引きます。<br><br>配当：プレイヤー 2倍／バンカー 約1.95倍（5%手数料）／タイ 9倍<br>タイのとき、プレイヤー・バンカーへの賭けは戻ります。</p><div class="mr"><button data-x="1">閉じる</button></div>');
+$('ba-i').onclick=()=>openModal('<h2>バカラの配当</h2><p style="line-height:1.6;font-size:.95rem">プレイヤー 2倍／バンカー 約1.95倍（5%手数料）／タイ 9倍</p><div class="mr"><button data-x="1">閉じる</button></div>');
 
 /* スロット（一人用。オンライン要素なし） */
 const SLS=[['7️⃣',1,100],['⭐',2,50],['🔔',3,20],['🍇',4,10],['🍋',5,5],['🍒',5,3]],SLT=20,SLC=5;
@@ -1960,8 +2001,8 @@ function fitSlot(){
   const SLW=310,SLH=314;
   const f=$('field'),w=$('slmw'),m=$('slm');if(!f||!w||!m)return;
   const aH=f.clientHeight-172-62,aW=f.clientWidth-12;
-  const k=Math.max(.4,Math.min(aH/SLH,aW/SLW));
-  m.style.transform='scale('+k.toFixed(3)+')';w.style.width=(SLW*k)+'px';w.style.height=(SLH*k)+'px';
+  const k=Math.max(.4,Math.min(aH/SLH,aW/340));
+  m.style.transform='scale('+k.toFixed(3)+')';w.style.width=(280*k)+'px';w.style.height=(SLH*k)+'px';
 }
 window.addEventListener('resize',fitSlot);
 function slLcd(){const a=$('slcr'),b=$('slbt');if(a)a.textContent=fmt(balance,2);if(b)b.textContent=fmt(bet,2);}
