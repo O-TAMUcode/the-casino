@@ -39,7 +39,7 @@ body{background:var(--panel);color:var(--btnfg);font-family:"Hiragino Sans","Yu 
 #betbox input::placeholder{color:#111;opacity:1;font-size:1.1rem}
 #bets .tl{height:auto;min-height:48px;font-size:1.2rem}
 .die.q{display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:bold;color:var(--dpip,#222)}
-.cdice .die.q{font-size:clamp(2rem,10vw,3.2rem)}
+.cdice .die.q{font-size:calc(var(--cds,80px)*.5)}
 #bets .r{gap:4px}
 .r{display:flex;gap:6px;flex:1;min-height:0}
 button.b{flex:1;min-width:0;font:inherit;font-size:1.8rem;color:var(--btnfg);background:var(--btn);border:1px solid #6a5a50;border-radius:8px;padding:6px 0;cursor:pointer}
@@ -109,6 +109,12 @@ button.b:disabled{opacity:.45}
 .pk{display:flex;flex-direction:column;align-items:center;gap:5px;width:100%}
 .pcards{display:flex;gap:4px;justify-content:center}
 .plabel,.pinfo{color:#fff;font-weight:bold;font-size:1.05rem;text-shadow:0 0 3px #000}
+/* ブラックジャック／バカラ：同じ配置（空の要素は詰める） */
+#sc-blackjack .pk>:empty,#sc-baccarat .pk>:empty{display:none}
+#sc-blackjack #dcards,#sc-baccarat #baBc{margin-bottom:10px}
+/* ポーカー：相手のカード→ポット(場札) と 場札→自分のカード の間隔を同じにする */
+#sc-poker .pinfo{height:1.5rem;line-height:1.5rem}
+#sc-poker #hcards{margin-top:calc(1.5rem + 5px)}
 .card{width:var(--cw,40px);height:calc(var(--cw,40px)*1.4);border-radius:5px;background:var(--cbg,#fff);color:var(--cfg,#111);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:bold;font-size:calc(var(--cw,40px)*.4);line-height:1;box-shadow:0 2px 5px rgba(0,0,0,.5)}
 .card{position:relative;overflow:hidden}
 .card .rk{position:absolute;left:7%;top:3%;font-size:calc(var(--cw,40px)*.44);line-height:1.1;letter-spacing:0}
@@ -149,8 +155,11 @@ button.b:disabled{opacity:.45}
 .gpv{display:inline-block;width:34px;height:34px;line-height:34px;text-align:center;border-radius:6px;border:1px solid #888;font-weight:bold;flex:none}
 .gn{flex:1;font-size:.95rem}.gr em{font-size:.8rem;opacity:.6;font-style:normal}
 .gr button{padding:2px 10px;font-size:.85rem}
-.cdice{display:flex;gap:16px;justify-content:center;margin:6px 0;min-height:clamp(66px,20vw,96px)}
-.cdice .die{width:clamp(66px,20vw,96px);height:clamp(66px,20vw,96px);padding:8px;border-radius:12px}
+#sc-chinchiro .plabel{font-size:1.5rem}
+#sc-chinchiro .pk{gap:4px}
+.cdice{display:flex;gap:10px;justify-content:center;margin:0;min-height:var(--cds,clamp(66px,20vw,96px))}
+.cdice .die{width:var(--cds,clamp(66px,20vw,96px));height:var(--cds,clamp(66px,20vw,96px));padding:8px;border-radius:12px}
+#sc-chinchiro #cdd{margin-bottom:10px}
 #bets .b{font-size:1.1rem}
 #gfx{--h:min(280px,36vh);position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(10,6,4,.92);color:#fff;text-align:center;transition:background .3s;overflow:hidden}
 #gfx>*{position:relative;z-index:1}
@@ -339,14 +348,13 @@ window.__peerLoad();
   </div></div>
   <div class="scene wide" id="sc-blackjack" hidden><div class="pk">
     <div class="plabel" id="dlabel">ディーラー</div><div class="pcards" id="dcards"></div>
-    <div class="plabel" id="h1label">あなた</div><div class="pcards" id="h1cards"></div>
-    <div class="plabel" id="h2label"></div><div class="pcards" id="h2cards"></div><div class="plabel" id="obj"></div>
+    <div class="pcards" id="h1cards"></div><div class="plabel" id="h1label">あなた</div>
+    <div class="pcards" id="h2cards"></div><div class="plabel" id="h2label"></div><div class="plabel" id="obj"></div>
   </div></div>
-  <div class="scene wide" id="sc-chinchiro" hidden><div class="pk"><div class="plabel" id="cdl">親</div><div class="cdice" id="cdd"></div><div class="plabel" id="cpl">あなた</div><div class="cdice" id="cpd"></div></div></div>
+  <div class="scene wide" id="sc-chinchiro" hidden><div class="pk"><div class="plabel" id="cdl">親</div><div class="cdice" id="cdd"></div><div class="cdice" id="cpd"></div><div class="plabel" id="cpl">あなた</div></div></div>
 <div class="scene" id="sc-keiba" hidden><div class="sv" id="ksv"><canvas id="kcv"></canvas></div><div id="krank"></div></div>
   <div class="scene wide" id="sc-baccarat" hidden><div class="pk">
     <div class="plabel" id="baBl">バンカー</div><div class="pcards" id="baBc"></div>
-    <div class="pinfo" id="baInfo">プレイヤー・バンカー・タイから選びます</div>
     <div class="pcards" id="baPc"></div><div class="plabel" id="baPl">プレイヤー</div>
   </div></div>
   <div class="scene" id="sc-slot" hidden><div class="slot">
@@ -1602,8 +1610,9 @@ async function goKeiba(){
 }
 window.addEventListener('resize',kDraw);
 function fitCards(){
-  const f=$('field'),top=172,availH=f.clientHeight-top-62,cwH=(availH-72)/3/1.4,cwW=(f.clientWidth-12-16)/5;
+  const f=$('field'),top=172,availH=f.clientHeight-top-62,cwH=(availH-(game==='poker'?118:72))/3/1.4,cwW=(f.clientWidth-12-16)/5;
   f.style.setProperty('--wtop',top+'px');
+  {const H=f.clientHeight,W=f.clientWidth,dv=H/2-200,d2=(H-320)/2,d3=(W-112)/3,wl=(W-12-20)/3;f.style.setProperty('--cds',Math.max(56,Math.min(wl,130,d2,Math.max(dv,d3))).toFixed(1)+'px');}
   f.style.setProperty('--cw',Math.max(28,Math.min(cwH,cwW,120)).toFixed(1)+'px');
 }
 window.addEventListener('resize',fitCards);
@@ -1946,7 +1955,6 @@ function baShow(){
 }
 function baUI(){
   ['p','b','t'].forEach(k=>{const b=$('ba-'+k);b.classList.toggle('sel',baPick===k);b.disabled=busy;});
-  $('baInfo').textContent=baPick?baNm[baPick]+'に賭けます':'プレイヤー・バンカー・タイから選びます';
 }
 ['p','b','t'].forEach(k=>{$('ba-'+k).onclick=()=>{if(busy)return;baPick=k;update();};});
 async function goBaccarat(){
