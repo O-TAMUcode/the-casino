@@ -16,6 +16,9 @@ body{background:var(--panel);color:var(--btnfg);font-family:"Hiragino Sans","Yu 
 .hud{position:absolute;top:8px;left:8px;right:96px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-weight:bold;text-shadow:0 1px 2px rgba(0,0,0,.6);color:#fff;z-index:5}
 .hud div,.hud button{flex:1;min-width:0;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:1.1rem;padding:0;white-space:nowrap}
 .hud b{font-size:1.9rem}
+.hud .bw{flex-direction:row;justify-content:space-between;align-items:center;gap:4px;padding:0 6px}
+.hud .bl{flex:1 1 0;min-width:0;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.hud .bw .bdt{flex:0 0 auto;height:auto;width:auto;font-size:.7rem;padding:8px 4px;border-radius:6px;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;text-shadow:none}
 .hud button{font:inherit;font-size:1.3rem;cursor:pointer}
 .stage{position:absolute;left:50%;top:calc(212px + (100% - 274px)/2);width:180px;height:150px;transform:translate(-50%,-50%);transform-origin:50% 50%}
 .shadow{position:absolute;left:50%;bottom:-6px;width:150px;height:22px;transform:translateX(-50%);background:rgba(0,0,0,.28);border-radius:50%;filter:blur(3px)}
@@ -323,7 +326,7 @@ window.__peerLoad();
 <body>
 <div class="field" id="field">
   <div class="hud">
-    <div class="tt">所持金 <b id="bal">10000</b></div>
+    <div class="tt bw"><span class="bl">所持金<b id="bal">10000</b></span><button id="bdet" class="bdt">詳細</button></div>
     <div class="tt">賭け <b id="ch">—</b></div>
     <button id="snd" class="tt">♪琴</button>
   </div>
@@ -456,11 +459,12 @@ window.__peerLoad();
 </div>
 <div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
 <script>
-const START=10000;var online=false,_sd=1;
+const START=10000,MAXB=9999e48;var online=false,_sd=1;
 function rr(){if(!online)return Math.random();_sd=(_sd+0x6D2B79F5)|0;let t=Math.imul(_sd^_sd>>>15,1|_sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
-const UN=[[1e16,'京'],[1e12,'兆'],[1e8,'億'],[1e4,'万']];
-function fmt(n,max){const a=Math.floor(Math.abs(n)),sg=n<0?'-':'';if(a<10000)return sg+a;let rest=a,out='',cnt=0;for(const[u,c]of UN){const q=Math.floor(rest/u);if(q){out+=q+c;rest-=q*u;cnt++;if(max&&cnt>=max)return sg+out;}}return sg+out+(rest?rest:'');}
-function fitBal(t){const b=$('bal'),box=b.parentElement,m=/^(.*[京兆億万])(\d+)$/.exec(t);const m2=/^(\d+[京兆億])(\d+[兆億万])$/.exec(t);if(m&&t.length>6)b.innerHTML=m[1]+'<br>'+m[2];else if(m2&&t.length>5)b.innerHTML=m2[1]+'<br>'+m2[2];else b.textContent=t;let sz=30;b.style.fontSize=sz+'px';const lim=box.clientWidth-8;if(lim<=0)return;while(sz>11&&b.getBoundingClientRect().width>lim){sz--;b.style.fontSize=sz+'px';}}
+const UN=[[10n**48n,'極'],[10n**44n,'載'],[10n**40n,'正'],[10n**36n,'澗'],[10n**32n,'溝'],[10n**28n,'穣'],[10n**24n,'秭'],[10n**20n,'垓'],[10n**16n,'京'],[10n**12n,'兆'],[10n**8n,'億'],[10n**4n,'万']];
+function bstr(n){n=Math.floor(Math.abs(n));return n<1e21?String(n):BigInt(n).toString();}
+function fmt(n,max){if(!isFinite(n))n=0;const a0=Math.floor(Math.abs(n)),sg=n<0?'-':'';if(a0<10000)return sg+a0;if(a0>=9999e48)return sg+'9999極';let rest=BigInt(a0),out='',cnt=0;for(const[u,c]of UN){const q=rest/u;if(q>0n){out+=q+c;rest-=q*u;cnt++;if(max&&cnt>=max)return sg+out;}}return sg+out+(rest>0n?rest:'');}
+function fitBal(t){const b=$('bal'),box=b.parentElement,m=/^(.*[京兆億万])(\d+)$/.exec(t);const m2=/^(\d+[京兆億])(\d+[兆億万])$/.exec(t);if(m&&t.length>6)b.innerHTML=m[1]+'<br>'+m[2];else if(m2&&t.length>5)b.innerHTML=m2[1]+'<br>'+m2[2];else b.textContent=t;let sz=30;b.style.fontSize=sz+'px';const lim=box.clientWidth-2;if(lim<=0)return;while(sz>8&&b.getBoundingClientRect().width>lim){sz--;b.style.fontSize=sz+'px';}}
 let balance=START,bet=0,choice=null,busy=false,cupUp=false;
 const $=id=>document.getElementById(id);
 const field=$('field');
@@ -475,8 +479,9 @@ const roll=()=>1+Math.floor(rr()*6);
 face($('d1'),roll());face($('d2'),roll());
 const label=()=>curLabel();
 function update(){
+  if(balance>MAXB)balance=MAXB;
   {const cap=(game==='poker'&&H&&H.on)?H.cur[0]+balance:balance;if(bet>cap)bet=cap;}
-  {fitBal(fmt(balance,balance>=1e8?2:0));}{const bi=$('bet');if(Number(bi.value)!==bet)bi.value=bet>0?bet:'';bi.disabled=busy;document.querySelectorAll('#bets .b').forEach(b=>b.disabled=busy);}$('ch').textContent=label();fitCh();refreshTools();fitMon($('numv'));gameUI();
+  {fitBal(fmt(balance,1));}{const bi=$('bet');if(Number(bi.value)!==bet)bi.value=bet>0?bstr(bet):'';{const L=String(bi.value).length;bi.style.fontSize=L>9?Math.max(.75,1.5*9/L).toFixed(2)+'rem':'';}bi.disabled=busy;document.querySelectorAll('#bets .b').forEach(b=>b.disabled=busy);}$('ch').textContent=label();fitCh();refreshTools();fitMon($('numv'));gameUI();
   $('go').disabled=busy||!ready();
 }
 function setChoice(c){
@@ -769,28 +774,30 @@ function encName(force){
   return o;
 }
 function encodePw(){
-  const d=balance.toString(36).padStart(8,'0')+debt.toString(36).padStart(6,'0')+skMask().toString(36).padStart(16,'0')+SKT.map(t=>Number(eq[t].slice(1)).toString(36)).join('')+encName(slExt())+(slExt()?slMask().toString(36).padStart(6,'0')+Number(eq.s.slice(1)).toString(36):''),raw=d+hash6(d);
+  const d=BigInt(Math.floor(Math.min(balance,MAXB))).toString(36).padStart(34,'0')+debt.toString(36).padStart(6,'0')+skMask().toString(36).padStart(16,'0')+SKT.map(t=>Number(eq[t].slice(1)).toString(36)).join('')+encName(slExt())+(slExt()?slMask().toString(36).padStart(6,'0')+Number(eq.s.slice(1)).toString(36):''),raw=d+hash6(d);
   let o='';for(let i=0;i<raw.length;i++)o+=AL[(AL.indexOf(raw[i])+KEY[i%KEY.length])%36];
   return o.toUpperCase().replace(/(.{4})(?=.)/g,'$1-');
 }
 function decodePw(pw){
+  /* 新形式は所持金欄が10桁（旧形式より2文字長い）。旧パスワードもそのまま読める */
   const t=pw.toLowerCase().replace(/[^0-9a-z]/g,''),n=t.length;
-  if(n!==20&&n!==29&&n!==40&&n!==65&&n!==72)return null;
+  const W=[46,55,66,91,98].indexOf(n)>=0?26:[22,31,42,67,74].indexOf(n)>=0?2:0,nn=n-W;
+  if(nn!==20&&nn!==29&&nn!==40&&nn!==65&&nn!==72)return null;
   let raw='';for(let i=0;i<n;i++)raw+=AL[(AL.indexOf(t[i])-KEY[i%KEY.length]+360)%36];
   const k=n-6;
   if(hash6(raw.slice(0,k))!==raw.slice(k))return null;
-  const r={b:parseInt(raw.slice(0,8),36),d:parseInt(raw.slice(8,14),36),k:n===29?parseInt(raw.slice(14,22),36)/100:0,sk:null,nm:''};
-  if(n>=40){
-    let m=0n;for(const c of raw.slice(14,30))m=m*36n+BigInt(parseInt(c,36));
+  const r={b:(()=>{let v=0n;for(const c of raw.slice(0,8+W))v=v*36n+BigInt(parseInt(c,36));return Number(v);})(),d:parseInt(raw.slice(8+W,14+W),36),k:nn===29?parseInt(raw.slice(14+W,22+W),36)/100:0,sk:null,nm:''};
+  if(nn>=40){
+    let m=0n;for(const c of raw.slice(14+W,30+W))m=m*36n+BigInt(parseInt(c,36));
     const o2={d0:1,c0:1,m0:1,t0:1,s0:1},e2={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};
     SKINS.forEach(q=>{if(q.t!=='s'&&m>>BigInt(SKB[q.t]+Number(q.id.slice(1)))&1n)o2[q.id]=1;});
-    if(n===72){let sm=0n;for(const c of raw.slice(59,65))sm=sm*36n+BigInt(parseInt(c,36));SKINS.forEach(q=>{if(q.t==='s'&&sm>>BigInt(Number(q.id.slice(1)))&1n)o2[q.id]=1;});const sid='s'+parseInt(raw[65],36);if(o2[sid])e2.s=sid;}
-    SKT.forEach((ty,i)=>{const id=ty+parseInt(raw.slice(30+i,31+i),36);if(o2[id])e2[ty]=id;});
+    if(nn===72){let sm=0n;for(const c of raw.slice(59+W,65+W))sm=sm*36n+BigInt(parseInt(c,36));SKINS.forEach(q=>{if(q.t==='s'&&sm>>BigInt(Number(q.id.slice(1)))&1n)o2[q.id]=1;});const sid='s'+parseInt(raw[65+W],36);if(o2[sid])e2.s=sid;}
+    SKT.forEach((ty,i)=>{const id=ty+parseInt(raw.slice(30+W+i,31+W+i),36);if(o2[id])e2[ty]=id;});
     r.sk={own:o2,eq:e2};
   }
-  if(n===65||n===72){
-    const len=Math.min(NM,parseInt(raw[34],36)||0);let nm='';
-    for(let i=0;i<len;i++){const cp=parseInt(raw.slice(35+i*4,39+i*4),36);if(cp>=32&&cp<=0x10FFFF&&cp!==127)nm+=String.fromCodePoint(cp);}
+  if(nn===65||nn===72){
+    const len=Math.min(NM,parseInt(raw[34+W],36)||0);let nm='';
+    for(let i=0;i<len;i++){const cp=parseInt(raw.slice(35+W+i*4,39+W+i*4),36);if(cp>=32&&cp<=0x10FFFF&&cp!==127)nm+=String.fromCodePoint(cp);}
     r.nm=nm;
   }
   return r;
@@ -823,7 +830,7 @@ const GCH={adm:'uitwhm.1iwispn',all:'bwpgde.14cdwnn',none:'1nmfm4a.1q4zniz'};   
 function gcHash(t){let a=2166136261,b=2166136261;const u=t+'#';for(const c of t){a^=c.charCodeAt(0);a=Math.imul(a,16777619);}for(const c of u){b^=c.charCodeAt(0);b=Math.imul(b,16777619);}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36);}
 function giftUsed(){try{return JSON.parse(localStorage.getItem('casinoGift'))||[];}catch(e){return[];}}
 function giftMark(c){try{const u=giftUsed();u.push(c);localStorage.setItem('casinoGift',JSON.stringify(u));}catch(e){}}
-function giftMoney(d){balance=Math.max(0,Math.min(1e12,balance+d));update();}
+function giftMoney(d){balance=Math.max(0,Math.min(MAXB,balance+d));update();}
 function useGift(raw){
   const c=String(raw||'').toUpperCase().replace(/[\s\u3000]/g,'');
   if(!c)return 'コードを入力してください';
@@ -832,14 +839,14 @@ function useGift(raw){
   if(gcHash(c)===GCH.none){own={d0:1,c0:1,m0:1,t0:1,s0:1};eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};applySkin();update();return 'ガチャのアイテムをすべて消しました';}
   for(let i=1;i<c.length;i++){
     const rest=c.slice(i);
-    if(/^-?[0-9]{1,12}$/.test(rest)&&gcHash(c.slice(0,i))===GCH.adm){
-      const d=parseInt(rest,10);giftMoney(d);
-      return (d>=0?d+' 増えました':(-d)+' 減りました')+'（所持金 '+balance+'）';
+    if(/^-?[0-9]{1,52}$/.test(rest)&&gcHash(c.slice(0,i))===GCH.adm){
+      const d=Number(rest);giftMoney(d);
+      return (d>=0?fmt(d)+' 増えました':fmt(-d)+' 減りました')+'（所持金 '+fmt(balance)+'）';
     }
   }
   if(GIFTS[c]!==undefined){
     if(giftUsed().includes(c))return 'このコードは使用済みです';
-    giftMark(c);giftMoney(GIFTS[c]);return GIFTS[c]+' 手に入れました！（所持金 '+balance+'）';
+    giftMark(c);giftMoney(GIFTS[c]);return fmt(GIFTS[c])+' 手に入れました！（所持金 '+fmt(balance)+'）';
   }
   return 'コードが違います';
 }
@@ -894,7 +901,7 @@ $('mbox').onclick=e=>{
      if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
      curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
     balance=r.b+Math.floor(r.k);debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
-    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+balance+'／借金 '+debt+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
+    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+fmt(balance)+'／借金 '+fmt(debt)+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
   }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
@@ -1044,7 +1051,7 @@ function rSheet(note){
   ['c1','c2','c3'].forEach((k,i)=>{g+='<button class="rc o'+isOn(k)+'" data-ro="'+k+'" style="grid-row:14;grid-column:'+(i+3)+'">'+OUTS[k][0]+'</button>';});
   const mult=rSel.length?36/rSel.length:0;
   openModal('<h2>ルーレットの賭け台</h2>'
-    +'<div class="rinfo2">選択：<b>'+(rSel.length?rSelName:'なし')+'</b>'+(rSel.length&&Number.isInteger(mult)?'（配当 '+mult+'倍）':'')+'　所持金 <b>'+balance+'</b></div>'
+    +'<div class="rinfo2">選択：<b>'+(rSel.length?rSelName:'なし')+'</b>'+(rSel.length&&Number.isInteger(mult)?'（配当 '+mult+'倍）':'')+'　所持金 <b>'+fmt(balance,1)+'</b></div>'
     +'<div class="rgrid">'+g+'</div>'
     +'<div class="rinfo2">賭け：'+(rBets.length?rBets.map(b=>b.name+' '+b.amt).join(' ／ ')+'（計'+rTotal()+'）':'まだありません')+'</div>'
     +'<div class="mr"><button data-rt="clr">選択解除</button><button data-rt="undo">全て取り消す</button></div>'
@@ -2245,6 +2252,8 @@ function gachaModal(note){
     +'<div class="mr"><button data-x="1">閉じる</button></div>');
 }
 $('gacha').onclick=()=>gachaModal();
+window.addEventListener('resize',()=>{try{fitBal(fmt(balance,1));}catch(e){}});setTimeout(()=>{try{fitBal(fmt(balance,1));}catch(e){}},300);
+$('bdet').onclick=()=>{openModal('<h2>正確な残高</h2><div>所持金</div><div class="code">'+fmt(balance)+'</div><div style="margin-top:10px">借金 <b>'+fmt(debt)+'</b></div><div class="mr"><button data-x="1">閉じる</button></div>');};
 $('mbox').addEventListener('click',e=>{
   const t=e.target.dataset;
   if(t.sk){const k=SKINS.find(x=>x.id===t.sk);if(k&&own[k.id]){eq[k.t]=k.id;applySkin();saveSkin();gachaModal('着替えました');}return;}
