@@ -299,8 +299,52 @@ body[data-g="slot"] #gor{justify-content:stretch;gap:5px;flex:0 0 88px;margin-to
 body[data-g="slot"] #gor .gp{display:contents}
 body[data-g="slot"] #gor button.b{flex:1 1 0;min-width:0;font-size:1.05rem;font-weight:bold;line-height:1.1;padding:0;border-radius:10px}
 body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:nowrap}
+#gor{position:sticky;bottom:0;z-index:6;background:var(--panel);padding:4px 0 2px;box-shadow:0 -6px 8px -4px rgba(0,0,0,.35)}
+@media (max-height:780px){.field{flex:2.1}button.b{font-size:1.35rem;padding:2px 0}#nums .b{font-size:1.2rem}.mon{font-size:1.7rem}.panel{padding:4px 8px;gap:8px}.col{gap:4px}#gor{padding:2px 0}}
+@media (max-height:620px){.field{flex:1.7}button.b{font-size:1.15rem}}
 </style>
 <script>
+/* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
+   例: const SERVER_URL='wss://example.com/ws';  （server.js から配信されたときは自動で 'SAME' になる） */
+const SERVER_URL='';
+const OWN_URL=SERVER_URL==='SAME'?(location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws':SERVER_URL;
+if(OWN_URL){(function(){
+  const EM=class{constructor(){this._h={};}on(e,f){(this._h[e]=this._h[e]||[]).push(f);return this;}emit(e,a){(this._h[e]||[]).slice().forEach(f=>{try{f(a);}catch(x){console.error(x);}});}};
+  const rid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+  class Conn extends EM{
+    constructor(p,peer,cid){super();this._p=p;this.peer=peer;this._cid=cid;this.open=false;}
+    send(d){if(!this.open)return;this._p._tx({t:'d',cid:this._cid,data:d});}
+    close(){if(this._gone)return;this._gone=true;const was=this.open;this.open=false;if(was)this._p._tx({t:'cl',cid:this._cid});this._p._cs.delete(this._cid);this.emit('close');}
+    _remoteClose(){if(this._gone)return;this._gone=true;this.open=false;this._p._cs.delete(this._cid);this.emit('close');}
+  }
+  window.Peer=class Peer extends EM{
+    constructor(id,opt){
+      super();if(id&&typeof id==='object'){opt=id;id=undefined;}
+      this.open=false;this.id=null;this._cs=new Map();this._dead=false;
+      let ws;try{ws=new WebSocket(OWN_URL);}catch(e){setTimeout(()=>this.emit('error',{type:'network'}),0);return;}
+      this._ws=ws;
+      ws.onopen=()=>{ws.send(JSON.stringify(id?{t:'reg',id}:{t:'reg'}));};
+      ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}this._rx(m);};
+      ws.onerror=()=>{if(!this.open&&!this._dead){this._dead=true;this.emit('error',{type:'network'});}};
+      ws.onclose=()=>{const was=this.open;this.open=false;this._cs.forEach(c=>c._remoteClose());if(was&&!this._dead){this._dead=true;this.emit('disconnected');}else if(!was&&!this._dead){this._dead=true;this.emit('error',{type:'network'});}};
+    }
+    _tx(m){if(this._ws&&this._ws.readyState===1){const c=this._cs.get(m.cid);if(c)m.to=c.peer;this._ws.send(JSON.stringify(m));}}
+    _rx(m){
+      if(m.t==='open'){this.id=m.id;this.open=true;this.emit('open',m.id);return;}
+      if(m.t==='err'){this.emit('error',{type:m.type});return;}
+      if(m.t==='conn'){const c=new Conn(this,m.from,m.cid);this._cs.set(m.cid,c);c.open=true;this._ws.send(JSON.stringify({t:'ok',to:m.from,cid:m.cid}));this.emit('connection',c);setTimeout(()=>c.emit('open'),0);return;}
+      const c=this._cs.get(m.cid);
+      if(m.t==='cerr'){if(c){this._cs.delete(m.cid);c.emit('error',{type:m.type});}return;}
+      if(!c)return;
+      if(m.t==='ok'){c.open=true;c.emit('open');}
+      else if(m.t==='d')c.emit('data',m.data);
+      else if(m.t==='cl')c._remoteClose();
+    }
+    connect(to){const cid=rid();const c=new Conn(this,to,cid);this._cs.set(cid,c);if(this._ws&&this._ws.readyState===1)this._ws.send(JSON.stringify({t:'conn',to,cid}));return c;}
+    destroy(){this._dead=true;this.open=false;this._cs.forEach(c=>c._remoteClose());try{this._ws&&this._ws.close();}catch(e){}}
+    disconnect(){this.destroy();}
+  };
+})();}
 /* 通信ライブラリ（PeerJS）を複数の配信元から順に読み込む（学校などで1つが止められていてもつながるように） */
 window.__peerLoad=(function(){
   const src=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js','https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'];
@@ -403,15 +447,15 @@ window.__peerLoad();
     <div class="r" style="flex:1.2"><button class="b" id="praise" style="font-size:1rem;line-height:1.1">ベット</button><button class="b" id="pallin" style="font-size:.95rem;line-height:1.1">オールイン</button></div>
   </div>
   <div class="gp" id="gp-blackjack" hidden>
-    <div class="r"><button class="b" id="bhit" style="font-size:1.2rem">ヒット</button><button class="b" id="bstand" style="font-size:1.1rem">スタンド</button></div>
-    <div class="r" style="flex:1.2"><button class="b" id="bdbl" style="font-size:1rem">ダブル</button><button class="b" id="bsplit" style="font-size:.85rem">スプリット</button></div>
+    <div class="r"><button class="b" id="bhit" style="font-size:1.05rem;line-height:1.1">ヒット</button><button class="b" id="bstand" style="font-size:1.05rem;line-height:1.1">スタンド</button></div>
+    <div class="r"><button class="b" id="bdbl" style="font-size:1.05rem;line-height:1.1">ダブル</button><button class="b" id="bsplit" style="font-size:1.05rem;line-height:1.1">スプリット</button></div>
   </div>
   <div class="gp" id="gp-keiba" hidden>
     <div class="r" style="flex:1"><button class="b" id="kinfo" style="font-size:1rem;line-height:1.3"></button></div>
   </div>
   <div class="gp" id="gp-baccarat" hidden>
-    <div class="r"><button class="b" id="ba-p" style="font-size:1rem;line-height:1.1">プレイヤー</button><button class="b" id="ba-b" style="font-size:1rem;line-height:1.1">バンカー</button></div>
-    <div class="r"><button class="b" id="ba-t" style="font-size:1.2rem">タイ</button><button class="b" id="ba-i" style="font-size:.95rem;line-height:1.1">配当</button></div>
+    <div class="r"><button class="b" id="ba-p" style="font-size:1.05rem;line-height:1.1">プレイヤー</button><button class="b" id="ba-b" style="font-size:1.05rem;line-height:1.1">バンカー</button></div>
+    <div class="r"><button class="b" id="ba-t" style="font-size:1.05rem;line-height:1.1">タイ</button><button class="b" id="ba-i" style="font-size:1.05rem;line-height:1.1">配当</button></div>
   </div>
   <div class="gp" id="gp-slot" hidden>
     <div class="r"><button class="b" id="sl-i">配当表</button><button class="b" id="sl-m">停止：自動</button></div>
@@ -951,9 +995,11 @@ function setGoLabel(){$('go').textContent=(game==='poker'||game==='blackjack'||g
 function fitGname(){
   const g=$('gname'),t=$('gtxt'),maxW=g.clientWidth,maxH=g.clientHeight;
   if(maxW<=0)return;
-  let sz=game==='chouhan'?56:44;
-  t.style.fontSize=sz+'px';
-  while(sz>12){const q=t.getBoundingClientRect();if(q.width<=maxW&&q.height<=maxH)break;sz-=1;t.style.fontSize=sz+'px';}
+  const fit=(start)=>{let sz=start;t.style.fontSize=sz+'px';while(sz>12){const q=t.getBoundingClientRect();if(q.width<=maxW&&q.height<=maxH)break;sz-=1;t.style.fontSize=sz+'px';}return sz;};
+  if(game==='chouhan'){fit(56);return;}
+  const keep=t.textContent;let m=44;
+  for(const k of GAMES){if(k==='chouhan')continue;t.textContent=k==='blackjack'?'ブラック\nジャック':GN[k];m=Math.min(m,fit(44));}
+  t.textContent=keep;t.style.fontSize=m+'px';
 }
 window.addEventListener('resize',fitGname);
 function showGame(){
@@ -1826,7 +1872,7 @@ function netErrText(t){
   return '接続エラー：'+t;
 }
 const SIGMSG='接続用サーバー（0.peerjs.com）から返事がありません。学校のネットワークが止めている可能性が高いです。携帯回線やテザリングで試すか、先生に「0.peerjs.com」の許可を頼んでください';
-function sigWatch(pr){setTimeout(()=>{if(net===pr&&!pr.open&&!online)netOff(SIGMSG);},12000);}
+function sigWatch(pr){setTimeout(()=>{if(net===pr&&!pr.open&&!online)netOff(OWN_URL?'対戦サーバーから返事がありません。サーバーが起動しているか、URL設定が合っているか確認してください':SIGMSG);},12000);}
 let goSeq=0;
 async function goOnline(code){
   const my=++goSeq;
@@ -1836,7 +1882,7 @@ async function goOnline(code){
     if(my!==goSeq)return;
     if(!ok){onNote('通信ライブラリを読み込めません。ネットワークが外部サイトを止めている可能性があります（携帯回線やテザリングで開き直してください）');return;}
   }
-  const ice=await getIce();
+  const ice=OWN_URL?[]:await getIce();
   if(my!==goSeq)return;
   room=code;const id='sekaicasino-'+hs(code).toString(36);onNote('接続中…');
   const opt={config:{iceServers:ice}};
