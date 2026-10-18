@@ -1,6 +1,6 @@
 // THE CASINO オンライン対戦サーバー（依存パッケージなし / Node.js 18 以上）
 // 使い方:  node server.js        （環境変数 PORT で番号を変更。既定 3000）
-// 同じフォルダ階層の ../index.html を配信し、/ws で対戦用 WebSocket を受け付けます。
+// 同じ場所（または1つ上）の index.html を配信し、/ws で対戦用 WebSocket を受け付けます。
 'use strict';
 const http = require('http');
 const crypto = require('crypto');
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = Number(process.env.PORT) || 3000;
-const HTML = process.env.GAME_HTML || path.join(__dirname, '..', 'index.html');
+const HTML = process.env.GAME_HTML || [path.join(__dirname, 'index.html'), path.join(__dirname, '..', 'index.html')].find(p => fs.existsSync(p)) || path.join(__dirname, 'index.html');
 const MAX_FRAME = 64 * 1024;       // 1メッセージの上限
 const MAX_SOCKETS = 2000;          // 同時接続の上限
 const RATE_LIMIT = 80;             // 1秒あたりの最大メッセージ数
@@ -33,6 +33,168 @@ const server = http.createServer((req, res) => {
   } else if (u === '/healthz') { res.writeHead(200); res.end('ok'); }
   else { res.writeHead(404); res.end('not found'); }
 });
+
+
+/* ================= フレンド・チャット（アカウント） =================
+   保存先: 環境変数 SUPABASE_URL / SUPABASE_KEY があれば Supabase、なければメモリ（再起動で消える） */
+const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+const SB_KEY = process.env.SUPABASE_KEY || '';
+const SECRET = process.env.SESSION_SECRET || SB_KEY || crypto.randomBytes(32).toString('hex');
+const NAME_RE = /^[^\s<>"'&\/\\%?#,()*:;=\u0000-\u001f]{1,12}$/u;
+const nameKey = (n) => n.normalize('NFKC').toLowerCase();
+
+const mem = { users: [], friends: [], msgs: [], nid: 1 };
+const MemStore = {
+  async userByKey(k) { return mem.users.find(u => u.name_key === k) || null; },
+  async userById(id) { return mem.users.find(u => u.id === id) || null; },
+  async usersByIds(ids) { return mem.users.filter(u => ids.includes(u.id)); },
+  async createUser(u) { if (mem.users.some(x => x.name_key === u.name_key)) return null; const r = { ...u, id: mem.nid++ }; mem.users.push(r); return r; },
+  async friendRows(uid) { return mem.friends.filter(f => f.a === uid || f.b === uid).map(f => ({ ...f })); },
+  async friendInsert(a, b) { mem.friends.push({ a, b, status: 'pending' }); },
+  async friendAccept(a, b) { const f = mem.friends.find(f => f.a === a && f.b === b); if (f) f.status = 'accepted'; },
+  async friendDelete(x, y) { mem.friends = mem.friends.filter(f => !((f.a === x && f.b === y) || (f.a === y && f.b === x))); },
+  async msgInsert(s, r, t) { const m = { id: mem.nid++, sender: s, receiver: r, text: t, ts: new Date().toISOString() }; mem.msgs.push(m); return m; },
+  async msgHist(x, y, n) { return mem.msgs.filter(m => (m.sender === x && m.receiver === y) || (m.sender === y && m.receiver === x)).slice(-n); },
+};
+async function sb(method, table, query, body, prefer) {
+  const r = await fetch(SB_URL + '/rest/v1/' + table + (query || ''), {
+    method,
+    headers: Object.assign({ apikey: SB_KEY, 'Content-Type': 'application/json' }, SB_KEY.startsWith('sb_') ? {} : { Authorization: 'Bearer ' + SB_KEY }, prefer ? { Prefer: prefer } : {}),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const t = await r.text();
+  if (!r.ok) { const e = new Error('supabase ' + r.status + ' ' + t.slice(0, 200)); e.status = r.status; throw e; }
+  return t ? JSON.parse(t) : null;
+}
+const SbStore = {
+  async userByKey(k) { const r = await sb('GET', 'users', '?name_key=eq.' + encodeURIComponent(k) + '&limit=1'); return r[0] || null; },
+  async userById(id) { const r = await sb('GET', 'users', '?id=eq.' + id + '&limit=1'); return r[0] || null; },
+  async usersByIds(ids) { if (!ids.length) return []; return sb('GET', 'users', '?id=in.(' + ids.join(',') + ')'); },
+  async createUser(u) { try { const r = await sb('POST', 'users', '', u, 'return=representation'); return r[0]; } catch (e) { if (e.status === 409) return null; throw e; } },
+  async friendRows(uid) { return sb('GET', 'friends', '?or=(a.eq.' + uid + ',b.eq.' + uid + ')'); },
+  async friendInsert(a, b) { await sb('POST', 'friends', '', { a, b, status: 'pending' }); },
+  async friendAccept(a, b) { await sb('PATCH', 'friends', '?a=eq.' + a + '&b=eq.' + b, { status: 'accepted' }); },
+  async friendDelete(x, y) { await sb('DELETE', 'friends', '?or=(and(a.eq.' + x + ',b.eq.' + y + '),and(a.eq.' + y + ',b.eq.' + x + '))'); },
+  async msgInsert(s, r, t) { const q = await sb('POST', 'messages', '', { sender: s, receiver: r, text: t }, 'return=representation'); return q[0]; },
+  async msgHist(x, y, n) {
+    const q = await sb('GET', 'messages', '?or=(and(sender.eq.' + x + ',receiver.eq.' + y + '),and(sender.eq.' + y + ',receiver.eq.' + x + '))&order=id.desc&limit=' + n);
+    return q.reverse();
+  },
+};
+const store = SB_URL && SB_KEY ? SbStore : MemStore;
+console.log(store === SbStore ? 'フレンド機能: Supabase に保存します' : 'フレンド機能: メモリに保存します（再起動すると消えます。SUPABASE_URL と SUPABASE_KEY を設定すると残ります）');
+
+const scrypt = (p, s) => new Promise((res, rej) => crypto.scrypt(p, s, 32, (e, k) => e ? rej(e) : res(k)));
+const sign = (uid, exp) => crypto.createHmac('sha256', SECRET).update(uid + '.' + exp).digest('base64url');
+const makeToken = (uid) => { const exp = Date.now() + 30 * 24 * 3600 * 1000; return uid + '.' + exp + '.' + sign(uid, exp); };
+function checkToken(t) {
+  if (typeof t !== 'string') return null;
+  const [uid, exp, sig] = t.split('.');
+  if (!uid || !exp || !sig || Number(exp) < Date.now()) return null;
+  const want = sign(uid, exp);
+  if (sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(want))) return null;
+  return Number(uid);
+}
+const online = new Map();          // userId -> Set(st)
+const fails = new Map();           // name_key -> { n, t }
+const isOn = (id) => (online.get(id) || new Set()).size > 0;
+const toUser = (id, o) => (online.get(id) || []).forEach(s => sendJson(s, o));
+
+async function friendList(uid) {
+  const rows = await store.friendRows(uid);
+  const ids = rows.map(r => r.a === uid ? r.b : r.a);
+  const us = await store.usersByIds(ids);
+  return rows.map(r => {
+    const id = r.a === uid ? r.b : r.a, u = us.find(x => x.id === id);
+    return { id, name: u ? u.name : '?', st: r.status === 'accepted' ? 'friend' : (r.a === uid ? 'out' : 'in'), on: isOn(id) };
+  });
+}
+async function pushFriends(uid) { const l = await friendList(uid); toUser(uid, { t: 'friends', list: l }); }
+async function announce(uid, on) {
+  const l = await friendList(uid);
+  l.filter(f => f.st === 'friend').forEach(f => toUser(f.id, { t: 'pres', id: uid, on }));
+}
+async function areFriends(a, b) { const rows = await store.friendRows(a); return rows.some(r => r.status === 'accepted' && ((r.a === a && r.b === b) || (r.a === b && r.b === a))); }
+async function loginOk(st, u) {
+  st.uid = u.id; st.uname = u.name;
+  if (!online.has(u.id)) online.set(u.id, new Set());
+  online.get(u.id).add(st);
+  sendJson(st, { t: 'auth', ok: true, token: makeToken(u.id), me: { id: u.id, name: u.name } });
+  sendJson(st, { t: 'friends', list: await friendList(u.id) });
+  if (online.get(u.id).size === 1) announce(u.id, true).catch(() => {});
+}
+function socialGone(st) {
+  if (!st.uid) return;
+  const set = online.get(st.uid);
+  if (set) { set.delete(st); if (!set.size) { online.delete(st.uid); announce(st.uid, false).catch(() => {}); } }
+  st.uid = null;
+}
+async function social(st, m) {
+  try { await socialInner(st, m); }
+  catch (e) { console.error('social:', e.message); sendJson(st, { t: 'err', text: 'サーバーでエラーが起きました' }); }
+}
+async function socialInner(st, m) {
+  if (m.t === 'register' || m.t === 'login') {
+    const name = typeof m.name === 'string' ? m.name.trim() : '', pass = typeof m.pass === 'string' ? m.pass : '';
+    if (!NAME_RE.test(name)) return sendJson(st, { t: 'auth', ok: false, err: '名前は12文字までで、記号（< > " \' & / \\ % ? # , ( ) * : ; =）と空白は使えません' });
+    if (pass.length < 6 || pass.length > 64) return sendJson(st, { t: 'auth', ok: false, err: 'パスワードは6〜64文字にしてください' });
+    const key = nameKey(name);
+    const f = fails.get(key);
+    if (f && f.n >= 8 && Date.now() - f.t < 600000) return sendJson(st, { t: 'auth', ok: false, err: '失敗が続いたため、10分ほど待ってからやり直してください' });
+    if (m.t === 'register') {
+      if (++st.regs > 3) return sendJson(st, { t: 'auth', ok: false, err: '登録の回数が多すぎます' });
+      const salt = crypto.randomBytes(16).toString('hex');
+      const u = await store.createUser({ name, name_key: key, salt, hash: (await scrypt(pass, salt)).toString('hex') });
+      if (!u) return sendJson(st, { t: 'auth', ok: false, err: 'その名前はすでに使われています' });
+      return loginOk(st, u);
+    }
+    const u = await store.userByKey(key);
+    const ok = u && crypto.timingSafeEqual(await scrypt(pass, u.salt), Buffer.from(u.hash, 'hex'));
+    if (!ok) { fails.set(key, { n: (f && Date.now() - f.t < 600000 ? f.n : 0) + 1, t: Date.now() }); return sendJson(st, { t: 'auth', ok: false, err: '名前かパスワードが違います' }); }
+    fails.delete(key);
+    return loginOk(st, u);
+  }
+  if (m.t === 'token') {
+    const id = checkToken(m.token);
+    const u = id ? await store.userById(id) : null;
+    if (!u) return sendJson(st, { t: 'auth', ok: false, tokenBad: true });
+    return loginOk(st, u);
+  }
+  if (!st.uid) return sendJson(st, { t: 'auth', ok: false });
+  const me = st.uid;
+  if (m.t === 'logout') { socialGone(st); return sendJson(st, { t: 'auth', ok: false, loggedOut: true }); }
+  if (m.t === 'friends') return sendJson(st, { t: 'friends', list: await friendList(me) });
+  if (m.t === 'freq') {
+    const name = typeof m.name === 'string' ? m.name.trim() : '';
+    const u = name ? await store.userByKey(nameKey(name)) : null;
+    if (!u) return sendJson(st, { t: 'err', text: 'その名前のユーザーは見つかりません' });
+    if (u.id === me) return sendJson(st, { t: 'err', text: '自分には申請できません' });
+    const rows = await store.friendRows(me);
+    const r = rows.find(r => (r.a === me && r.b === u.id) || (r.a === u.id && r.b === me));
+    if (r && r.status === 'accepted') return sendJson(st, { t: 'err', text: 'すでにフレンドです' });
+    if (r && r.a === me) return sendJson(st, { t: 'err', text: 'すでに申請中です' });
+    if (r) { await store.friendAccept(u.id, me); sendJson(st, { t: 'notice', text: u.name + ' さんとフレンドになりました' }); toUser(u.id, { t: 'notice', text: st.uname + ' さんとフレンドになりました' }); }
+    else { await store.friendInsert(me, u.id); sendJson(st, { t: 'notice', text: u.name + ' さんに申請しました' }); toUser(u.id, { t: 'notice', text: st.uname + ' さんからフレンド申請が届きました' }); }
+    await pushFriends(me); await pushFriends(u.id); return;
+  }
+  const other = Number(m.id);
+  if (m.t === 'facc') { await store.friendAccept(other, me); await pushFriends(me); await pushFriends(other); toUser(other, { t: 'notice', text: st.uname + ' さんがフレンド申請を承認しました' }); return; }
+  if (m.t === 'fdel') { await store.friendDelete(me, other); await pushFriends(me); await pushFriends(other); return; }
+  if (m.t === 'hist') {
+    if (!(await areFriends(me, other))) return;
+    const l = await store.msgHist(me, other, 50);
+    return sendJson(st, { t: 'hist', id: other, list: l.map(x => ({ from: x.sender, text: x.text, ts: x.ts })) });
+  }
+  if (m.t === 'msg') {
+    const text = typeof m.text === 'string' ? m.text.trim().slice(0, 300) : '';
+    const to = Number(m.to);
+    if (!text) return;
+    if (!(await areFriends(me, to))) return sendJson(st, { t: 'err', text: 'フレンドにだけ送れます' });
+    const x = await store.msgInsert(me, to, text);
+    const o = { t: 'msg', from: me, to, text, ts: x.ts };
+    toUser(me, o); toUser(to, o);
+  }
+}
 
 /* ---- 最小限の WebSocket 実装（テキストのみ） ---- */
 function frame(op, payload) {
@@ -60,6 +222,7 @@ function closeSock(st, code) {
 function cleanup(st) {
   if (st.closed) return;
   st.closed = true; sockCount--;
+  if (st.kind === 'social') socialGone(st);
   if (st.id && peers.get(st.id) === st) peers.delete(st.id);
   for (const [cid, c] of conns) {
     if (c.a === st || c.b === st) {
@@ -73,6 +236,7 @@ function cleanup(st) {
 
 function onMessage(st, m) {
   if (!m || typeof m !== 'object') return;
+  if (st.kind === 'social') return void social(st, m);
   if (m.t === 'reg') {
     if (st.id) return;
     let id = m.id;
@@ -106,11 +270,11 @@ function onMessage(st, m) {
 server.on('upgrade', (req, sock) => {
   const u = req.url.split('?')[0];
   const key = req.headers['sec-websocket-key'];
-  if (u !== '/ws' || !key || sockCount >= MAX_SOCKETS) { sock.end('HTTP/1.1 400 Bad Request\r\n\r\n'); return; }
+  if ((u !== '/ws' && u !== '/social') || !key || sockCount >= MAX_SOCKETS) { sock.end('HTTP/1.1 400 Bad Request\r\n\r\n'); return; }
   const acc = crypto.createHash('sha1').update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   sock.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + acc + '\r\n\r\n');
   sock.setNoDelay(true);
-  const st = { sock, id: null, closed: false, buf: Buffer.alloc(0), frag: [], fragLen: 0, alive: Date.now(), win: Date.now(), cnt: 0 };
+  const st = { sock, kind: u === '/social' ? 'social' : 'peer', regs: 0, uid: null, id: null, closed: false, buf: Buffer.alloc(0), frag: [], fragLen: 0, alive: Date.now(), win: Date.now(), cnt: 0 };
   sockCount++;
   sock.on('data', (d) => {
     st.buf = Buffer.concat([st.buf, d]);

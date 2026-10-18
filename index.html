@@ -309,6 +309,21 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 #gor{position:sticky;bottom:0;z-index:6;background:var(--panel);padding:4px 0 2px;box-shadow:0 -6px 8px -4px rgba(0,0,0,.35)}
 @media (max-height:780px){.field{flex:2.1}button.b{font-size:1.35rem;padding:2px 0}#nums .b{font-size:1.2rem}.mon{font-size:1.7rem}.panel{padding:4px 8px;gap:8px}.col{gap:4px}#gor{padding:2px 0}}
 @media (max-height:620px){.field{flex:1.7}button.b{font-size:1.15rem}}
+#frbtn{position:absolute;top:119px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#frdot{display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#e53935;border:1px solid #fff}
+#frbtn.new #frdot{display:block}
+.soc .row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #4a3d36}
+.soc .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.soc .dot{flex:none;width:10px;height:10px;border-radius:50%;background:#777}.soc .dot.on{background:#4cd964}
+.soc .bd{flex:none;min-width:20px;text-align:center;border-radius:10px;background:#e53935;color:#fff;font-size:.8rem;padding:1px 6px}
+.mbox .soc .sb{flex:none;padding:6px 10px;font-size:.9rem}
+.soc h3{margin:12px 0 4px;font-size:1rem;color:#f2d27a}
+.soc .clog{height:230px;overflow-y:auto;background:#1c1613;border-radius:8px;padding:6px}
+.soc .cm{margin:4px 0;max-width:82%;padding:5px 9px;border-radius:10px;word-break:break-word;white-space:pre-wrap;font-size:.95rem;width:fit-content}
+.soc .cm.me{margin-left:auto;background:#2f6b3a}.soc .cm.you{background:#4a3d36}
+.soc .err{color:#ff9a8a;min-height:1.3em;font-size:.9rem;margin-top:6px}
+.soc input{margin:4px 0}
+#soctoast{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;background:rgba(30,22,16,.95);color:#f2d27a;border:1px solid #c9a227;border-radius:10px;padding:8px 14px;font-size:.9rem;max-width:90%}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -478,7 +493,7 @@ window.__peerLoad();
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
 <button id="helpbtn">？説明</button>
-<button id="onbtn">オンライン</button><button id="pw">パスワード</button><button id="newsbtn">お知らせ<i id="newsdot"></i></button><div id="oppbar" hidden></div>
+<button id="onbtn">オンライン</button><button id="pw">パスワード</button><button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
 <p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前は「パスワード」で決められます。部屋を作った人が抜けると部屋は閉じます。</p>
@@ -509,7 +524,7 @@ window.__peerLoad();
 <div class="sub">丁半からスロットまで、八つの勝負</div>
 <div class="gl"><span>丁半</span><span>チンチロ</span><span>ルーレット</span><span>ポーカー</span></div><div class="gl"><span>ブラックジャック</span><span>バカラ</span><span>競馬</span><span>スロット</span></div>
 <button id="introgo">START</button>
-<div class="ver">Version 1.2.0</div>
+<div class="ver">Version 1.2.1</div>
 </div>
 <div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
 <script>
@@ -962,12 +977,98 @@ $('mbox').onclick=e=>{
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 $('pw').onclick=()=>pwModal();
-const NEWS_VER='1.2.0';
+
+/* ---- フレンド・チャット（アカウント） ---- */
+const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:''};
+const socUrl=()=>OWN_URL?OWN_URL.replace(/\/ws$/,'/social'):'';
+const socTok=()=>{try{return localStorage.getItem('casinoTok')||'';}catch(e){return'';}};
+const socSetTok=t=>{try{t?localStorage.setItem('casinoTok',t):localStorage.removeItem('casinoTok');}catch(e){}};
+function socSend(o){if(SOC.ws&&SOC.ws.readyState===1)SOC.ws.send(JSON.stringify(o));}
+function socToast(t){let e=document.getElementById('soctoast');if(!e){e=document.createElement('div');e.id='soctoast';document.body.appendChild(e);}e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>{e.hidden=true;},3500);}
+function socConnect(){
+  const u=socUrl();if(!u||SOC.ws)return;
+  let ws;try{ws=new WebSocket(u);}catch(e){return;}
+  SOC.ws=ws;
+  ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t)socSend({t:'token',token:t});else socRender();};
+  ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}socRx(m);};
+  ws.onclose=()=>{SOC.ws=null;SOC.me=null;if(socTok())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
+  ws.onerror=()=>{};
+}
+function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);}
+function socRx(m){
+  if(m.t==='auth'){
+    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view=SOC.chat?'chat':'list';}
+    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];SOC.chat=null;SOC.err=m.err||'';SOC.view='login';}
+    socRender();socDot();
+  }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.view==='list')socRender();socDot();
+  }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;if(SOC.view==='list')socRender();}
+  }else if(m.t==='hist'){if(SOC.chat===m.id){SOC.hist=m.list;socRender();}
+  }else if(m.t==='msg'){
+    const other=m.from===SOC.me.id?m.to:m.from;
+    if(SOC.chat===other&&socVisible()){SOC.hist.push(m);socAppend(m);}
+    else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
+    socDot();
+  }else if(m.t==='notice'){socToast(m.text);
+  }else if(m.t==='err'){SOC.err=m.text;const e=document.getElementById('soce');if(e)e.textContent=m.text;else socToast(m.text);}
+}
+const socVisible=()=>!!document.getElementById('socroot')&&!$('modal').hidden;
+function socAppend(m){
+  const log=document.getElementById('soclog');if(!log)return;
+  const d=document.createElement('div');d.className='cm '+(m.from===SOC.me.id?'me':'you');d.textContent=m.text;log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+function socOpen(){
+  if(!socUrl()){openModal('<h2>フレンド</h2><p>この機能は、専用サーバーで遊んでいるときだけ使えます。</p><div class="mr"><button data-x="1">閉じる</button></div>');return;}
+  openModal('<h2>フレンド</h2><div class="soc" id="socroot"></div><div class="mr"><button data-x="1">閉じる</button></div>');
+  SOC.view=SOC.me?(SOC.chat?'chat':'list'):'login';socConnect();socRender();
+  if(SOC.me)socSend({t:'friends'});
+}
+function socRender(){
+  const root=document.getElementById('socroot');if(!root||$('modal').hidden)return;
+  if(!SOC.ws||SOC.ws.readyState!==1){root.innerHTML='<p>サーバーにつないでいます…</p><small>起動に1分ほどかかることがあります</small>';return;}
+  if(!SOC.me||SOC.view==='login'){
+    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="12" placeholder="名前（12文字まで）" autocomplete="username"><input id="socp" type="password" maxlength="64" placeholder="パスワード（6文字以上）" autocomplete="current-password"><div class="mr"><button data-a="login">ログイン</button><button data-a="reg">新規登録</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>';
+    return;
+  }
+  if(SOC.view==='chat'){
+    const f=SOC.friends.find(x=>x.id===SOC.chat);
+    root.innerHTML='<div class="row"><button class="sb" data-a="back">← 戻る</button><span class="dot'+(f&&f.on?' on':'')+'"></span><b class="nm">'+esc(f?f.name:'')+'</b></div><div class="clog" id="soclog"></div><div class="row"><input id="socm" maxlength="300" placeholder="メッセージ" style="flex:1"><button class="sb" data-a="send">送信</button></div><div class="err" id="soce"></div>';
+    SOC.hist.forEach(socAppend);return;
+  }
+  const fr=SOC.friends,rows=(arr,fn)=>arr.map(fn).join('')||'<small>なし</small>';
+  root.innerHTML='<div class="row"><span class="nm">ログイン中：<b>'+esc(SOC.me.name)+'</b></span><button class="sb" data-a="out">ログアウト</button></div>'
+   +(fr.some(f=>f.st==='in')?'<h3>届いた申請</h3>'+fr.filter(f=>f.st==='in').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="acc" data-id="'+f.id+'">承認</button><button class="sb" data-a="del" data-id="'+f.id+'">拒否</button></div>').join(''):'')
+   +'<h3>フレンド</h3>'+rows(fr.filter(f=>f.st==='friend'),f=>'<div class="row"><span class="dot'+(f.on?' on':'')+'"></span><span class="nm">'+esc(f.name)+'</span>'+(SOC.unread[f.id]?'<span class="bd">'+SOC.unread[f.id]+'</span>':'')+'<button class="sb" data-a="chat" data-id="'+f.id+'">チャット</button><button class="sb" data-a="del" data-id="'+f.id+'">削除</button></div>')
+   +(fr.some(f=>f.st==='out')?'<h3>申請中</h3>'+fr.filter(f=>f.st==='out').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="del" data-id="'+f.id+'">取消</button></div>').join(''):'')
+   +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div>';
+  SOC.err='';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('#socroot button');if(!b)return;
+  const a=b.dataset.a,id=Number(b.dataset.id);
+  const v=i=>{const x=document.getElementById(i);return x?x.value:'';};
+  if(a==='login'||a==='reg'){SOC.err='';socSend({t:a==='reg'?'register':'login',name:v('socn'),pass:v('socp')});}
+  else if(a==='out'){socSend({t:'logout'});}
+  else if(a==='add'){const n=v('socf').trim();if(n){socSend({t:'freq',name:n});const x=document.getElementById('socf');if(x)x.value='';}}
+  else if(a==='acc'){socSend({t:'facc',id});}
+  else if(a==='del'){socSend({t:'fdel',id});}
+  else if(a==='chat'){SOC.chat=id;SOC.hist=[];SOC.unread[id]=0;SOC.view='chat';socSend({t:'hist',id});socRender();socDot();}
+  else if(a==='back'){SOC.chat=null;SOC.view='list';socRender();}
+  else if(a==='send'){const t=v('socm').trim();if(t){socSend({t:'msg',to:SOC.chat,text:t});document.getElementById('socm').value='';}}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target||!e.target.id)return;
+  const q=s=>document.querySelector('#socroot [data-a="'+s+'"]');
+  if(e.target.id==='socm'){q('send')&&q('send').click();}
+  else if(e.target.id==='socf'){q('add')&&q('add').click();}
+  else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
+});
+if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;if(socTok())socConnect();}
+const NEWS_VER='1.2.1';
 (function(){let seen='';try{seen=localStorage.getItem('casinoNews')||'';}catch(e){}if(seen!==NEWS_VER)$('newsbtn').classList.add('new');})();
 $('newsbtn').onclick=()=>{
   try{localStorage.setItem('casinoNews',NEWS_VER);}catch(e){}
   $('newsbtn').classList.remove('new');
-  openModal('<h2>お知らせ</h2><div class="nws"><b>Version 1.0.0</b><br>サービス開始</div><div class="nws"><b>Version 1.1.0</b><br>バカラと競馬を追加</div><div class="nws"><b>Version 1.1.1</b><br>新機能一部追加</div><div class="nws"><b>Version 1.2.0</b><br>新機能一部追加<br>パスワードのリセット<br><small>これまでのパスワードは使えなくなりました。</small></div><div class="mr"><button data-x="1">閉じる</button></div>');
+  openModal('<h2>お知らせ</h2><div class="nws"><b>Version 1.0.0</b><br>サービス開始</div><div class="nws"><b>Version 1.1.0</b><br>バカラと競馬を追加</div><div class="nws"><b>Version 1.1.1</b><br>新機能一部追加</div><div class="nws"><b>Version 1.2.0</b><br>新機能一部追加<br>パスワードのリセット<br><small>これまでのパスワードは使えなくなりました。</small></div><div class="nws"><b>Version 1.2.1</b><br>オンライン機能の改善</div><div class="mr"><button data-x="1">閉じる</button></div>');
 };
 $('loan').onclick=()=>loanModal();
 
