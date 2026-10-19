@@ -53,6 +53,7 @@ const MemStore = {
   async friendInsert(a, b) { mem.friends.push({ a, b, status: 'pending' }); },
   async friendAccept(a, b) { const f = mem.friends.find(f => f.a === a && f.b === b); if (f) f.status = 'accepted'; },
   async friendDelete(x, y) { mem.friends = mem.friends.filter(f => !((f.a === x && f.b === y) || (f.a === y && f.b === x))); },
+  async deleteUser(id) { mem.users = mem.users.filter(u => u.id !== id); mem.friends = mem.friends.filter(f => f.a !== id && f.b !== id); mem.msgs = mem.msgs.filter(m => m.sender !== id && m.receiver !== id); },
   async msgInsert(s, r, t) { const m = { id: mem.nid++, sender: s, receiver: r, text: t, ts: new Date().toISOString() }; mem.msgs.push(m); return m; },
   async msgHist(x, y, n) { return mem.msgs.filter(m => (m.sender === x && m.receiver === y) || (m.sender === y && m.receiver === x)).slice(-n); },
 };
@@ -75,6 +76,11 @@ const SbStore = {
   async friendInsert(a, b) { await sb('POST', 'friends', '', { a, b, status: 'pending' }); },
   async friendAccept(a, b) { await sb('PATCH', 'friends', '?a=eq.' + a + '&b=eq.' + b, { status: 'accepted' }); },
   async friendDelete(x, y) { await sb('DELETE', 'friends', '?or=(and(a.eq.' + x + ',b.eq.' + y + '),and(a.eq.' + y + ',b.eq.' + x + '))'); },
+  async deleteUser(id) {
+    await sb('DELETE', 'messages', '?or=(sender.eq.' + id + ',receiver.eq.' + id + ')');
+    await sb('DELETE', 'friends', '?or=(a.eq.' + id + ',b.eq.' + id + ')');
+    await sb('DELETE', 'users', '?id=eq.' + id);
+  },
   async msgInsert(s, r, t) { const q = await sb('POST', 'messages', '', { sender: s, receiver: r, text: t }, 'return=representation'); return q[0]; },
   async msgHist(x, y, n) {
     const q = await sb('GET', 'messages', '?or=(and(sender.eq.' + x + ',receiver.eq.' + y + '),and(sender.eq.' + y + ',receiver.eq.' + x + '))&order=id.desc&limit=' + n);
@@ -164,6 +170,21 @@ async function socialInner(st, m) {
   const me = st.uid;
   if (m.t === 'logout') { socialGone(st); return sendJson(st, { t: 'auth', ok: false, loggedOut: true }); }
   if (m.t === 'friends') return sendJson(st, { t: 'friends', list: await friendList(me) });
+  if (m.t === 'delacct') {
+    const u = await store.userById(me);
+    const key = u ? u.name_key : '';
+    const f = fails.get(key);
+    if (f && f.n >= 8 && Date.now() - f.t < 600000) return sendJson(st, { t: 'err', text: '失敗が続いたため、10分ほど待ってからやり直してください' });
+    const ok = u && typeof m.pass === 'string' && crypto.timingSafeEqual(await scrypt(m.pass, u.salt), Buffer.from(u.hash, 'hex'));
+    if (!ok) { fails.set(key, { n: (f && Date.now() - f.t < 600000 ? f.n : 0) + 1, t: Date.now() }); return sendJson(st, { t: 'err', text: 'パスワードが違います' }); }
+    const fl = await friendList(me);
+    const sess = [...(online.get(me) || [])];
+    await store.deleteUser(me);
+    online.delete(me);
+    sess.forEach(s2 => { s2.uid = null; sendJson(s2, { t: 'auth', ok: false, loggedOut: true, deleted: true }); });
+    await Promise.all(fl.map(x => pushFriends(x.id)));
+    return;
+  }
   if (m.t === 'freq') {
     const name = typeof m.name === 'string' ? m.name.trim() : '';
     const u = name ? await store.userByKey(nameKey(name)) : null;

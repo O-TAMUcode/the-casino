@@ -324,6 +324,23 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .soc .err{color:#ff9a8a;min-height:1.3em;font-size:.9rem;margin-top:6px}
 .soc input{margin:4px 0}
 #soctoast{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;background:rgba(30,22,16,.95);color:#f2d27a;border:1px solid #c9a227;border-radius:10px;padding:8px 14px;font-size:.9rem;max-width:90%}
+#socchat{position:fixed;left:6px;right:6px;top:152px;max-width:420px;margin:0 auto;z-index:40;background:rgba(36,27,22,.96);border:1px solid #c9a227;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.5);color:#f3e9d8}
+#socchat[hidden]{display:none}
+#socchat .ch{display:flex;align-items:center;gap:8px;padding:6px 8px}
+#socchat .ch b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#socchat button{font:inherit;cursor:pointer;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;border-radius:8px;padding:4px 10px;font-size:.9rem}
+#socchat .cb{padding:0 8px 8px}
+#socchat.min .cb{display:none}
+#socchat .clog{height:150px}
+#socchat .cin{display:flex;gap:6px;margin-top:6px}
+#socchat .cin input{flex:1;min-width:0;padding:8px;font-size:1rem;border-radius:8px;border:1px solid #6a5a50;background:#fff;color:#222}
+.pwf{position:relative}
+.pwf input{padding-right:44px}
+.mbox .pwf .eye{position:absolute;right:2px;top:50%;transform:translateY(-50%);flex:none;width:40px;height:34px;padding:0;border:0;background:none;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mbox .pwf .eye svg{width:22px;height:22px}
+.mbox .pwf .eye.on{color:#c0392b}
+.soc .dang{margin-top:16px;border-top:1px solid #4a3d36;padding-top:10px}
+.mbox .soc .dbtn{background:#5a2a2a;border-color:#8a3a3a;color:#ffd7d0}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -979,7 +996,7 @@ $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 $('pw').onclick=()=>pwModal();
 
 /* ---- フレンド・チャット（アカウント） ---- */
-const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:''};
+const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false};
 const socUrl=()=>OWN_URL?OWN_URL.replace(/\/ws$/,'/social'):'';
 const socTok=()=>{try{return localStorage.getItem('casinoTok')||'';}catch(e){return'';}};
 const socSetTok=t=>{try{t?localStorage.setItem('casinoTok',t):localStorage.removeItem('casinoTok');}catch(e){}};
@@ -994,24 +1011,40 @@ function socConnect(){
   ws.onclose=()=>{SOC.ws=null;SOC.me=null;if(socTok())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
   ws.onerror=()=>{};
 }
-function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);}
+function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);}
 function socRx(m){
   if(m.t==='auth'){
-    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view=SOC.chat?'chat':'list';}
-    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];SOC.chat=null;SOC.err=m.err||'';SOC.view='login';}
+    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';}
+    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;}
     socRender();socDot();
-  }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.view==='list')socRender();socDot();
-  }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;if(SOC.view==='list')socRender();}
-  }else if(m.t==='hist'){if(SOC.chat===m.id){SOC.hist=m.list;socRender();}
+  }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.chat&&!m.list.some(f=>f.id===SOC.chat&&f.st==='friend'))chatClose();else chatHead();if(SOC.view==='list')socRender();socDot();
+  }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;chatHead();if(SOC.view==='list')socRender();}
+  }else if(m.t==='hist'){if(SOC.chat===m.id){SOC.hist=m.list;chatFill();}
   }else if(m.t==='msg'){
     const other=m.from===SOC.me.id?m.to:m.from;
-    if(SOC.chat===other&&socVisible()){SOC.hist.push(m);socAppend(m);}
+    if(SOC.chat===other){SOC.hist.push(m);socAppend(m);if(SOC.min&&m.from!==SOC.me.id){SOC.mbd++;chatHead();SOC.unread[other]=(SOC.unread[other]||0)+0;$('frbtn').classList.add('new');}}
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
   }else if(m.t==='notice'){socToast(m.text);
   }else if(m.t==='err'){SOC.err=m.text;const e=document.getElementById('soce');if(e)e.textContent=m.text;else socToast(m.text);}
 }
 const socVisible=()=>!!document.getElementById('socroot')&&!$('modal').hidden;
+const EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const pwf=(id,ph,ac)=>'<div class="pwf"><input id="'+id+'" type="password" maxlength="64" placeholder="'+ph+'" autocomplete="'+ac+'"><button type="button" class="eye" data-a="eye" aria-label="パスワードを表示">'+EYE+'</button></div>';
+function chatHead(){
+  const f=SOC.friends.find(x=>x.id===SOC.chat);if(!f)return;
+  $('chname').textContent=f.name;$('chdot').className='dot'+(f.on?' on':'');
+  const b=$('chbd');b.hidden=!(SOC.min&&SOC.mbd>0);b.textContent=SOC.mbd;
+}
+function chatFill(){const log=$('soclog');log.innerHTML='';SOC.hist.forEach(socAppend);}
+function chatOpen(id){
+  SOC.chat=id;SOC.hist=[];SOC.unread[id]=0;SOC.min=false;SOC.mbd=0;
+  $('socchat').hidden=false;$('socchat').classList.remove('min');$('chmin').textContent='▁';
+  chatHead();chatFill();socSend({t:'hist',id});socDot();
+}
+function chatClose(){SOC.chat=null;SOC.hist=[];SOC.min=false;SOC.mbd=0;const p=document.getElementById('socchat');if(p)p.hidden=true;}
+function chatMin(){SOC.min=!SOC.min;$('socchat').classList.toggle('min',SOC.min);$('chmin').textContent=SOC.min?'▢':'▁';if(!SOC.min){SOC.mbd=0;chatHead();const l=$('soclog');l.scrollTop=l.scrollHeight;socDot();}}
+function chatSend(){const i=$('socm'),t=i.value.trim();if(t&&SOC.chat){socSend({t:'msg',to:SOC.chat,text:t});i.value='';}}
 function socAppend(m){
   const log=document.getElementById('soclog');if(!log)return;
   const d=document.createElement('div');d.className='cm '+(m.from===SOC.me.id?'me':'you');d.textContent=m.text;log.appendChild(d);log.scrollTop=log.scrollHeight;
@@ -1019,27 +1052,26 @@ function socAppend(m){
 function socOpen(){
   if(!socUrl()){openModal('<h2>フレンド</h2><p>この機能は、専用サーバーで遊んでいるときだけ使えます。</p><div class="mr"><button data-x="1">閉じる</button></div>');return;}
   openModal('<h2>フレンド</h2><div class="soc" id="socroot"></div><div class="mr"><button data-x="1">閉じる</button></div>');
-  SOC.view=SOC.me?(SOC.chat?'chat':'list'):'login';socConnect();socRender();
+  SOC.view=SOC.me?'list':'login';SOC.del=false;socConnect();socRender();
   if(SOC.me)socSend({t:'friends'});
 }
 function socRender(){
   const root=document.getElementById('socroot');if(!root||$('modal').hidden)return;
   if(!SOC.ws||SOC.ws.readyState!==1){root.innerHTML='<p>サーバーにつないでいます…</p><small>起動に1分ほどかかることがあります</small>';return;}
   if(!SOC.me||SOC.view==='login'){
-    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="12" placeholder="名前（12文字まで）" autocomplete="username"><input id="socp" type="password" maxlength="64" placeholder="パスワード（6文字以上）" autocomplete="current-password"><div class="mr"><button data-a="login">ログイン</button><button data-a="reg">新規登録</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>';
+    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="12" placeholder="名前（12文字まで）" autocomplete="username">'+pwf('socp','パスワード（6文字以上）','current-password')+'<div class="mr"><button data-a="login">ログイン</button><button data-a="reg">新規登録</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>';
     return;
   }
-  if(SOC.view==='chat'){
-    const f=SOC.friends.find(x=>x.id===SOC.chat);
-    root.innerHTML='<div class="row"><button class="sb" data-a="back">← 戻る</button><span class="dot'+(f&&f.on?' on':'')+'"></span><b class="nm">'+esc(f?f.name:'')+'</b></div><div class="clog" id="soclog"></div><div class="row"><input id="socm" maxlength="300" placeholder="メッセージ" style="flex:1"><button class="sb" data-a="send">送信</button></div><div class="err" id="soce"></div>';
-    SOC.hist.forEach(socAppend);return;
+  if(SOC.del){
+    root.innerHTML='<h3 style="margin-top:0">アカウントを削除</h3><p style="font-size:.95rem;margin:0 0 8px">アカウント、フレンド、チャットの履歴が、すべて消えます。元には戻せません。確認のため、パスワードを入れてください。</p>'+pwf('socd','パスワード','current-password')+'<div class="mr"><button data-a="delno">やめる</button><button class="dbtn" data-a="delgo">削除する</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div>';
+    return;
   }
   const fr=SOC.friends,rows=(arr,fn)=>arr.map(fn).join('')||'<small>なし</small>';
   root.innerHTML='<div class="row"><span class="nm">ログイン中：<b>'+esc(SOC.me.name)+'</b></span><button class="sb" data-a="out">ログアウト</button></div>'
    +(fr.some(f=>f.st==='in')?'<h3>届いた申請</h3>'+fr.filter(f=>f.st==='in').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="acc" data-id="'+f.id+'">承認</button><button class="sb" data-a="del" data-id="'+f.id+'">拒否</button></div>').join(''):'')
    +'<h3>フレンド</h3>'+rows(fr.filter(f=>f.st==='friend'),f=>'<div class="row"><span class="dot'+(f.on?' on':'')+'"></span><span class="nm">'+esc(f.name)+'</span>'+(SOC.unread[f.id]?'<span class="bd">'+SOC.unread[f.id]+'</span>':'')+'<button class="sb" data-a="chat" data-id="'+f.id+'">チャット</button><button class="sb" data-a="del" data-id="'+f.id+'">削除</button></div>')
    +(fr.some(f=>f.st==='out')?'<h3>申請中</h3>'+fr.filter(f=>f.st==='out').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="del" data-id="'+f.id+'">取消</button></div>').join(''):'')
-   +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div>';
+   +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><div class="dang"><button class="sb" data-a="delask">アカウントを削除</button></div>';
   SOC.err='';
 }
 document.addEventListener('click',e=>{
@@ -1051,14 +1083,21 @@ document.addEventListener('click',e=>{
   else if(a==='add'){const n=v('socf').trim();if(n){socSend({t:'freq',name:n});const x=document.getElementById('socf');if(x)x.value='';}}
   else if(a==='acc'){socSend({t:'facc',id});}
   else if(a==='del'){socSend({t:'fdel',id});}
-  else if(a==='chat'){SOC.chat=id;SOC.hist=[];SOC.unread[id]=0;SOC.view='chat';socSend({t:'hist',id});socRender();socDot();}
-  else if(a==='back'){SOC.chat=null;SOC.view='list';socRender();}
-  else if(a==='send'){const t=v('socm').trim();if(t){socSend({t:'msg',to:SOC.chat,text:t});document.getElementById('socm').value='';}}
+  else if(a==='chat'){closeModal();chatOpen(id);}
+  else if(a==='eye'){const inp=b.parentElement.querySelector('input');const show=inp.type==='password';inp.type=show?'text':'password';b.classList.toggle('on',show);}
+  else if(a==='delask'){SOC.del=true;SOC.err='';socRender();}
+  else if(a==='delno'){SOC.del=false;SOC.err='';socRender();}
+  else if(a==='delgo'){const pw=v('socd');if(!pw){const e=document.getElementById('soce');if(e)e.textContent='パスワードを入れてください';}else socSend({t:'delacct',pass:pw});}
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('#socchat button');if(!b)return;
+  const c=b.dataset.c;if(c==='min')chatMin();else if(c==='x')chatClose();else if(c==='send')chatSend();
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||!e.target||!e.target.id)return;
   const q=s=>document.querySelector('#socroot [data-a="'+s+'"]');
-  if(e.target.id==='socm'){q('send')&&q('send').click();}
+  if(e.target.id==='socm'){chatSend();}
+  else if(e.target.id==='socd'){q('delgo')&&q('delgo').click();}
   else if(e.target.id==='socf'){q('add')&&q('add').click();}
   else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
 });
@@ -2426,5 +2465,6 @@ $('mbox').addEventListener('click',e=>{
 });
 {const mo=new MutationObserver(()=>{const m=$('msg'),t=m.textContent,u=t.replace(/\d{5,}/g,x=>fmt(BigInt(x)));if(u!==t)m.textContent=u;if(/^他のプレイヤーが「/.test(m.textContent)){m.style.whiteSpace='nowrap';let fs=11;m.style.fontSize=fs+'px';while(fs>6&&m.scrollWidth>m.clientWidth+1){fs--;m.style.fontSize=fs+'px';}}else{m.style.fontSize='';m.style.whiteSpace='';}});mo.observe($('msg'),{childList:true,characterData:true,subtree:true});}
 </script>
+<div id="socchat" class="soc" hidden><div class="ch"><span class="dot" id="chdot"></span><b id="chname"></b><span class="bd" id="chbd" hidden></span><button data-c="min" id="chmin">▁</button><button data-c="x">✕</button></div><div class="cb"><div class="clog" id="soclog"></div><div class="cin"><input id="socm" maxlength="300" placeholder="メッセージ"><button data-c="send">送信</button></div></div></div>
 </body>
 </html>
