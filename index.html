@@ -341,6 +341,14 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .mbox .pwf .eye.on{color:#c0392b}
 .soc .dang{margin-top:16px;border-top:1px solid #4a3d36;padding-top:10px}
 .mbox .soc .dbtn{background:#5a2a2a;border-color:#8a3a3a;color:#ffd7d0}
+#chatbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.62rem;padding:0 2px;line-height:1.1}
+#chatbtn[hidden]{display:none}
+#chatbtn .ci{font-size:1.5rem;line-height:1}
+#chatbtn i{display:none;position:absolute;top:4px;right:4px;width:11px;height:11px;border-radius:50%;background:#e53935;border:1px solid #fff}
+#chatbtn.new i{display:block}
+#socchat{top:auto!important;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+#socchat .clog{height:170px}
+@media(max-height:700px){#socchat .clog{height:100px}}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -505,7 +513,7 @@ window.__peerLoad();
   <div class="r" id="gor"><span class="gp" id="gp-slotb" hidden><button class="b" id="sls0">左停</button><button class="b" id="sls1">中停</button><button class="b" id="sls2">右停</button></span><button class="b big go" id="go" disabled>勝負！</button></div>
   </div>
   <div class="col" id="bets">
-    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button></div></div>
+    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button><button class="tt tl" id="chatbtn" hidden><span class="ci">💬</span><span class="cl">チャット</span><i id="chdot2"></i></button></div></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
@@ -1011,7 +1019,7 @@ function socConnect(){
   ws.onclose=()=>{SOC.ws=null;SOC.me=null;if(socTok())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
   ws.onerror=()=>{};
 }
-function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);}
+function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);$('chatbtn').classList.toggle('new',n>0);}
 function socRx(m){
   if(m.t==='auth'){
     if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';}
@@ -1022,7 +1030,7 @@ function socRx(m){
   }else if(m.t==='hist'){if(SOC.chat===m.id){SOC.hist=m.list;chatFill();}
   }else if(m.t==='msg'){
     const other=m.from===SOC.me.id?m.to:m.from;
-    if(SOC.chat===other){SOC.hist.push(m);socAppend(m);if(SOC.min&&m.from!==SOC.me.id){SOC.mbd++;chatHead();SOC.unread[other]=(SOC.unread[other]||0)+0;$('frbtn').classList.add('new');}}
+    if(SOC.chat===other){SOC.hist.push(m);socAppend(m);if(SOC.min&&m.from!==SOC.me.id){SOC.mbd++;chatHead();}}
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
   }else if(m.t==='notice'){socToast(m.text);
@@ -1039,11 +1047,18 @@ function chatHead(){
 function chatFill(){const log=$('soclog');log.innerHTML='';SOC.hist.forEach(socAppend);}
 function chatOpen(id){
   SOC.chat=id;SOC.hist=[];SOC.unread[id]=0;SOC.min=false;SOC.mbd=0;
-  $('socchat').hidden=false;$('socchat').classList.remove('min');$('chmin').textContent='▁';
+  $('socchat').hidden=false;
   chatHead();chatFill();socSend({t:'hist',id});socDot();
 }
 function chatClose(){SOC.chat=null;SOC.hist=[];SOC.min=false;SOC.mbd=0;const p=document.getElementById('socchat');if(p)p.hidden=true;}
-function chatMin(){SOC.min=!SOC.min;$('socchat').classList.toggle('min',SOC.min);$('chmin').textContent=SOC.min?'▢':'▁';if(!SOC.min){SOC.mbd=0;chatHead();const l=$('soclog');l.scrollTop=l.scrollHeight;socDot();}}
+function chatHide(){SOC.min=true;$('socchat').hidden=true;}
+function chatShow(){SOC.min=false;SOC.mbd=0;$('socchat').hidden=false;chatHead();const l=$('soclog');l.scrollTop=l.scrollHeight;socDot();}
+function chatBtn(){
+  if(!SOC.me||!SOC.chat){socOpen();return;}
+  if($('socchat').hidden)chatShow();else chatHide();
+}
+function chatKb(){const p=$('socchat'),v=window.visualViewport;if(!p||!v)return;p.style.bottom=Math.max(0,Math.round(window.innerHeight-(v.height+v.offsetTop)))+'px';}
+if(window.visualViewport){visualViewport.addEventListener('resize',chatKb);visualViewport.addEventListener('scroll',chatKb);}
 function chatSend(){const i=$('socm'),t=i.value.trim();if(t&&SOC.chat){socSend({t:'msg',to:SOC.chat,text:t});i.value='';}}
 function socAppend(m){
   const log=document.getElementById('soclog');if(!log)return;
@@ -1091,7 +1106,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('#socchat button');if(!b)return;
-  const c=b.dataset.c;if(c==='min')chatMin();else if(c==='x')chatClose();else if(c==='send')chatSend();
+  const c=b.dataset.c;if(c==='min')chatHide();else if(c==='x')chatClose();else if(c==='send')chatSend();
 });
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter'||!e.target||!e.target.id)return;
@@ -1101,7 +1116,7 @@ document.addEventListener('keydown',e=>{
   else if(e.target.id==='socf'){q('add')&&q('add').click();}
   else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
 });
-if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;if(socTok())socConnect();}
+if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;$('chatbtn').hidden=false;$('chatbtn').onclick=chatBtn;if(socTok())socConnect();}
 const NEWS_VER='1.2.1';
 (function(){let seen='';try{seen=localStorage.getItem('casinoNews')||'';}catch(e){}if(seen!==NEWS_VER)$('newsbtn').classList.add('new');})();
 $('newsbtn').onclick=()=>{
@@ -2465,6 +2480,6 @@ $('mbox').addEventListener('click',e=>{
 });
 {const mo=new MutationObserver(()=>{const m=$('msg'),t=m.textContent,u=t.replace(/\d{5,}/g,x=>fmt(BigInt(x)));if(u!==t)m.textContent=u;if(/^他のプレイヤーが「/.test(m.textContent)){m.style.whiteSpace='nowrap';let fs=11;m.style.fontSize=fs+'px';while(fs>6&&m.scrollWidth>m.clientWidth+1){fs--;m.style.fontSize=fs+'px';}}else{m.style.fontSize='';m.style.whiteSpace='';}});mo.observe($('msg'),{childList:true,characterData:true,subtree:true});}
 </script>
-<div id="socchat" class="soc" hidden><div class="ch"><span class="dot" id="chdot"></span><b id="chname"></b><span class="bd" id="chbd" hidden></span><button data-c="min" id="chmin">▁</button><button data-c="x">✕</button></div><div class="cb"><div class="clog" id="soclog"></div><div class="cin"><input id="socm" maxlength="300" placeholder="メッセージ"><button data-c="send">送信</button></div></div></div>
+<div id="socchat" class="soc" hidden><div class="ch"><span class="dot" id="chdot"></span><b id="chname"></b><span class="bd" id="chbd" hidden></span><button data-c="min" id="chmin">▼ 隠す</button><button data-c="x">✕</button></div><div class="cb"><div class="clog" id="soclog"></div><div class="cin"><input id="socm" maxlength="300" placeholder="メッセージ"><button data-c="send">送信</button></div></div></div>
 </body>
 </html>
