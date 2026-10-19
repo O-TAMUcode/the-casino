@@ -343,7 +343,7 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .mbox .soc .dbtn{background:#5a2a2a;border-color:#8a3a3a;color:#ffd7d0}
 #chatbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.62rem;padding:0 2px;line-height:1.1}
 #chatbtn[hidden]{display:none}
-#chatbtn .ci{font-size:1.5rem;line-height:1}
+#chatbtn .ci{font-size:1.8rem;line-height:1}
 #chatbtn i{display:none;position:absolute;top:4px;right:4px;width:11px;height:11px;border-radius:50%;background:#e53935;border:1px solid #fff}
 #chatbtn.new i{display:block}
 #socchat{top:auto!important;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -513,7 +513,7 @@ window.__peerLoad();
   <div class="r" id="gor"><span class="gp" id="gp-slotb" hidden><button class="b" id="sls0">左停</button><button class="b" id="sls1">中停</button><button class="b" id="sls2">右停</button></span><button class="b big go" id="go" disabled>勝負！</button></div>
   </div>
   <div class="col" id="bets">
-    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button><button class="tt tl" id="chatbtn" hidden><span class="ci">💬</span><span class="cl">チャット</span><i id="chdot2"></i></button></div></div>
+    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button><button class="tt tl" id="chatbtn" hidden aria-label="チャット"><span class="ci">💬</span><i id="chdot2"></i></button></div></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
