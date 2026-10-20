@@ -148,6 +148,7 @@ async function socialInner(st, m) {
     const f = fails.get(key);
     if (f && f.n >= 8 && Date.now() - f.t < 600000) return sendJson(st, { t: 'auth', ok: false, err: '失敗が続いたため、10分ほど待ってからやり直してください' });
     if (m.t === 'register') {
+      if ([...name].length > 6) return sendJson(st, { t: 'auth', ok: false, err: '名前は6文字までです' });
       if (++st.regs > 3) return sendJson(st, { t: 'auth', ok: false, err: '登録の回数が多すぎます' });
       const salt = crypto.randomBytes(16).toString('hex');
       const u = await store.createUser({ name, name_key: key, salt, hash: (await scrypt(pass, salt)).toString('hex') });

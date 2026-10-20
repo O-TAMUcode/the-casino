@@ -74,6 +74,7 @@ button.b:disabled{opacity:.45}
 .tl{flex:1;min-width:0;white-space:nowrap;height:96px;font:inherit;font-size:1.25rem;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
 .tl b{font-size:1.9rem}
 .lb{flex:1;min-width:0;display:flex;gap:4px}
+#bets #gacha{font-size:clamp(.5rem,2.4vw,.66rem);line-height:1.2}
 #bets #loan,#bets #gacha{font-size:.75rem;padding:0 2px;white-space:nowrap;letter-spacing:-.02em}
 .tl.alert{box-shadow:0 0 0 3px #ff6a5e,0 2px 4px rgba(0,0,0,.4)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
@@ -174,7 +175,7 @@ button.b:disabled{opacity:.45}
 .cdice .die{width:var(--cds,clamp(66px,20vw,96px));height:var(--cds,clamp(66px,20vw,96px));padding:8px;border-radius:12px}
 #sc-chinchiro #cdd{margin-bottom:10px}
 #bets .b{font-size:1.1rem}
-#gfx{--h:min(280px,36vh);position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(10,6,4,.92);color:#fff;text-align:center;transition:background .3s;overflow:hidden}
+#gfx{--h:min(250px,30vh);position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(10,6,4,.92);color:#fff;text-align:center;transition:background .3s;overflow:hidden}
 #gfx>*{position:relative;z-index:1}
 #gfx>#grays{position:absolute;z-index:0;left:50%;top:38%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;border-radius:50%;opacity:0;transition:opacity .4s;background:repeating-conic-gradient(from 0deg,var(--rc,transparent) 0 7deg,transparent 7deg 18deg);-webkit-mask-image:radial-gradient(circle closest-side,#000 0,rgba(0,0,0,.6) 18%,transparent 55%);mask-image:radial-gradient(circle closest-side,#000 0,rgba(0,0,0,.6) 18%,transparent 55%);animation:grot 10s linear infinite;pointer-events:none}
 @keyframes grot{to{transform:rotate(360deg)}}
@@ -232,6 +233,27 @@ button.b:disabled{opacity:.45}
 #gban.R{color:#9ad4ff;text-shadow:0 0 14px #2a8be0,0 0 30px #2a8be0}
 #gban.S{background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff,#ff6b6b);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 10px #ff9800);font-size:2.3rem;animation:gbn .6s cubic-bezier(.2,1.6,.4,1),gbow 1s linear infinite}
 @keyframes gbow{to{background-position:200% 0}}
+@keyframes gsh{0%,55%{left:-70%}100%{left:130%}}
+@keyframes gfin{0%{transform:scale(.4) rotate(-6deg);opacity:0}60%{transform:scale(1.08) rotate(1deg);opacity:1}100%{transform:scale(1)}}
+@keyframes gpul{0%,100%{filter:drop-shadow(0 0 8px var(--g1))}50%{filter:drop-shadow(0 0 22px var(--g1))}}
+.gfr{--g1:#888;--g2:#ccc;position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:230px;padding:12px 22px 12px;max-width:min(300px,90vw);border-radius:20px;animation:gfin .55s cubic-bezier(.2,1.4,.4,1) both}
+.gfr::before{content:'';position:absolute;inset:-80%;z-index:-2;background:conic-gradient(from 0deg,var(--g2),transparent 25%,var(--g2) 50%,transparent 75%,var(--g2));animation:gspin 3.4s linear infinite}
+.gfr::after{content:'';position:absolute;inset:3px;border-radius:17px;z-index:-1;background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(165deg,#2a1d14,#0d0806)}
+.gfr .sh{position:absolute;top:0;bottom:0;left:-70%;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-20deg);animation:gsh 2.6s ease-in-out infinite;z-index:1;pointer-events:none}
+.gfr .cn{position:absolute;width:12px;height:12px;border:2px solid var(--g2);z-index:1}
+.gfr .cn.a{top:9px;left:9px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+.gfr .cn.b{top:9px;right:9px;border-left:0;border-bottom:0;border-radius:0 6px 0 0}
+.gfr .cn.c{bottom:9px;left:9px;border-right:0;border-top:0;border-radius:0 0 0 6px}
+.gfr .cn.d{bottom:9px;right:9px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+.gfr.R{--g1:#3da0ff;--g2:#7cc7ff;box-shadow:0 0 22px rgba(61,160,255,.55),0 0 60px rgba(61,160,255,.25)}
+.gfr.S{--g1:#ffc107;--g2:#ffe082;box-shadow:0 0 30px rgba(255,193,7,.7),0 0 90px rgba(255,140,0,.4);animation:gfin .55s cubic-bezier(.2,1.4,.4,1) both,gpul 1.6s ease-in-out .6s infinite}
+.gfr.S::before{background:conic-gradient(from 0deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff,#ff6b6b);animation-duration:2.2s}
+.gfr.N::before{opacity:.45}
+.gfr.S .rn{font-size:1.45rem;letter-spacing:.06em;text-shadow:0 0 12px #ffb300}
+.gfr.R .rn{font-size:1.3rem;text-shadow:0 0 10px #3da0ff}
+.gfr .gbig{transform:none;margin:2px 0;width:54px;height:54px;line-height:54px;font-size:1.5rem}
+.gfr .rn{max-width:100%;text-align:center;overflow-wrap:anywhere}
+#gfx>.gpa,#gfx>.gring,#gfx>.gflash{position:absolute}
 #gres{min-height:150px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:bold}
 .rl{font-size:1.1rem;letter-spacing:.1em}
 .gbig{display:inline-block;width:62px;height:62px;line-height:62px;font-size:1.9rem;text-align:center;border-radius:12px;border:2px solid #888;font-weight:bold;animation:gpp .6s cubic-bezier(.2,1.7,.4,1)}
@@ -349,6 +371,44 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 #socchat{top:auto!important;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}
 #socchat .clog{height:170px}
 @media(max-height:700px){#socchat .clog{height:100px}}
+.tabs{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 8px}
+.tabs span{color:#9c8f80;font-size:1.3rem}
+.mbox .tabs button{flex:none;background:none;border:0;border-bottom:3px solid transparent;border-radius:0;padding:2px 8px;font-size:1.35rem;font-weight:bold;color:#9c8f80;cursor:pointer}
+.mbox .tabs button.on{color:#f2d27a;border-bottom-color:#c9a227}
+.gnav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.gnav .gt{text-align:center}.gnav h2{margin:0}
+.mbox .gnav button{flex:none;width:44px;height:44px;border-radius:50%;font-size:1.2rem;padding:0}
+.gd{display:flex;gap:6px;justify-content:center;margin-top:4px}
+.gd i{width:8px;height:8px;border-radius:50%;background:#6a5a50}.gd i.on{background:#f2d27a}
+.fixw{height:min(76vh,560px);display:flex;flex-direction:column}
+.fixb{flex:1;min-height:0;overflow-y:auto}
+#gate{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 25%,#7a1020,#12060a 72%)}
+#gate[hidden]{display:none}
+#gate .gbx{width:100%;max-width:380px;max-height:92vh;overflow:auto;background:#2b2320;border:2px solid #c9a227;border-radius:16px;padding:18px;color:#f3e9d8;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+#gate h1{margin:0 0 6px;text-align:center;color:#f2d27a;letter-spacing:.12em;font-size:1.5rem}
+#gate .gp{font-size:.9rem;margin:0 0 10px;text-align:center}
+#gate input{width:100%;box-sizing:border-box;padding:10px;font-size:1rem;border-radius:8px;border:1px solid #6a5a50;margin:4px 0;background:#fff;color:#222}
+#gate .mr{display:flex;gap:8px;margin-top:8px}
+#gate .mr button{flex:1;padding:12px 6px;font-size:1rem;border-radius:10px;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;cursor:pointer;font-family:inherit}
+#gate .mr button.pri,.mbox .mr button.pri{background:#c9a227;border-color:#e8c95a;color:#2b1a00;font-weight:bold}
+#gate .pwf .eye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:40px;height:34px;padding:0;border:0;background:none;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#gate .pwf .eye svg{width:22px;height:22px}#gate .pwf .eye.on{color:#c0392b}
+#gate .offb{display:block;margin:12px auto 0;background:none;border:0;color:#b9a98f;text-decoration:underline;font-size:.85rem;cursor:pointer;font-family:inherit}
+@keyframes gtwk{0%,100%{opacity:.2;transform:scale(.6) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(45deg)}}
+@keyframes gbr{0%{background-position:0 0}100%{background-position:200% 0}}
+.gpop{position:relative;overflow:hidden;text-align:center;margin:12px 0 8px;padding:10px 8px 8px;border-radius:14px;border:2px solid #ffd54f;background:linear-gradient(135deg,#4a0f12,#8a1c14 45%,#4a0f12);box-shadow:0 0 18px rgba(255,193,7,.55),inset 0 0 14px rgba(255,193,7,.25)}
+.gpop .pt{display:block;font-size:1.35rem;font-weight:900;letter-spacing:.14em;background:linear-gradient(90deg,#fff3b0,#ffc107,#fff3b0,#ffb300,#fff3b0);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 #5a1a00) drop-shadow(0 0 8px rgba(255,170,0,.8));animation:gbr 3s linear infinite}
+.gpop .ps{display:block;margin-top:2px;font-size:.8rem;letter-spacing:.5em;color:#ffe082;font-weight:bold}
+.gpop .sp{position:absolute;color:#fff3b0;text-shadow:0 0 8px #ffc107;animation:gtwk 1.8s ease-in-out infinite}
+.gpop .sp.a{left:12px;top:8px}.gpop .sp.b{right:14px;top:14px;animation-delay:-.6s;font-size:1.2rem}.gpop .sp.c{left:46%;bottom:2px;animation-delay:-1.1s;font-size:.8rem}
+.gpop::after,.gr.sr::after{content:'';position:absolute;top:0;bottom:0;left:-70%;width:35%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:gsh 3.2s ease-in-out infinite;pointer-events:none}
+.gsub{margin:12px 0 2px;font-size:.85rem;font-weight:bold;letter-spacing:.2em;padding-left:2px}
+.gsub.R{color:#7cc7ff;border-bottom:1px solid rgba(90,169,255,.45)}.gsub.N{color:#9aa4b0;border-bottom:1px solid rgba(154,164,176,.35)}
+.gr.sr{position:relative;overflow:hidden;margin:6px 0;padding:7px 9px;border-radius:12px;border:1px solid rgba(255,213,79,.75);background:linear-gradient(90deg,rgba(255,193,7,.2),rgba(255,193,7,.04));box-shadow:0 0 12px rgba(255,193,7,.3)}
+.gr.sr .gpv{width:40px;height:40px;line-height:40px;border-radius:9px;border:2px solid #ffd54f;box-shadow:0 0 10px rgba(255,193,7,.6)}
+.gr.sr .gn{font-weight:900;letter-spacing:.04em;text-shadow:0 0 8px rgba(255,170,0,.6)}
+.gr.sr.got{border-color:#ffe082;box-shadow:0 0 20px rgba(255,193,7,.6),inset 0 0 12px rgba(255,193,7,.2)}
+.gr.sr em{color:#c9a96a}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -513,7 +573,7 @@ window.__peerLoad();
   <div class="r" id="gor"><span class="gp" id="gp-slotb" hidden><button class="b" id="sls0">左停</button><button class="b" id="sls1">中停</button><button class="b" id="sls2">右停</button></span><button class="b big go" id="go" disabled>勝負！</button></div>
   </div>
   <div class="col" id="bets">
-    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button><button class="tt tl" id="chatbtn" hidden aria-label="チャット"><span class="ci">💬</span><i id="chdot2"></i></button></div></div>
+    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ<br>・<br>ショップ</button><button class="tt tl" id="chatbtn" hidden aria-label="チャット"><span class="ci">💬</span><i id="chdot2"></i></button></div></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
@@ -948,7 +1008,7 @@ function useGift(raw){
 }
 function pwModal(note,made){
   openModal('<h2>パスワード</h2>'
-    +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off">'
+    +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off"'+(SOC.me?' readonly':'')+'>'
     +'<div class="mr"><button data-mk="1">パスワードを作成</button></div>'
     +(made?'<div>今のパスワード（名前・所持金・借金・ガチャのアイテムが入っています。控えておくと途中から再開できます）</div><div class="code">'+encodePw()+'</div><div class="mr"><button data-cp="1">コピー</button></div>':'<small>名前を決めて「パスワードを作成」を押すと、名前・所持金・借金・ガチャのアイテムが入ったパスワードができます。ページを更新するとガチャのアイテムは消え、パスワードでしか戻せません。</small>')
     +'<div style="margin-top:14px">再開するパスワード</div><input id="pwin" placeholder="パスワードを入力" autocomplete="off" autocapitalize="characters">'
@@ -996,7 +1056,7 @@ $('mbox').onclick=e=>{
     {const o=linLoad(),k=pwKey(code),lid=o.m[k];
      if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
      curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
-    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
+    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm&&!SOC.me){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
     $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+fmt(balance)+'／借金 '+fmt(debt)+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
   }
 };
@@ -1004,7 +1064,10 @@ $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 $('pw').onclick=()=>pwModal();
 
 /* ---- フレンド・チャット（アカウント） ---- */
-const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false};
+const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false,off:false,pend:false};
+const inGate=()=>{const g=document.getElementById('gate');return !!g&&!g.hidden;};
+function showGate(){if(!OWN_URL)return;SOC.off=false;closeModal();{const mb=$('mbox');if(mb.querySelector('#socroot'))mb.innerHTML='';}const g=$('gate');g.hidden=false;const r=document.getElementById('gateroot');if(r)r.id='socroot';socConnect();socRender();}
+function hideGate(){const g=$('gate');g.hidden=true;const r=g.querySelector('#socroot');if(r)r.id='gateroot';}
 const socUrl=()=>OWN_URL?OWN_URL.replace(/\/ws$/,'/social'):'';
 const socTok=()=>{try{return localStorage.getItem('casinoTok')||'';}catch(e){return'';}};
 const socSetTok=t=>{try{t?localStorage.setItem('casinoTok',t):localStorage.removeItem('casinoTok');}catch(e){}};
@@ -1014,16 +1077,17 @@ function socConnect(){
   const u=socUrl();if(!u||SOC.ws)return;
   let ws;try{ws=new WebSocket(u);}catch(e){return;}
   SOC.ws=ws;
-  ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t)socSend({t:'token',token:t});else socRender();};
+  ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t){SOC.pend=true;socSend({t:'token',token:t});}else socRender();socRender();};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}socRx(m);};
-  ws.onclose=()=>{SOC.ws=null;SOC.me=null;if(socTok())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
+  ws.onclose=()=>{SOC.ws=null;SOC.me=null;SOC.pend=false;if(socTok()||inGate())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
   ws.onerror=()=>{};
 }
 function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);$('chatbtn').classList.toggle('new',n>0);}
 function socRx(m){
   if(m.t==='auth'){
-    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';}
-    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;}
+    SOC.pend=false;
+    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}}
+    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
     socRender();socDot();
   }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.chat&&!m.list.some(f=>f.id===SOC.chat&&f.st==='friend'))chatClose();else chatHead();if(SOC.view==='list')socRender();socDot();
   }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;chatHead();if(SOC.view==='list')socRender();}
@@ -1066,15 +1130,17 @@ function socAppend(m){
 }
 function socOpen(){
   if(!socUrl()){openModal('<h2>フレンド</h2><p>この機能は、専用サーバーで遊んでいるときだけ使えます。</p><div class="mr"><button data-x="1">閉じる</button></div>');return;}
+  if(!SOC.me){showGate();return;}
   openModal('<h2>フレンド</h2><div class="soc" id="socroot"></div><div class="mr"><button data-x="1">閉じる</button></div>');
   SOC.view=SOC.me?'list':'login';SOC.del=false;socConnect();socRender();
   if(SOC.me)socSend({t:'friends'});
 }
 function socRender(){
-  const root=document.getElementById('socroot');if(!root||$('modal').hidden)return;
-  if(!SOC.ws||SOC.ws.readyState!==1){root.innerHTML='<p>サーバーにつないでいます…</p><small>起動に1分ほどかかることがあります</small>';return;}
+  const root=document.getElementById('socroot');if(!root||(!inGate()&&$('modal').hidden))return;
+  if(!SOC.ws||SOC.ws.readyState!==1){root.innerHTML='<p>サーバーにつないでいます…</p><small>起動に1分ほどかかることがあります</small>'+(inGate()?'<button class="offb" data-a="off">オフラインで遊ぶ（フレンド・オンラインは使えません）</button>':'');return;}
+  if(SOC.pend&&!SOC.me){root.innerHTML='<p>ログインしています…</p>';return;}
   if(!SOC.me||SOC.view==='login'){
-    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="12" placeholder="名前（12文字まで）" autocomplete="username">'+pwf('socp','パスワード（6文字以上）','current-password')+'<div class="mr"><button data-a="login">ログイン</button><button data-a="reg">新規登録</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>';
+    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="6" placeholder="名前（6文字まで）" autocomplete="username">'+pwf('socp','パスワード（6文字以上）','current-password')+'<div class="mr"><button class="pri" data-a="reg">新規登録</button><button data-a="login">ログイン</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>'+(inGate()?'<button class="offb" data-a="off">オフラインで遊ぶ（フレンド・オンラインは使えません）</button>':'');
     return;
   }
   if(SOC.del){
@@ -1095,6 +1161,7 @@ document.addEventListener('click',e=>{
   const v=i=>{const x=document.getElementById(i);return x?x.value:'';};
   if(a==='login'||a==='reg'){SOC.err='';socSend({t:a==='reg'?'register':'login',name:v('socn'),pass:v('socp')});}
   else if(a==='out'){socSend({t:'logout'});}
+  else if(a==='off'){SOC.off=true;hideGate();}
   else if(a==='add'){const n=v('socf').trim();if(n){socSend({t:'freq',name:n});const x=document.getElementById('socf');if(x)x.value='';}}
   else if(a==='acc'){socSend({t:'facc',id});}
   else if(a==='del'){socSend({t:'fdel',id});}
@@ -1116,7 +1183,9 @@ document.addEventListener('keydown',e=>{
   else if(e.target.id==='socf'){q('add')&&q('add').click();}
   else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
 });
-if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;$('chatbtn').hidden=false;$('chatbtn').onclick=chatBtn;if(socTok())socConnect();}
+$('introgo')&&$('introgo').addEventListener('click',()=>{if(OWN_URL&&!SOC.me&&!SOC.off)showGate();});
+if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;$('chatbtn').hidden=false;$('chatbtn').onclick=chatBtn;
+  $('onbtn').addEventListener('click',e=>{if(!SOC.me){e.stopImmediatePropagation();e.preventDefault();showGate();}},true);if(socTok())socConnect();}
 const NEWS_VER='1.2.1';
 (function(){let seen='';try{seen=localStorage.getItem('casinoNews')||'';}catch(e){}if(seen!==NEWS_VER)$('newsbtn').classList.add('new');})();
 $('newsbtn').onclick=()=>{
@@ -2212,6 +2281,7 @@ async function goBaccarat(){
 $('ba-i').onclick=()=>openModal('<h2>バカラの配当</h2><p style="line-height:1.6;font-size:.95rem">プレイヤー 2倍／バンカー 約1.95倍（5%手数料）／タイ 9倍</p><div class="mr"><button data-x="1">閉じる</button></div>');
 
 /* スロット（一人用。オンライン要素なし） */
+const ITEMS={luck:0,dbl:0};
 const SLS=[['7️⃣',1,100],['⭐',2,50],['🔔',3,20],['🍇',4,10],['🍋',5,5],['🍒',5,3]],SLT=20,SLC=5;
 function slPick(){let r=Math.random()*SLT;for(let i=0;i<SLS.length;i++){r-=SLS[i][1];if(r<0)return i;}return SLC;}
 function slEval(a){
@@ -2223,7 +2293,7 @@ function slEval(a){
 }
 function slUI(){
   const n=$('slnote');if(!n)return;
-  n.textContent='';
+  n.textContent=(ITEMS.luck?'🍀×'+ITEMS.luck+' ':'')+(ITEMS.dbl?'💰×'+ITEMS.dbl:'');
 }
 function fitSlot(){
   const SLW=310,SLH=314;
@@ -2268,7 +2338,9 @@ async function goSlot(){
   await wait(150);
   msg.textContent='スピン！';
   els.forEach(e=>e.classList.add('spin'));
-  const res=[slPick(),slPick(),slPick()];
+  const luck=ITEMS.luck>0,dbl=ITEMS.dbl>0;
+  let res=[slPick(),slPick(),slPick()];
+  if(luck){const r2=[slPick(),slPick(),slPick()];if(slEval(r2).mult>slEval(res).mult)res=r2;}
   const iv=setInterval(()=>{els.forEach(e=>{if(e.classList.contains('spin'))e.textContent=SLS[Math.floor(Math.random()*SLS.length)][0];});},70);
   const fin=i=>{els[i].classList.remove('spin');els[i].textContent=SLS[res[i]][0];$('sllp'+i).classList.add('on');slSnd(520+i*60,.12,.08);};
   if(slManual){
@@ -2276,13 +2348,14 @@ async function goSlot(){
     await Promise.all([0,1,2].map(i=>new Promise(r=>{slStop[i]=()=>{slStop[i]=null;$('sls'+i).disabled=true;fin(i);r();};})));
   }else{for(let i=0;i<3;i++){await wait(i===0?700:450);fin(i);}}
   clearInterval(iv);
-  const r=slEval(res),pay=mulf(stake,r.mult);
+  const r=slEval(res),x2=dbl&&r.mult>1?2n:1n,pay=mulf(stake,r.mult)*x2;
+  if(luck)ITEMS.luck--;if(dbl)ITEMS.dbl--;
   balance+=pay;$('slwn').textContent=fmt(pay,2);
   r.hit.forEach((h,i)=>{if(h)els[i].classList.add('hit');});
-  if(pay>stake){msg.className='msg win';msg.textContent=r.name+'！ '+(pay-stake)+'獲得（'+r.mult+'倍）';sfx(true);sm.classList.add('jp');slCoins(Math.min(14,4+Math.floor(r.mult)));setTimeout(()=>sm.classList.remove('jp'),3000);}
+  if(pay>stake){msg.className='msg win';msg.textContent=r.name+'！ '+(pay-stake)+'獲得（'+(r.mult*Number(x2))+'倍'+(x2>1n?'・配当2倍':'')+'）';sfx(true);sm.classList.add('jp');slCoins(Math.min(14,4+Math.floor(r.mult)));setTimeout(()=>sm.classList.remove('jp'),3000);}
   else if(pay===stake&&pay>0){msg.textContent=r.name+'　賭け金が戻ります';slCoins(2);}
   else{msg.className='msg lose';msg.textContent='外れ… '+stake+'失いました';sfx(false);}
-  msg.textContent+=brokeNote();busy=false;update();
+  msg.textContent+=brokeNote();busy=false;update();slUI();
 }
 $('sl-i').onclick=()=>openModal('<h2>スロットの配当表</h2><p style="line-height:1.7;font-size:.95rem">'+SLS.map(s=>s[0]+' ×3 … '+s[2]+'倍').join('<br>')+'<br>🍒 ×2 … 1.5倍<br>🍒 ×1 … 賭け金が戻る<br><b style="color:#ff9d94">はずれ … 0倍（賭け金は戻りません）</b><br><small>必ず当たる台ではありません。</small><br><br><b>スロットはオンライン要素がありません。</b></p><div class="mr"><button data-x="1">閉じる</button></div>');
 baShow();slUI();fitSlot();slLcd();
@@ -2448,23 +2521,47 @@ async function gachaAnim(list){
       [84,88,91,96].forEach((m,k)=>note(m,k*80,.14));
     }else if(r==='R'){[83,88,91].forEach((m,k)=>note(m,k*70));}
     else{note(84,0,.1);note(88,90,.1);}
-    res.innerHTML='<span class="rl" style="color:'+RC[r]+'">'+(r==='S'?'★★★ ':r==='R'?'★★ ':'★ ')+RL[r]+'</span>'
+    res.innerHTML='<div class="gfr '+r+'"><i class="sh"></i><i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>'
+      +'<span class="rl" style="color:'+RC[r]+'">'+(r==='S'?'★★★ ':r==='R'?'★★ ':'★ ')+RL[r]+'</span>'
       +'<span class="gbig" style="'+skPrev(g.k)+';box-shadow:0 0 18px '+RC[r]+'">'+skIco(g.k)+'</span>'
       +'<b class="rn '+r+'">'+g.k.n+'</b>'
-      +(g.nw?'<em class="nw">NEW!</em>':'<em class="dup">ダブり 300返金</em>');
+      +(g.nw?'<em class="nw">NEW!</em>':'<em class="dup">ダブり 300返金</em>')+'</div>';
     await w(one?(r==='S'?2600:1900):(r==='S'?1000:r==='R'?750:520));
   }
   }finally{clearInterval(tk);el.remove();}
 }
 function gachaModal(note){
-  const rows=SKINS.map(k=>{const has=own[k.id],cur=eq[k.t]===k.id;
-    return '<div class="gr"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'</span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';}).join('');
-  openModal('<h2>ガチャ</h2><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。更新するとアイテムは消え、パスワードでしか戻せません。</small>'
+  const row=k=>{const has=own[k.id],cur=eq[k.t]===k.id;
+    return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'</span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
+  const HEAD={S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
+  const rows=['S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
+  openModal('<div class="fixw">'+NAV('g')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。更新するとアイテムは消え、パスワードでしか戻せません。</small>'
     +'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
-    +'<div class="note">'+(note||'')+'</div><div style="max-height:36vh;overflow:auto;margin:6px 0">'+rows+'</div>'
-    +'<div class="mr"><button data-x="1">閉じる</button></div>');
+    +'<div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div>'
+    +'<div class="mr"><button data-x="1">閉じる</button></div></div>');
 }
 $('gacha').onclick=()=>gachaModal();
+
+/* ショップ（スロット用アイテム） */
+const NAV=w=>{const o=w==='g'?'data-shop="1"':'data-gb="1"';return '<div class="gnav"><button '+o+' aria-label="前へ">◀</button><div class="gt"><h2>'+(w==='g'?'ガチャ':'ショップ')+'</h2><div class="gd"><i class="'+(w==='g'?'on':'')+'"></i><i class="'+(w==='s'?'on':'')+'"></i></div></div><button '+o+' aria-label="次へ">▶</button></div>';};
+const TABS_UNUSED=w=>'<div class="tabs"><button data-gb="1" class="'+(w==='g'?'on':'')+'">ガチャ</button><span>・</span><button data-shop="1" class="'+(w==='s'?'on':'')+'">ショップ</button></div>';
+const SHOP=[{id:'luck',n:'🍀 確率アップ券',d:'当たりやすさが2倍（2回抽選して、良いほうを採用）',cnt:10,price:3000},{id:'dbl',n:'💰 配当2倍券',d:'当たったとき（1.5倍以上）の払い戻しが2倍',cnt:10,price:150000}];
+function shopModal(note){
+  const rows=SHOP.map(s=>'<div class="gr" style="flex-wrap:wrap"><span class="gn" style="flex:1 1 100%"><b>'+s.n+'</b>　持っている：'+ITEMS[s.id]+'回分<br><small>'+s.d+'</small></span><button data-buy="'+s.id+'">'+s.cnt+'回分 '+fmt(s.price)+'</button></div>').join('');
+  openModal('<div class="fixw">'+NAV('s')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>スロットで使えます。スロットを1回まわすごとに、持っている券が1回分ずつ減ります。更新すると、アイテムは消えます。</small><div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div><div class="mr"><button data-x="1">閉じる</button></div></div>');
+}
+$('mbox').addEventListener('click',e=>{
+  const t=e.target.dataset;
+  if(t.shop){shopModal();return;}
+  if(t.gb){gachaModal();return;}
+  if(t.buy){
+    const s=SHOP.find(x=>x.id===t.buy);if(!s)return;
+    if(busy){shopModal('勝負の最中は買えません');return;}
+    if(balance<BigInt(s.price)){shopModal('所持金が足りません');return;}
+    if(ITEMS[s.id]+s.cnt>999){shopModal('持てるのは999回分までです');return;}
+    balance-=BigInt(s.price);ITEMS[s.id]+=s.cnt;bet=bmin(bet,balance);update();slUI();shopModal(s.n+' を'+s.cnt+'回分 買いました');
+  }
+});
 window.addEventListener('resize',()=>{try{fitBal(fmt(balance,1));}catch(e){}});setTimeout(()=>{try{fitBal(fmt(balance,1));}catch(e){}},300);
 $('mbox').addEventListener('click',e=>{
   const t=e.target.dataset;
@@ -2480,6 +2577,7 @@ $('mbox').addEventListener('click',e=>{
 });
 {const mo=new MutationObserver(()=>{const m=$('msg'),t=m.textContent,u=t.replace(/\d{5,}/g,x=>fmt(BigInt(x)));if(u!==t)m.textContent=u;if(/^他のプレイヤーが「/.test(m.textContent)){m.style.whiteSpace='nowrap';let fs=11;m.style.fontSize=fs+'px';while(fs>6&&m.scrollWidth>m.clientWidth+1){fs--;m.style.fontSize=fs+'px';}}else{m.style.fontSize='';m.style.whiteSpace='';}});mo.observe($('msg'),{childList:true,characterData:true,subtree:true});}
 </script>
+<div id="gate" hidden><div class="gbx"><h1>THE CASINO</h1><p class="gp">アカウントを作ると、フレンド・チャット・オンライン対戦が使えます。</p><div class="soc" id="gateroot"></div></div></div>
 <div id="socchat" class="soc" hidden><div class="ch"><span class="dot" id="chdot"></span><b id="chname"></b><span class="bd" id="chbd" hidden></span><button data-c="min" id="chmin">▼ 隠す</button><button data-c="x">✕</button></div><div class="cb"><div class="clog" id="soclog"></div><div class="cin"><input id="socm" maxlength="300" placeholder="メッセージ"><button data-c="send">送信</button></div></div></div>
 </body>
 </html>
