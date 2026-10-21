@@ -106,6 +106,7 @@ function checkToken(t) {
 const online = new Map();          // userId -> Set(st)
 const fails = new Map();           // name_key -> { n, t }
 const isOn = (id) => (online.get(id) || new Set()).size > 0;
+const roomOf = (id) => { for (const s of (online.get(id) || [])) if (s.room) return s.room; return ''; };
 const toUser = (id, o) => (online.get(id) || []).forEach(s => sendJson(s, o));
 
 async function friendList(uid) {
@@ -114,13 +115,14 @@ async function friendList(uid) {
   const us = await store.usersByIds(ids);
   return rows.map(r => {
     const id = r.a === uid ? r.b : r.a, u = us.find(x => x.id === id);
-    return { id, name: u ? u.name : '?', st: r.status === 'accepted' ? 'friend' : (r.a === uid ? 'out' : 'in'), on: isOn(id) };
+    return { id, name: u ? u.name : '?', st: r.status === 'accepted' ? 'friend' : (r.a === uid ? 'out' : 'in'), on: isOn(id), room: roomOf(id) };
   });
 }
 async function pushFriends(uid) { const l = await friendList(uid); toUser(uid, { t: 'friends', list: l }); }
 async function announce(uid, on) {
   const l = await friendList(uid);
-  l.filter(f => f.st === 'friend').forEach(f => toUser(f.id, { t: 'pres', id: uid, on }));
+  const room = on ? roomOf(uid) : '';
+  l.filter(f => f.st === 'friend').forEach(f => toUser(f.id, { t: 'pres', id: uid, on, room }));
 }
 async function areFriends(a, b) { const rows = await store.friendRows(a); return rows.some(r => r.status === 'accepted' && ((r.a === a && r.b === b) || (r.a === b && r.b === a))); }
 async function loginOk(st, u) {
@@ -185,6 +187,18 @@ async function socialInner(st, m) {
     if (typeof m.data !== 'string' || m.data.length > 3000) return;
     try { await store.setSave(me, m.data); }
     catch (e) { console.error('save:', e.message); if (!st.saveWarn) { st.saveWarn = true; sendJson(st, { t: 'savefail' }); } }
+    return;
+  }
+  if (m.t === 'room') {
+    const r = typeof m.room === 'string' && /^[A-Za-z0-9_-]{0,40}$/.test(m.room) ? m.room : '';
+    if (st.room === r) return;
+    st.room = r; announce(me, true).catch(() => {}); return;
+  }
+  if (m.t === 'invite') {
+    const to = Number(m.to), r = typeof m.room === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(m.room) ? m.room : '';
+    if (!r || !(await areFriends(me, to))) return;
+    if (!isOn(to)) return sendJson(st, { t: 'notice', text: '相手はいまオフラインです' });
+    toUser(to, { t: 'invite', from: me, name: st.uname, room: r });
     return;
   }
   if (m.t === 'friends') return sendJson(st, { t: 'friends', list: await friendList(me) });

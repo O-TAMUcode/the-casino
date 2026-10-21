@@ -150,9 +150,10 @@ button.b:disabled{opacity:.45}
 #help .mbox h3{margin:12px 0 4px;font-size:1.05rem;color:#f2d27a}
 #help .mbox p{margin:0 0 6px;line-height:1.5;font-size:.95rem}
 #help .mbox p.cur{background:rgba(201,162,39,.18);border-radius:6px;padding:4px 6px}
-#onbtn,#pw{position:absolute;top:32px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
-#pw{top:61px}
-#newsbtn{position:absolute;top:90px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#onbtn,#giftbtn{position:absolute;top:61px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#giftbtn{top:119px}
+body.nosrv #giftbtn{top:90px}
+#newsbtn{position:absolute;top:32px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
 #newsdot{display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#e53935;border:1px solid #fff}
 #newsbtn.new #newsdot{display:block}
 .nws{margin:8px 0;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.07)}
@@ -331,7 +332,7 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 #gor{position:sticky;bottom:0;z-index:6;background:var(--panel);padding:4px 0 2px;box-shadow:0 -6px 8px -4px rgba(0,0,0,.35)}
 @media (max-height:780px){.field{flex:2.1}button.b{font-size:1.35rem;padding:2px 0}#nums .b{font-size:1.2rem}.mon{font-size:1.7rem}.panel{padding:4px 8px;gap:8px}.col{gap:4px}#gor{padding:2px 0}}
 @media (max-height:620px){.field{flex:1.7}button.b{font-size:1.15rem}}
-#frbtn{position:absolute;top:119px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+#frbtn{position:absolute;top:90px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
 #frdot{display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#e53935;border:1px solid #fff}
 #frbtn.new #frdot{display:block}
 .soc .row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #4a3d36}
@@ -420,6 +421,10 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .ialt,.ioff{background:none;border:0;color:#d8c8a8;text-decoration:underline;font:inherit;font-size:.85rem;cursor:pointer}
 #introgo[disabled]{opacity:.55;animation:none;cursor:default}
 @media(max-height:720px){#intro .orn,#intro .sym{display:none}#intro{gap:10px}#introgo{font-size:1.3rem;padding:10px 36px}}
+#sinv{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:65;display:flex;align-items:center;gap:8px;max-width:94vw;padding:8px 10px;border-radius:12px;background:rgba(30,22,16,.97);border:1px solid #c9a227;color:#f2d27a;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+#sinv[hidden]{display:none}
+#sinv button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;padding:5px 12px}
+#sinv button[data-i=join]{background:#c9a227;border-color:#e8c95a;color:#2b1a00;font-weight:bold}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -589,17 +594,17 @@ window.__peerLoad();
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
 <button id="helpbtn">？説明</button>
-<button id="onbtn">オンライン</button><button id="pw">パスワード</button><button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><div id="oppbar" hidden></div>
+<button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="onbtn">オンライン</button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><button id="giftbtn">ギフトコード</button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
-<p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前は「パスワード」で決められます。部屋を作った人が抜けると部屋は閉じます。</p>
+<p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前はアカウント名が使われます。フレンドなら、フレンドの画面の「オンライン」ボタンを押すだけでつながります（合言葉は要りません）。部屋を作った人が抜けると部屋は閉じます。</p>
 <input id="onc" maxlength="16" placeholder="合言葉（例：sakura）" autocomplete="off">
 <div class="note" id="onn"></div><div id="orank"></div>
 <div class="mr"><button id="onok">接続</button><button id="onoff">切断</button><button id="onx">閉じる</button></div>
 </div></div>
 <div class="modal" id="help" hidden><div class="mbox">
 <h2>遊び方</h2>
-<p>所持金10000からスタート。◀▶で遊ぶゲームを切り替えます。下の説明は、丁半から右（▶）へ進む順に並んでいます（ゲーム中は切替不可）。賭け金を選び「勝負！」で開始。所持金がなくなったら「借金」、記録は「パスワード」で保存・復元できます。♪で音楽のオン／オフ。</p>
+<p>所持金10000からスタート。◀▶で遊ぶゲームを切り替えます。下の説明は、丁半から右（▶）へ進む順に並んでいます（ゲーム中は切替不可）。賭け金を選び「勝負！」で開始。所持金がなくなったら「借金」、記録はアカウントに自動で保存されます。♪で音楽のオン／オフ。</p>
 <h3>丁半</h3><p data-g="chouhan">サイコロ2個の合計が偶数なら「丁」、奇数なら「半」。予想が当たれば2倍。合計の数字(2〜12)をぴたりと当てると4倍。</p>
 <h3>チンチロ</h3><p data-g="chinchiro">親が先に3つのサイコロを振り、次にあなたが振ります（役が出ないときは3回まで振り直し）。強い方が勝ち。ピンゾロ5倍、ゾロ目3倍、シゴロ(456)2倍、普通の目1倍。ヒフミ(123)で負けると2倍払いです。</p>
 <h3>ルーレット</h3><p data-g="roulette">ヨーロピアン式（0〜36）。「賭け台」で数字や色、偶奇などを選び「追加」で賭けを重ねられます。</p>
@@ -609,8 +614,8 @@ window.__peerLoad();
 <h3>競馬</h3><p data-g="keiba">36頭の中から毎回9頭が出走します。「出走表」で名前・能力・エピソードを見て、賭ける馬と賭け方（単勝・複勝）を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。馬の能力はレースごとに少しずつ変わります。</p>
 <h3>スロット</h3><p data-g="slot">「スピン！」で3つのリールが回ります。絵柄が3つ揃えば当たり（7️⃣ 100倍、⭐ 50倍、🔔 20倍、🍇 10倍、🍋 5倍、🍒 3倍）。🍒が2つで1.5倍、1つなら賭け金が戻ります。どれにも当てはまらない「はずれ」もあり、そのときは賭け金を失います。画面右のレバーをタップしても回せます。</p>
 <p class="warn" data-g="slot">⚠ スロットはオンライン要素がありません。</p>
-<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。ページを更新するとアイテムは消え、パスワードでしか戻せません。</p>
-<h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続（最大8人）。参加者のランキングが上に表示されます。名前は「パスワード」で決められます。スロットだけはオンライン要素がありません。オンライン中のポーカーは人間同士の1対1です。ブラックジャックはディーラーのカードが同じで、相手の手札が画面下に出ます。</p>
+<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、ページを更新すると消えます）。</p>
+<h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続（最大8人）。参加者のランキングが上に表示されます。名前はアカウント名です。フレンドの画面の「オンライン」ボタンからも始められます。スロットだけはオンライン要素がありません。オンライン中のポーカーは人間同士の1対1です。ブラックジャックはディーラーのカードが同じで、相手の手札が画面下に出ます。</p>
 <div class="mr"><button id="helpx">閉じる</button></div>
 </div></div>
 <div id="intro">
@@ -1074,7 +1079,8 @@ $('mbox').onclick=e=>{
   }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
-$('pw').onclick=()=>pwModal();
+function giftModal(){openModal('<h2>ギフトコード</h2><input id="gcin" placeholder="コードを入力" autocomplete="off" autocapitalize="characters"><div class="mr"><button data-gc="1">コードを使う</button></div><div class="note" id="gcnote"></div><div class="mr" style="margin-top:10px"><button data-x="1">閉じる</button></div>');}
+$('giftbtn').onclick=giftModal;
 
 /* ---- フレンド・チャット（アカウント） ---- */
 const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false,off:false,pend:false,bypass:false,saveOK:false,lastSave:'',st:0};
@@ -1099,17 +1105,18 @@ function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd
 function socRx(m){
   if(m.t==='auth'){
     SOC.pend=false;
-    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}if(m.save)socApplySave(m.save);SOC.saveOK=true;SOC.lastSave='';socSaveSoon(1200);introAuth(true,m);}
+    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}if(m.save)socApplySave(m.save);SOC.saveOK=true;SOC.lastSave='';SOC.lastRoom='';socSaveSoon(1200);introAuth(true,m);}
     else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;SOC.saveOK=false;introAuth(false,m);if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
     socRender();socDot();
   }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.chat&&!m.list.some(f=>f.id===SOC.chat&&f.st==='friend'))chatClose();else chatHead();if(SOC.view==='list')socRender();socDot();
-  }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;chatHead();if(SOC.view==='list')socRender();}
+  }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;f.room=m.room||'';chatHead();if(SOC.view==='list')socRender();}
   }else if(m.t==='hist'){if(SOC.chat===m.id){SOC.hist=m.list;chatFill();}
   }else if(m.t==='msg'){
     const other=m.from===SOC.me.id?m.to:m.from;
     if(SOC.chat===other){SOC.hist.push(m);socAppend(m);if(SOC.min&&m.from!==SOC.me.id){SOC.mbd++;chatHead();}}
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
+  }else if(m.t==='invite'){socInvite(m);
   }else if(m.t==='chk'){introChk(m);
   }else if(m.t==='savefail'){socToast('セーブ用の設定が未完了です（setup.sql の最後の1行を実行してください）');
   }else if(m.t==='notice'){socToast(m.text);
@@ -1165,7 +1172,7 @@ function socRender(){
   const fr=SOC.friends,rows=(arr,fn)=>arr.map(fn).join('')||'<small>なし</small>';
   root.innerHTML='<div class="row"><span class="nm">ログイン中：<b>'+esc(SOC.me.name)+'</b></span><button class="sb" data-a="out">ログアウト</button></div>'
    +(fr.some(f=>f.st==='in')?'<h3>届いた申請</h3>'+fr.filter(f=>f.st==='in').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="acc" data-id="'+f.id+'">承認</button><button class="sb" data-a="del" data-id="'+f.id+'">拒否</button></div>').join(''):'')
-   +'<h3>フレンド</h3>'+rows(fr.filter(f=>f.st==='friend'),f=>'<div class="row"><span class="dot'+(f.on?' on':'')+'"></span><span class="nm">'+esc(f.name)+'</span>'+(SOC.unread[f.id]?'<span class="bd">'+SOC.unread[f.id]+'</span>':'')+'<button class="sb" data-a="chat" data-id="'+f.id+'">チャット</button><button class="sb" data-a="del" data-id="'+f.id+'">削除</button></div>')
+   +'<h3>フレンド</h3>'+rows(fr.filter(f=>f.st==='friend'),f=>'<div class="row"><span class="dot'+(f.on?' on':'')+'"></span><span class="nm">'+esc(f.name)+'</span>'+(SOC.unread[f.id]?'<span class="bd">'+SOC.unread[f.id]+'</span>':'')+(f.on?'<button class="sb" data-a="play" data-id="'+f.id+'">オンライン</button>':'')+'<button class="sb" data-a="chat" data-id="'+f.id+'">チャット</button><button class="sb" data-a="del" data-id="'+f.id+'">削除</button></div>')
    +(fr.some(f=>f.st==='out')?'<h3>申請中</h3>'+fr.filter(f=>f.st==='out').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="del" data-id="'+f.id+'">取消</button></div>').join(''):'')
    +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><div class="dang"><button class="sb" data-a="delask">アカウントを削除</button></div>';
   SOC.err='';
@@ -1180,6 +1187,7 @@ document.addEventListener('click',e=>{
   else if(a==='add'){const n=v('socf').trim();if(n){socSend({t:'freq',name:n});const x=document.getElementById('socf');if(x)x.value='';}}
   else if(a==='acc'){socSend({t:'facc',id});}
   else if(a==='del'){socSend({t:'fdel',id});}
+  else if(a==='play'){socPlay(id);}
   else if(a==='chat'){closeModal();chatOpen(id);}
   else if(a==='eye'){const inp=b.parentElement.querySelector('input');const show=inp.type==='password';inp.type=show?'text':'password';b.classList.toggle('on',show);}
   else if(a==='delask'){SOC.del=true;SOC.err='';socRender();}
@@ -1198,6 +1206,33 @@ document.addEventListener('keydown',e=>{
   else if(e.target.id==='socf'){q('add')&&q('add').click();}
   else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
 });
+
+
+/* ---- フレンドとオンライン（ボタンを押すだけ） ---- */
+function socPlay(id){
+  const f=SOC.friends.find(x=>x.id===id);
+  if(!f||!f.on){socToast('相手はいまオフラインです');return;}
+  if(busy||pPhase===1||bjOn){socToast('勝負の最中は始められません');return;}
+  closeModal();
+  if(f.room){if(online&&room===f.room){socToast('すでに同じ部屋にいます');return;}$('onc').value=f.room;goOnline(f.room);socToast(f.name+' さんの部屋に入ります');return;}
+  if(online&&room){socSend({t:'invite',to:id,room:room});socToast(f.name+' さんを、いまの部屋に誘いました');return;}
+  const code='u'+SOC.me.id;$('onc').value=code;goOnline(code);socSend({t:'invite',to:id,room:code});
+  socToast(f.name+' さんを誘いました。参加すると始まります');
+}
+function socInvite(m){
+  let e=document.getElementById('sinv');
+  if(!e){e=document.createElement('div');e.id='sinv';document.body.appendChild(e);
+    e.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;const r=e.dataset.room;e.hidden=true;
+      if(b.dataset.i==='join'&&r){if(busy||pPhase===1||bjOn){socToast('勝負が終わってから、もう一度誘ってもらってください');return;}closeModal();$('onc').value=r;goOnline(r);}});}
+  e.dataset.room=m.room;e.hidden=false;
+  e.innerHTML='<span>'+esc(m.name)+' さんが、オンラインに誘っています</span><button data-i="join">参加</button><button data-i="no">✕</button>';
+  clearTimeout(e._t);e._t=setTimeout(()=>{e.hidden=true;},45000);
+}
+setInterval(()=>{
+  if(!SOC.me||!SOC.ws||SOC.ws.readyState!==1)return;
+  const r=(typeof online!=='undefined'&&online&&room)?room:'';
+  if(r!==SOC.lastRoom){SOC.lastRoom=r;socSend({t:'room',room:r});}
+},1500);
 
 /* ---- アカウントのセーブ（所持金・借金・アイテム・見た目）と、オープニング画面 ---- */
 function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl}});}
@@ -1270,6 +1305,7 @@ function introInit(){
   introRefresh();socConnect();
 }
 
+if(!OWN_URL)document.body.classList.add('nosrv');
 if(OWN_URL&&document.getElementById('intro'))introInit();
 if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;$('chatbtn').hidden=false;$('chatbtn').onclick=chatBtn;
   $('onbtn').addEventListener('click',e=>{if(!SOC.me){e.stopImmediatePropagation();e.preventDefault();showGate();}},true);if(socTok())socConnect();}
@@ -2004,7 +2040,7 @@ showGame();
 startAudio();
 update();
 {const _u3=update;update=function(){_u3.apply(this,arguments);slLcd();};}
-$('field').appendChild($('helpbtn'));$('field').appendChild($('onbtn'));$('field').appendChild($('pw'));$('field').appendChild($('oppbar'));
+$('field').appendChild($('helpbtn'));$('field').appendChild($('onbtn'));$('field').appendChild($('giftbtn'));$('field').appendChild($('oppbar'));
 function fitWarn(){document.querySelectorAll('#help p.warn').forEach(p=>{if(!p.offsetParent)return;const c=p.parentElement,cs=getComputedStyle(c),av=c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);p.style.display='inline-block';p.style.fontSize='20px';const nat=p.offsetWidth;p.style.display='';p.style.fontSize=Math.max(8,Math.floor(20*av/nat)-1)+'px';});}
 function openHelp(){document.querySelectorAll('#help p[data-g]').forEach(p=>p.classList.toggle('cur',p.dataset.g===game));$('help').hidden=false;fitWarn();}
 $('helpbtn').onclick=openHelp;
@@ -2622,7 +2658,7 @@ function gachaModal(note){
     return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'</span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
   const HEAD={S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
   const rows=['S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
-  openModal('<div class="fixw">'+NAV('g')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。更新するとアイテムは消え、パスワードでしか戻せません。</small>'
+  openModal('<div class="fixw">'+NAV('g')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
     +'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
     +'<div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div></div>');
