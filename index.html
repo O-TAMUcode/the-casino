@@ -420,11 +420,47 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 #imsg{min-height:1.4em;font-size:.9rem;color:#ffd7a8}
 .ialt,.ioff{background:none;border:0;color:#d8c8a8;text-decoration:underline;font:inherit;font-size:.85rem;cursor:pointer}
 #introgo[disabled]{opacity:.55;animation:none;cursor:default}
-@media(max-height:720px){#intro .orn,#intro .sym{display:none}#intro{gap:10px}#introgo{font-size:1.3rem;padding:10px 36px}}
+#intro .gl{margin:-6px 0}
+@media(max-height:720px){#intro .orn,#intro .sym{display:none}#intro{gap:10px}#intro .gl{margin:0}#intro .sub{margin-bottom:2px}#introgo{font-size:clamp(1.05rem,5vw,1.3rem);padding:10px 24px}}
 #sinv{position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:65;display:flex;align-items:center;gap:8px;max-width:94vw;padding:8px 10px;border-radius:12px;background:rgba(30,22,16,.97);border:1px solid #c9a227;color:#f2d27a;font-size:.9rem;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 #sinv[hidden]{display:none}
 #sinv button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid #6a5a50;background:#4a3d36;color:#f3e9d8;padding:5px 12px}
 #sinv button[data-i=join]{background:#c9a227;border-color:#e8c95a;color:#2b1a00;font-weight:bold}
+
+/* ---- タイトル画面を派手に ---- */
+@keyframes ispin{to{transform:rotate(360deg)}}
+@keyframes iflt{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.55}90%{opacity:.55}100%{transform:translateY(-120vh) rotate(var(--r,180deg));opacity:0}}
+@keyframes ishn{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes ibulb{0%,49%{opacity:1}50%,100%{opacity:.18}}
+@keyframes ichip{0%,100%{box-shadow:0 0 0 rgba(255,213,79,0);transform:translateY(0)}50%{box-shadow:0 0 12px rgba(255,213,79,.7);transform:translateY(-2px)}}
+@keyframes ibtn{0%,100%{box-shadow:0 0 0 0 rgba(255,213,79,.7),0 0 22px rgba(255,170,0,.6)}70%{box-shadow:0 0 0 16px rgba(255,213,79,0),0 0 34px rgba(255,170,0,.9)}}
+@keyframes ibsh{0%,60%{left:-70%}100%{left:130%}}
+#intro{overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#a3151a 0%,#5a0d10 45%,#1a0507 80%,#0a0203 100%)}
+#intro::before{content:'';position:absolute;left:50%;top:38%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;z-index:0;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 6%,rgba(255,213,79,.17) 8%,transparent 10% 25%,rgba(255,213,79,.17) 27%,transparent 29% 50%,rgba(255,213,79,.17) 52%,transparent 54% 75%,rgba(255,213,79,.17) 77%,transparent 79%);
+  animation:ispin 28s linear infinite}
+#intro::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(0,0,0,.55) 100%)}
+#intro>*{position:relative;z-index:2}
+#intro>.ver{position:absolute}
+#intro>.bulbs{position:absolute;inset:0;z-index:1;pointer-events:none}
+#intro>#ifx{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+#ifx span{position:absolute;bottom:-40px;color:#ffd54f;text-shadow:0 0 10px rgba(255,193,7,.8);animation:iflt linear infinite;will-change:transform}
+.bulbs i{position:absolute;inset:7px;border-radius:20px;border:7px dotted #ffd54f;filter:drop-shadow(0 0 5px #ffb300)}
+.bulbs i.b2{inset:7px;border-color:#fff3b0;animation:ibulb 1.1s steps(1) infinite}
+.bulbs i.b1{animation:ibulb 1.1s steps(1) -.55s infinite}
+#intro h1{font-size:clamp(2.1rem,10.5vw,4rem);letter-spacing:.12em;color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(100deg,#b8860b 0%,#fff3b0 18%,#ffc107 36%,#fff8d6 50%,#ffb300 64%,#fff3b0 82%,#b8860b 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;text-shadow:none;filter:drop-shadow(0 3px 0 #5a1a00) drop-shadow(0 0 14px rgba(255,170,0,.75));animation:ishn 3.2s linear infinite}
+#intro .sub{color:#ffe9b0;text-shadow:0 0 8px rgba(255,170,0,.6);letter-spacing:.06em}
+#intro .sym b{display:inline-block;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.8)}
+#intro .sym b.rd{color:#ff5252;text-shadow:0 0 14px rgba(255,60,60,.9)}
+#intro .gl span{background:linear-gradient(180deg,rgba(255,213,79,.22),rgba(0,0,0,.35));border-color:#ffd54f;color:#fff3c8;animation:ichip 2.4s ease-in-out infinite}
+#intro .gl span:nth-child(2){animation-delay:.3s}#intro .gl span:nth-child(3){animation-delay:.6s}#intro .gl span:nth-child(4){animation-delay:.9s}
+#intro .gl:nth-of-type(2) span{animation-delay:1.2s}
+#introgo{position:relative;overflow:hidden;background:linear-gradient(180deg,#ffe082,#ffb300 55%,#c77800);border-color:#fff3b0;color:#3a1c00;text-shadow:0 1px 0 rgba(255,255,255,.5);letter-spacing:.08em;animation:ibtn 1.6s ease-out infinite}
+#introgo::after{content:'';position:absolute;top:0;bottom:0;left:-70%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg);animation:ibsh 2.6s ease-in-out infinite;pointer-events:none}
+#introgo{font-size:clamp(1.1rem,5.4vw,1.45rem);letter-spacing:.04em;white-space:nowrap;padding:12px 28px;min-width:min(300px,84vw)}
+#introgo[disabled]{opacity:1;background:linear-gradient(180deg,#8a7a50,#6b5a2e);color:#2a2018;animation:none;box-shadow:none}
+#introgo[disabled]::after{display:none}
+@media(prefers-reduced-motion:reduce){#intro *,#intro::before,#ifx span{animation:none!important}}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -619,8 +655,9 @@ window.__peerLoad();
 <div class="mr"><button id="helpx">閉じる</button></div>
 </div></div>
 <div id="intro">
+<div class="bulbs"><i class="b1"></i><i class="b2"></i></div>
 <div class="orn">◆ ◇ ◆ ◇ ◆</div>
-<div class="sym">♠ ♥ ♦ ♣</div>
+<div class="sym"><b>♠</b> <b class="rd">♥</b> <b class="rd">♦</b> <b>♣</b></div>
 <h1>THE CASINO</h1>
 <div class="sub">丁半からスロットまで、八つの勝負</div>
 <div class="gl"><span>丁半</span><span>チンチロ</span><span>ルーレット</span><span>ポーカー</span></div><div class="gl"><span>ブラックジャック</span><span>バカラ</span><span>競馬</span><span>スロット</span></div>
@@ -2065,6 +2102,9 @@ function imTick(){
 function imStart(){clearTimeout(tm);if(!ctx)startAudio();clearTimeout(tm);try{if(ctx&&ctx.resume)ctx.resume();}catch(e){}if(!imTm)imTick();}
 imStart();
 ['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,function f(){if(!imOn)return;imStart();document.removeEventListener(ev,f);},{once:true}));
+(function(){const it=document.getElementById('intro');if(!it)return;const f=document.createElement('div');f.id='ifx';const S=['♠','♥','♦','♣','🎲','🪙','🃏','★','✦','♠','♥','♦','♣','🎰'];
+for(let i=0;i<S.length;i++){const s=document.createElement('span');s.textContent=S[i];s.style.cssText='left:'+(2+Math.random()*92)+'%;font-size:'+(16+Math.random()*28)+'px;animation-duration:'+(9+Math.random()*10)+'s;animation-delay:-'+(Math.random()*16)+'s;--r:'+Math.round(Math.random()*360-180)+'deg';if(i%4===1||i%4===2)s.style.color='#ff6b6b';f.appendChild(s);}
+it.insertBefore(f,it.children[1]);})();
 $('introgo').onclick=()=>{imOn=false;clearTimeout(imTm);try{if(ctx&&ctx.resume)ctx.resume();clearTimeout(tm);step=0;if(on)tick();}catch(e){}$('intro').classList.add('out');setTimeout(()=>$('intro').remove(),700);};
 /* オンライン対戦（PeerJS・最大8人。部屋を作った人が中継） */
 const MAXP=8,NM=6;
