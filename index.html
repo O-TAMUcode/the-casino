@@ -409,6 +409,17 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .gr.sr .gn{font-weight:900;letter-spacing:.04em;text-shadow:0 0 8px rgba(255,170,0,.6)}
 .gr.sr.got{border-color:#ffe082;box-shadow:0 0 20px rgba(255,193,7,.6),inset 0 0 12px rgba(255,193,7,.2)}
 .gr.sr em{color:#c9a96a}
+#ilog{display:flex;flex-direction:column;gap:8px;width:min(320px,86vw)}
+#ilog[hidden]{display:none}
+#ilog input{width:100%;box-sizing:border-box;padding:12px;font-size:1.05rem;border-radius:10px;border:1px solid #c9a227;background:rgba(255,255,255,.96);color:#222;font-family:inherit}
+#ilog .pwf{position:relative}#ilog .pwf input{padding-right:46px}
+#ilog .pwf .eye{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:42px;height:36px;padding:0;border:0;background:none;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#ilog .pwf .eye svg{width:22px;height:22px}#ilog .pwf .eye.on{color:#c0392b}
+#ilog.auto input,#ilog.auto .pwf{display:none}
+#imsg{min-height:1.4em;font-size:.9rem;color:#ffd7a8}
+.ialt,.ioff{background:none;border:0;color:#d8c8a8;text-decoration:underline;font:inherit;font-size:.85rem;cursor:pointer}
+#introgo[disabled]{opacity:.55;animation:none;cursor:default}
+@media(max-height:720px){#intro .orn,#intro .sym{display:none}#intro{gap:10px}#introgo{font-size:1.3rem;padding:10px 36px}}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -608,7 +619,9 @@ window.__peerLoad();
 <h1>THE CASINO</h1>
 <div class="sub">丁半からスロットまで、八つの勝負</div>
 <div class="gl"><span>丁半</span><span>チンチロ</span><span>ルーレット</span><span>ポーカー</span></div><div class="gl"><span>ブラックジャック</span><span>バカラ</span><span>競馬</span><span>スロット</span></div>
+<div id="ilog" hidden></div>
 <button id="introgo">START</button>
+<button id="ioff" class="ioff" hidden>オフラインで遊ぶ（フレンド・オンラインは使えません）</button>
 <div class="ver">Version 1.2.1</div>
 </div>
 <div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
@@ -1056,7 +1069,7 @@ $('mbox').onclick=e=>{
     {const o=linLoad(),k=pwKey(code),lid=o.m[k];
      if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
      curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
-    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm&&!SOC.me){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
+    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm&&!SOC.me){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
     $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+fmt(balance)+'／借金 '+fmt(debt)+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
   }
 };
@@ -1064,9 +1077,9 @@ $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 $('pw').onclick=()=>pwModal();
 
 /* ---- フレンド・チャット（アカウント） ---- */
-const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false,off:false,pend:false};
+const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false,off:false,pend:false,bypass:false,saveOK:false,lastSave:'',st:0};
 const inGate=()=>{const g=document.getElementById('gate');return !!g&&!g.hidden;};
-function showGate(){if(!OWN_URL)return;SOC.off=false;closeModal();{const mb=$('mbox');if(mb.querySelector('#socroot'))mb.innerHTML='';}const g=$('gate');g.hidden=false;const r=document.getElementById('gateroot');if(r)r.id='socroot';socConnect();socRender();}
+function showGate(){if(!OWN_URL)return;if(document.getElementById('intro')){introRefresh();return;}SOC.off=false;closeModal();{const mb=$('mbox');if(mb.querySelector('#socroot'))mb.innerHTML='';}const g=$('gate');g.hidden=false;const r=document.getElementById('gateroot');if(r)r.id='socroot';socConnect();socRender();}
 function hideGate(){const g=$('gate');g.hidden=true;const r=g.querySelector('#socroot');if(r)r.id='gateroot';}
 const socUrl=()=>OWN_URL?OWN_URL.replace(/\/ws$/,'/social'):'';
 const socTok=()=>{try{return localStorage.getItem('casinoTok')||'';}catch(e){return'';}};
@@ -1077,7 +1090,7 @@ function socConnect(){
   const u=socUrl();if(!u||SOC.ws)return;
   let ws;try{ws=new WebSocket(u);}catch(e){return;}
   SOC.ws=ws;
-  ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t){SOC.pend=true;socSend({t:'token',token:t});}else socRender();socRender();};
+  ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t){SOC.pend=true;socSend({t:'token',token:t});}else socRender();socRender();introRefresh();if($('inm')&&$('inm').value.trim())introCheck();};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}socRx(m);};
   ws.onclose=()=>{SOC.ws=null;SOC.me=null;SOC.pend=false;if(socTok()||inGate())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
   ws.onerror=()=>{};
@@ -1086,8 +1099,8 @@ function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd
 function socRx(m){
   if(m.t==='auth'){
     SOC.pend=false;
-    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}}
-    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
+    if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}if(m.save)socApplySave(m.save);SOC.saveOK=true;SOC.lastSave='';socSaveSoon(1200);introAuth(true,m);}
+    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;SOC.saveOK=false;introAuth(false,m);if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
     socRender();socDot();
   }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.chat&&!m.list.some(f=>f.id===SOC.chat&&f.st==='friend'))chatClose();else chatHead();if(SOC.view==='list')socRender();socDot();
   }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;chatHead();if(SOC.view==='list')socRender();}
@@ -1097,6 +1110,8 @@ function socRx(m){
     if(SOC.chat===other){SOC.hist.push(m);socAppend(m);if(SOC.min&&m.from!==SOC.me.id){SOC.mbd++;chatHead();}}
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
+  }else if(m.t==='chk'){introChk(m);
+  }else if(m.t==='savefail'){socToast('セーブ用の設定が未完了です（setup.sql の最後の1行を実行してください）');
   }else if(m.t==='notice'){socToast(m.text);
   }else if(m.t==='err'){SOC.err=m.text;const e=document.getElementById('soce');if(e)e.textContent=m.text;else socToast(m.text);}
 }
@@ -1183,7 +1198,79 @@ document.addEventListener('keydown',e=>{
   else if(e.target.id==='socf'){q('add')&&q('add').click();}
   else if(e.target.id==='socp'||e.target.id==='socn'){q('login')&&q('login').click();}
 });
-$('introgo')&&$('introgo').addEventListener('click',()=>{if(OWN_URL&&!SOC.me&&!SOC.off)showGate();});
+
+/* ---- アカウントのセーブ（所持金・借金・アイテム・見た目）と、オープニング画面 ---- */
+function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl}});}
+function socApplySave(s){
+  try{const o=JSON.parse(s),r=decodePw(o.p);if(!r)return false;
+    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;
+    if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}
+    if(o.i){ITEMS.luck=Math.max(0,Math.min(999,o.i.luck|0));ITEMS.dbl=Math.max(0,Math.min(999,o.i.dbl|0));}
+    update();slUI();return true;}catch(e){return false;}
+}
+function socSaveNow(){
+  if(!SOC.me||!SOC.saveOK||!SOC.ws||SOC.ws.readyState!==1)return;
+  let s;try{s=socSaveStr();}catch(e){return;}
+  if(s===SOC.lastSave)return;SOC.lastSave=s;socSend({t:'save',data:s});
+}
+function socSaveSoon(ms){clearTimeout(SOC.st);SOC.st=setTimeout(socSaveNow,ms||2500);}
+{const _upd=update;update=function(){const r=_upd.apply(this,arguments);if(SOC.me)socSaveSoon();return r;};}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)socSaveNow();});
+window.addEventListener('pagehide',socSaveNow);
+const IN={r:null,name:'',busy:false,err:'',t:0};
+function introCheck(){const nm=$('inm')?$('inm').value.trim():'';if(nm)socSend({t:'check',name:nm});}
+function introChk(m){if($('inm')&&m.name===$('inm').value.trim()){IN.r=m.r;IN.name=m.name;}introRefresh();}
+function introAuth(ok,m){
+  if(!document.getElementById('ilog'))return;
+  if(ok){IN.busy=false;IN.err='';if(document.getElementById('intro')&&SOC.me&&SOC.introStart){SOC.introStart=false;introStart();}}
+  else{IN.busy=false;SOC.introStart=false;IN.err=m&&m.err||'';}
+  introRefresh();
+}
+function introStart(){SOC.bypass=true;try{const g=$('introgo');if(g&&g.onclick)g.onclick();}finally{SOC.bypass=false;}}
+function introRefresh(){
+  const il=document.getElementById('ilog');if(!il||il.hidden)return;
+  const b=$('introgo'),nm=$('inm').value.trim(),pw=$('ipw').value,open=!!SOC.ws&&SOC.ws.readyState===1;
+  let label='START',dis=true,msg='';
+  il.classList.toggle('auto',!!SOC.me);
+  $('ialt').hidden=!SOC.me;
+  if(SOC.me){label='再開';dis=false;msg=SOC.me.name+' さん、おかえりなさい';}
+  else if(SOC.pend){label='ログイン中…';}
+  else if(!open){label='つないでいます…';msg='サーバーにつないでいます（起動に1分ほどかかることがあります）';}
+  else if(!nm){label='名前を入れてください';msg='名前とパスワードで、いつでも続きから遊べます';}
+  else if(IN.name===nm&&IN.r==='bad'){label='名前を直してください';msg='6文字まで。記号と空白は使えません';}
+  else if(IN.name!==nm||!IN.r){label='確認中…';}
+  else{
+    label=IN.r==='exists'?'再開':'新規登録';
+    if(pw.length<6){msg=IN.r==='exists'?'登録済みの名前です。パスワードを入れてください':'使える名前です。パスワード（6文字以上）を決めてください';}
+    else dis=IN.busy;
+  }
+  if(IN.err)msg=IN.err;
+  b.textContent=label;b.disabled=dis;$('imsg').textContent=msg;
+}
+function introInit(){
+  const il=$('ilog');il.hidden=false;
+  il.innerHTML='<input id="inm" maxlength="6" placeholder="名前（6文字まで）" autocomplete="username">'+pwf('ipw','パスワード（6文字以上）','current-password')+'<div id="imsg"></div><button type="button" class="ialt" id="ialt" hidden>別のアカウントで入る</button>';
+  $('ioff').hidden=false;
+  $('inm').oninput=()=>{IN.r=null;IN.name='';IN.err='';clearTimeout(IN.t);IN.t=setTimeout(introCheck,350);introRefresh();};
+  $('ipw').oninput=()=>{IN.err='';introRefresh();};
+  il.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.classList.contains('eye')){const i=$('ipw'),s=i.type==='password';i.type=s?'text':'password';b.classList.toggle('on',s);}
+    else if(b.id==='ialt'){socSend({t:'logout'});}
+  });
+  il.addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('introgo').disabled)$('introgo').click();});
+  $('ioff').onclick=()=>{SOC.off=true;introStart();};
+  $('introgo').addEventListener('click',e=>{
+    if(SOC.bypass||SOC.off||SOC.me)return;
+    e.stopImmediatePropagation();e.preventDefault();
+    const nm=$('inm').value.trim(),pw=$('ipw').value;
+    if(!nm||pw.length<6||IN.busy||!IN.r||IN.r==='bad')return;
+    IN.busy=true;IN.err='';SOC.introStart=true;socSend({t:IN.r==='exists'?'login':'register',name:nm,pass:pw});introRefresh();
+  },true);
+  introRefresh();socConnect();
+}
+
+if(OWN_URL&&document.getElementById('intro'))introInit();
 if(OWN_URL){$('frbtn').hidden=false;$('frbtn').onclick=socOpen;$('chatbtn').hidden=false;$('chatbtn').onclick=chatBtn;
   $('onbtn').addEventListener('click',e=>{if(!SOC.me){e.stopImmediatePropagation();e.preventDefault();showGate();}},true);if(socTok())socConnect();}
 const NEWS_VER='1.2.1';

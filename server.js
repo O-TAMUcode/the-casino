@@ -53,6 +53,7 @@ const MemStore = {
   async friendInsert(a, b) { mem.friends.push({ a, b, status: 'pending' }); },
   async friendAccept(a, b) { const f = mem.friends.find(f => f.a === a && f.b === b); if (f) f.status = 'accepted'; },
   async friendDelete(x, y) { mem.friends = mem.friends.filter(f => !((f.a === x && f.b === y) || (f.a === y && f.b === x))); },
+  async setSave(id, t) { const u = mem.users.find(x => x.id === id); if (u) u.save = t; },
   async deleteUser(id) { mem.users = mem.users.filter(u => u.id !== id); mem.friends = mem.friends.filter(f => f.a !== id && f.b !== id); mem.msgs = mem.msgs.filter(m => m.sender !== id && m.receiver !== id); },
   async msgInsert(s, r, t) { const m = { id: mem.nid++, sender: s, receiver: r, text: t, ts: new Date().toISOString() }; mem.msgs.push(m); return m; },
   async msgHist(x, y, n) { return mem.msgs.filter(m => (m.sender === x && m.receiver === y) || (m.sender === y && m.receiver === x)).slice(-n); },
@@ -76,6 +77,7 @@ const SbStore = {
   async friendInsert(a, b) { await sb('POST', 'friends', '', { a, b, status: 'pending' }); },
   async friendAccept(a, b) { await sb('PATCH', 'friends', '?a=eq.' + a + '&b=eq.' + b, { status: 'accepted' }); },
   async friendDelete(x, y) { await sb('DELETE', 'friends', '?or=(and(a.eq.' + x + ',b.eq.' + y + '),and(a.eq.' + y + ',b.eq.' + x + '))'); },
+  async setSave(id, t) { await sb('PATCH', 'users', '?id=eq.' + id, { save: t }); },
   async deleteUser(id) {
     await sb('DELETE', 'messages', '?or=(sender.eq.' + id + ',receiver.eq.' + id + ')');
     await sb('DELETE', 'friends', '?or=(a.eq.' + id + ',b.eq.' + id + ')');
@@ -125,7 +127,7 @@ async function loginOk(st, u) {
   st.uid = u.id; st.uname = u.name;
   if (!online.has(u.id)) online.set(u.id, new Set());
   online.get(u.id).add(st);
-  sendJson(st, { t: 'auth', ok: true, token: makeToken(u.id), me: { id: u.id, name: u.name } });
+  sendJson(st, { t: 'auth', ok: true, token: makeToken(u.id), me: { id: u.id, name: u.name }, save: typeof u.save === 'string' ? u.save : null });
   sendJson(st, { t: 'friends', list: await friendList(u.id) });
   if (online.get(u.id).size === 1) announce(u.id, true).catch(() => {});
 }
@@ -161,6 +163,15 @@ async function socialInner(st, m) {
     fails.delete(key);
     return loginOk(st, u);
   }
+  if (m.t === 'check') {
+    const name = typeof m.name === 'string' ? m.name.trim() : '';
+    const now = Date.now();
+    if (!st.chkAt || now - st.chkAt > 60000) { st.chkAt = now; st.chkN = 0; }
+    if (++st.chkN > 40) return;
+    if (!NAME_RE.test(name) || [...name].length > 6) return sendJson(st, { t: 'chk', name, r: 'bad' });
+    const u = await store.userByKey(nameKey(name));
+    return sendJson(st, { t: 'chk', name, r: u ? 'exists' : 'new' });
+  }
   if (m.t === 'token') {
     const id = checkToken(m.token);
     const u = id ? await store.userById(id) : null;
@@ -170,6 +181,12 @@ async function socialInner(st, m) {
   if (!st.uid) return sendJson(st, { t: 'auth', ok: false });
   const me = st.uid;
   if (m.t === 'logout') { socialGone(st); return sendJson(st, { t: 'auth', ok: false, loggedOut: true }); }
+  if (m.t === 'save') {
+    if (typeof m.data !== 'string' || m.data.length > 3000) return;
+    try { await store.setSave(me, m.data); }
+    catch (e) { console.error('save:', e.message); if (!st.saveWarn) { st.saveWarn = true; sendJson(st, { t: 'savefail' }); } }
+    return;
+  }
   if (m.t === 'friends') return sendJson(st, { t: 'friends', list: await friendList(me) });
   if (m.t === 'delacct') {
     const u = await store.userById(me);
