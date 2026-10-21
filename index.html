@@ -74,7 +74,6 @@ button.b:disabled{opacity:.45}
 .tl{flex:1;min-width:0;white-space:nowrap;height:96px;font:inherit;font-size:1.25rem;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
 .tl b{font-size:1.9rem}
 .lb{flex:1;min-width:0;display:flex;gap:4px}
-#bets #gacha{font-size:clamp(.5rem,2.4vw,.66rem);line-height:1.2}
 #bets #loan,#bets #gacha{font-size:.75rem;padding:0 2px;white-space:nowrap;letter-spacing:-.02em}
 .tl.alert{box-shadow:0 0 0 3px #ff6a5e,0 2px 4px rgba(0,0,0,.4)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
@@ -461,6 +460,11 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 #introgo[disabled]{opacity:1;background:linear-gradient(180deg,#8a7a50,#6b5a2e);color:#2a2018;animation:none;box-shadow:none}
 #introgo[disabled]::after{display:none}
 @media(prefers-reduced-motion:reduce){#intro *,#intro::before,#ifx span{animation:none!important}}
+
+.gr .gn{display:flex;flex-direction:column;min-width:0}
+.fxs{display:block;font-size:.68rem;font-weight:normal;letter-spacing:0;color:#9fd8a6;text-shadow:none;margin-top:1px;white-space:normal;line-height:1.25}
+.gfr .fxs.fr{text-align:center;max-width:100%;color:#b9f0c0;font-size:.72rem}
+.gr.sr .fxs{color:#ffe9a8}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -625,7 +629,7 @@ window.__peerLoad();
   <div class="r" id="gor"><span class="gp" id="gp-slotb" hidden><button class="b" id="sls0">左停</button><button class="b" id="sls1">中停</button><button class="b" id="sls2">右停</button></span><button class="b big go" id="go" disabled>勝負！</button></div>
   </div>
   <div class="col" id="bets">
-    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ<br>・<br>ショップ</button><button class="tt tl" id="chatbtn" hidden aria-label="チャット"><span class="ci">💬</span><i id="chdot2"></i></button></div></div>
+    <div class="r" style="flex:1;flex-direction:column;gap:6px;align-items:stretch;justify-content:flex-start"><div class="mon tt" id="betbox" style="flex:none;height:56px"><input id="bet" type="number" inputmode="numeric" min="0" step="1" placeholder="掛け金" autocomplete="off"></div><div style="display:flex;gap:6px;height:44px"><button class="b" data-a="all">全額</button><button class="b" data-a="clear">削除</button></div><div style="display:flex;gap:6px;flex:1;min-height:48px"><button class="tt tl" id="loan">借金</button><button class="tt tl" id="gacha">ガチャ</button><button class="tt tl" id="chatbtn" hidden aria-label="チャット"><span class="ci">💬</span><i id="chdot2"></i></button></div></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
@@ -650,7 +654,7 @@ window.__peerLoad();
 <h3>競馬</h3><p data-g="keiba">36頭の中から毎回9頭が出走します。「出走表」で名前・能力・エピソードを見て、賭ける馬と賭け方（単勝・複勝）を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。馬の能力はレースごとに少しずつ変わります。</p>
 <h3>スロット</h3><p data-g="slot">「スピン！」で3つのリールが回ります。絵柄が3つ揃えば当たり（7️⃣ 100倍、⭐ 50倍、🔔 20倍、🍇 10倍、🍋 5倍、🍒 3倍）。🍒が2つで1.5倍、1つなら賭け金が戻ります。どれにも当てはまらない「はずれ」もあり、そのときは賭け金を失います。画面右のレバーをタップしても回せます。</p>
 <p class="warn" data-g="slot">⚠ スロットはオンライン要素がありません。</p>
-<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、ページを更新すると消えます）。</p>
+<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、ページを更新すると消えます）。</p>
 <h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続（最大8人）。参加者のランキングが上に表示されます。名前はアカウント名です。フレンドの画面の「オンライン」ボタンからも始められます。スロットだけはオンライン要素がありません。オンライン中のポーカーは人間同士の1対1です。ブラックジャックはディーラーのカードが同じで、相手の手札が画面下に出ます。</p>
 <div class="mr"><button id="helpx">閉じる</button></div>
 </div></div>
@@ -728,12 +732,11 @@ $('go').onclick=async()=>{
   if(choice==='even'&&sum%2===0)mult=2;
   else if(choice==='odd'&&sum%2===1)mult=2;
   else if(typeof choice==='number'&&choice===sum)mult=4;
-  const pay=stake*BigInt(mult);balance+=pay;sfx(mult>0);
+  let pay=stake*BigInt(mult);pay+=fxSettle('chouhan',stake,pay);balance+=pay;sfx(mult>0);
   const kind=sum%2===0?'丁':'半';
   if(mult){msg.className='msg win';msg.textContent=`${a}・${b}の${sum}、${kind}！ 当たり！ ${pay}獲得（${mult}倍）`;}
   else{msg.className='msg lose';msg.textContent=`${a}・${b}の${sum}、${kind}… 外れ。${stake}失いました`;}
-  busy=false;update();
-  if(balance<=0){msg.textContent+=' ／ 所持金がなくなりました。上の「借金」で借りられます';}
+  msg.textContent+=brokeNote();busy=false;update();
 };
 /* 琴風BGM（Web Audioで合成） */
 let ctx=null,on=false,step=0,tm=null,phrase=null,out=null,tb=null;
@@ -1425,7 +1428,7 @@ function switchGame(dir){
 $('aL').onclick=()=>switchGame(-1);
 $('aR').onclick=()=>switchGame(1);
 $('go').addEventListener('click',()=>{if(game==='roulette')goRoulette();else if(game==='poker')startHand();else if(game==='blackjack')bjDeal();else if(game==='keiba')goKeiba();else if(game==='chinchiro')goChin();else if(game==='baccarat')goBaccarat();else if(game==='slot')goSlot();});
-const brokeNote=()=>balance<=0?' ／ 所持金がなくなりました。上の「借金」で借りられます':'';
+const brokeNote=()=>{const n=FXN;FXN='';return n+(balance<=0?' ／ 所持金がなくなりました。上の「借金」で借りられます':'');};
 
 /* ルーレット（ヨーロピアン：シングルゼロ） */
 const WH=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
@@ -1529,7 +1532,7 @@ async function goRoulette(){
   const col=w===0?'緑':REDS.has(w)?'赤':'黒';
   let pay=0n;
   bets.forEach(b=>{if(b.nums.indexOf(w)>=0)pay+=b.amt*36n/BigInt(b.nums.length);});
-  rBets=[];balance+=pay;sfx(pay>total);
+  rBets=[];pay+=fxSettle('roulette',total,pay);balance+=pay;sfx(pay>total);
   const eo=w===0?'':(w%2===0?'・偶数':'・奇数');
   const net=pay-total;
   msg.className='msg '+(net>0?'win':net<0?'lose':'');
@@ -1685,7 +1688,8 @@ async function showdown(){
 function finish(w,mode,na,nb){
   H.on=false;pPhase=0;busy=false;
   const pot=H.pot+H.cur[0]+H.cur[1];H.pot=pot;H.cur=[0n,0n];
-  const back=w===0?pot:w===-1?pot/2n:0n;
+  let back=w===0?pot:w===-1?pot/2n:0n;
+  if(H.oppAI)back+=fxSettle('poker',H.inv,back);
   balance+=back;
   const net=back-H.inv,msg=$('msg');
   const t=mode==='fold'?(w===0?'相手がフォールド。ポット '+pot+' を獲得':'あなたはフォールド'):(w===0?'勝ち！ ':w===1?'負け… ':'引き分け ')+'あなた：'+na+'／相手：'+nb;
@@ -1822,8 +1826,9 @@ async function bjSettle(){
     else{m=0;txt='負け';}
     back+=h.bet*BigInt(Math.round(m*2))/2n;res.push(txt);
   });
-  balance+=back;
-  const inv=B.hands.reduce((a,h)=>a+h.bet,0n),net=back-inv,msg=$('msg');
+  const inv=B.hands.reduce((a,h)=>a+h.bet,0n);
+  back+=fxSettle('blackjack',inv,back);balance+=back;
+  const net=back-inv,msg=$('msg');
   msg.className='msg '+(net>0?'win':net<0?'lose':'');
   msg.textContent=res.join(' ／ ')+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
   sfx(net>0);
@@ -2051,10 +2056,10 @@ async function goKeiba(){
   const r=ord.indexOf(pick);let pay=0n;
   if(mode==='win'&&r===0)pay=mulf(stake,F.ow[pick]);
   if(mode==='place'&&r<3)pay=mulf(stake,F.op[pick]);
-  balance+=pay;sfx(pay>0);
+  const hit=pay>0n;pay+=fxSettle('keiba',stake,pay);balance+=pay;sfx(hit);
   const net=pay-stake;
   msg.className='msg '+(net>0?'win':net<0?'lose':'');
-  msg.textContent='1着'+(ord[0]+1)+'番／2着'+(ord[1]+1)+'番／3着'+(ord[2]+1)+'番　'+(pay>0?'的中！'+pay+'獲得':'外れ。'+stake+'失いました')+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
+  msg.textContent='1着'+(ord[0]+1)+'番／2着'+(ord[1]+1)+'番／3着'+(ord[2]+1)+'番　'+(hit?'的中！'+pay+'獲得':'外れ。'+stake+'失いました')+'（'+(net>=0?'+':'')+net+'）'+brokeNote();
   KF=kField();kRacing=false;busy=false;bet=bmin(bet,balance);update();
 }
 window.addEventListener('resize',kDraw);
@@ -2385,8 +2390,8 @@ async function goChin(){
   msg.textContent='あなたの番です';await wait(500);
   const pr=await chinRoll(Math.random,'cpd','cpl','あなた');
   let txt;
-  if(pr.rank>dr.rank){balance+=stake*BigInt(1+pr.mult);msg.className='msg win';txt=pr.name+'で勝ち！ '+(stake*BigInt(pr.mult))+'獲得（'+pr.mult+'倍）';sfx(true);}
-  else if(pr.rank<dr.rank){const m=pr.k==='h'?2:dr.mult,extra=bmin(balance,stake*BigInt(m-1));balance-=extra;msg.className='msg lose';txt='親の'+dr.name+'に負け… '+(stake+extra)+'失いました';sfx(false);}
+  if(pr.rank>dr.rank){const w0=stake*BigInt(1+pr.mult),ex=fxSettle('chinchiro',stake,w0);balance+=w0+ex;msg.className='msg win';txt=pr.name+'で勝ち！ '+(stake*BigInt(pr.mult)+ex)+'獲得（'+pr.mult+'倍）';sfx(true);}
+  else if(pr.rank<dr.rank){const m=pr.k==='h'?2:dr.mult,extra=bmin(balance,stake*BigInt(m-1));balance-=extra;balance+=fxSettle('chinchiro',stake+extra,0n);msg.className='msg lose';txt='親の'+dr.name+'に負け… '+(stake+extra)+'失いました';sfx(false);}
   else{balance+=stake;txt='引き分け。賭け金は戻ります';}
   msg.textContent=txt+brokeNote();busy=false;update();
 }
@@ -2430,13 +2435,13 @@ async function goBaccarat(){
   const score='プレイヤー '+pt+'－バンカー '+bt+(nat?'（ナチュラル）':'');
   let txt;
   if(pk===w){
-    const pay=w==='p'?stake*2n:w==='b'?stake+stake*95n/100n:stake*9n;
+    const pay0=w==='p'?stake*2n:w==='b'?stake+stake*95n/100n:stake*9n,pay=pay0+fxSettle('baccarat',stake,pay0);
     balance+=pay;msg.className='msg win';sfx(true);
     txt=score+'　'+baNm[w]+'の勝ち！ '+(pay-stake)+'獲得';
   }else if(w==='t'){
     balance+=stake;txt=score+'　タイ。賭け金は戻ります';
   }else{
-    msg.className='msg lose';sfx(false);
+    balance+=fxSettle('baccarat',stake,0n);msg.className='msg lose';sfx(false);
     txt=score+'　'+baNm[w]+'の勝ち… '+stake+'失いました';
   }
   msg.textContent=txt+brokeNote();busy=false;update();
@@ -2456,7 +2461,7 @@ function slEval(a){
 }
 function slUI(){
   const n=$('slnote');if(!n)return;
-  n.textContent=(ITEMS.luck?'🍀×'+ITEMS.luck+' ':'')+(ITEMS.dbl?'💰×'+ITEMS.dbl:'');
+  n.textContent='';
 }
 function fitSlot(){
   const SLW=310,SLH=314;
@@ -2501,9 +2506,9 @@ async function goSlot(){
   await wait(150);
   msg.textContent='スピン！';
   els.forEach(e=>e.classList.add('spin'));
-  const luck=ITEMS.luck>0,dbl=ITEMS.dbl>0;
+  const lk=fxGet('slot').luck;
   let res=[slPick(),slPick(),slPick()];
-  if(luck){const r2=[slPick(),slPick(),slPick()];if(slEval(r2).mult>slEval(res).mult)res=r2;}
+  if(lk>0&&Math.random()*100<lk){const r2=[slPick(),slPick(),slPick()];if(slEval(r2).mult>slEval(res).mult)res=r2;}
   const iv=setInterval(()=>{els.forEach(e=>{if(e.classList.contains('spin'))e.textContent=SLS[Math.floor(Math.random()*SLS.length)][0];});},70);
   const fin=i=>{els[i].classList.remove('spin');els[i].textContent=SLS[res[i]][0];$('sllp'+i).classList.add('on');slSnd(520+i*60,.12,.08);};
   if(slManual){
@@ -2511,11 +2516,10 @@ async function goSlot(){
     await Promise.all([0,1,2].map(i=>new Promise(r=>{slStop[i]=()=>{slStop[i]=null;$('sls'+i).disabled=true;fin(i);r();};})));
   }else{for(let i=0;i<3;i++){await wait(i===0?700:450);fin(i);}}
   clearInterval(iv);
-  const r=slEval(res),x2=dbl&&r.mult>1?2n:1n,pay=mulf(stake,r.mult)*x2;
-  if(luck)ITEMS.luck--;if(dbl)ITEMS.dbl--;
+  const r=slEval(res);let pay=mulf(stake,r.mult);pay+=fxSettle('slot',stake,pay);
   balance+=pay;$('slwn').textContent=fmt(pay,2);
   r.hit.forEach((h,i)=>{if(h)els[i].classList.add('hit');});
-  if(pay>stake){msg.className='msg win';msg.textContent=r.name+'！ '+(pay-stake)+'獲得（'+(r.mult*Number(x2))+'倍'+(x2>1n?'・配当2倍':'')+'）';sfx(true);sm.classList.add('jp');slCoins(Math.min(14,4+Math.floor(r.mult)));setTimeout(()=>sm.classList.remove('jp'),3000);}
+  if(pay>stake){msg.className='msg win';msg.textContent=r.name+'！ '+(pay-stake)+'獲得（'+r.mult+'倍）';sfx(true);sm.classList.add('jp');slCoins(Math.min(14,4+Math.floor(r.mult)));setTimeout(()=>sm.classList.remove('jp'),3000);}
   else if(pay===stake&&pay>0){msg.textContent=r.name+'　賭け金が戻ります';slCoins(2);}
   else{msg.className='msg lose';msg.textContent='外れ… '+stake+'失いました';sfx(false);}
   msg.textContent+=brokeNote();busy=false;update();slUI();
@@ -2687,44 +2691,52 @@ async function gachaAnim(list){
     res.innerHTML='<div class="gfr '+r+'"><i class="sh"></i><i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>'
       +'<span class="rl" style="color:'+RC[r]+'">'+(r==='S'?'★★★ ':r==='R'?'★★ ':'★ ')+RL[r]+'</span>'
       +'<span class="gbig" style="'+skPrev(g.k)+';box-shadow:0 0 18px '+RC[r]+'">'+skIco(g.k)+'</span>'
-      +'<b class="rn '+r+'">'+g.k.n+'</b>'
+      +'<b class="rn '+r+'">'+g.k.n+'</b><small class="fxs fr">'+fxText(g.k)+'</small>'
       +(g.nw?'<em class="nw">NEW!</em>':'<em class="dup">ダブり 300返金</em>')+'</div>';
     await w(one?(r==='S'?2600:1900):(r==='S'?1000:r==='R'?750:520));
   }
   }finally{clearInterval(tk);el.remove();}
 }
+
+/* ---- ガチャのアイテムの効果（着用すると効きます） ---- */
+const FXG={d:['chouhan','chinchiro'],c:['poker','blackjack','baccarat'],t:['roulette','keiba'],s:['slot']};
+const FXN_GAMES={chouhan:'丁半',chinchiro:'チンチロ',roulette:'ルーレット',poker:'ポーカー',blackjack:'ブラックジャック',keiba:'競馬',baccarat:'バカラ',slot:'スロット'};
+const FX={};
+['d','c','m','t','s'].forEach(t=>{const cnt={N:0,R:0,S:0};SKINS.filter(k=>k.t===t).forEach(k=>{if(/^[dcmts]0$/.test(k.id))return;const n=cnt[k.r]++;FX[k.id]={t:t,v:({N:2,R:6,S:15})[k.r]+n*({N:1,R:1,S:3})[k.r]};});});
+function fxText(k){
+  const e=FX[k.id];if(!e)return '効果なし';
+  if(e.t==='m')return '負けたとき、賭け金の'+Math.max(1,Math.round(e.v/2))+'%が戻る（全ゲーム）';
+  const g=FXG[e.t].map(x=>FXN_GAMES[x]).join('・');
+  if(e.t==='s')return g+'：当たりやすさ+'+Math.min(60,e.v*2)+'%、配当+'+Math.ceil(e.v/2)+'%';
+  return g+'の配当 +'+e.v+'%';
+}
+function fxGet(game){
+  const f={pay:0,back:0,luck:0};
+  [eq.d,eq.c,eq.m,eq.t,eq.s].forEach(id=>{const e=FX[id];if(!e)return;
+    if(e.t==='m'){f.back+=Math.max(1,Math.round(e.v/2));return;}
+    if(!FXG[e.t].includes(game))return;
+    if(e.t==='s'){f.pay+=Math.ceil(e.v/2);f.luck+=Math.min(60,e.v*2);}else f.pay+=e.v;});
+  return f;
+}
+let FXN='';
+function fxSettle(game,stake,pay){
+  const f=fxGet(game);let ex=0n;FXN='';
+  if(pay>stake&&f.pay>0){ex=(pay-stake)*BigInt(f.pay)/100n;if(ex>0n)FXN='（装備ボーナス +'+fmt(ex)+'）';}
+  else if(pay<stake&&f.back>0){ex=(stake-pay)*BigInt(f.back)/100n;if(ex>0n)FXN='（返金 +'+fmt(ex)+'）';}
+  return ex;
+}
 function gachaModal(note){
   const row=k=>{const has=own[k.id],cur=eq[k.t]===k.id;
-    return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'</span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
+    return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'<small class="fxs">'+fxText(k)+'</small></span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
   const HEAD={S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
   const rows=['S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
-  openModal('<div class="fixw">'+NAV('g')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台の見た目が当たります。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
+  openModal('<div class="fixw"><div class="gnav" style="justify-content:center"><div class="gt"><h2>ガチャ</h2></div></div><div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
     +'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
     +'<div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div></div>');
 }
 $('gacha').onclick=()=>gachaModal();
 
-/* ショップ（スロット用アイテム） */
-const NAV=w=>{const o=w==='g'?'data-shop="1"':'data-gb="1"';return '<div class="gnav"><button '+o+' aria-label="前へ">◀</button><div class="gt"><h2>'+(w==='g'?'ガチャ':'ショップ')+'</h2><div class="gd"><i class="'+(w==='g'?'on':'')+'"></i><i class="'+(w==='s'?'on':'')+'"></i></div></div><button '+o+' aria-label="次へ">▶</button></div>';};
-const TABS_UNUSED=w=>'<div class="tabs"><button data-gb="1" class="'+(w==='g'?'on':'')+'">ガチャ</button><span>・</span><button data-shop="1" class="'+(w==='s'?'on':'')+'">ショップ</button></div>';
-const SHOP=[{id:'luck',n:'🍀 確率アップ券',d:'当たりやすさが2倍（2回抽選して、良いほうを採用）',cnt:10,price:3000},{id:'dbl',n:'💰 配当2倍券',d:'当たったとき（1.5倍以上）の払い戻しが2倍',cnt:10,price:150000}];
-function shopModal(note){
-  const rows=SHOP.map(s=>'<div class="gr" style="flex-wrap:wrap"><span class="gn" style="flex:1 1 100%"><b>'+s.n+'</b>　持っている：'+ITEMS[s.id]+'回分<br><small>'+s.d+'</small></span><button data-buy="'+s.id+'">'+s.cnt+'回分 '+fmt(s.price)+'</button></div>').join('');
-  openModal('<div class="fixw">'+NAV('s')+'<div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>スロットで使えます。スロットを1回まわすごとに、持っている券が1回分ずつ減ります。更新すると、アイテムは消えます。</small><div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div><div class="mr"><button data-x="1">閉じる</button></div></div>');
-}
-$('mbox').addEventListener('click',e=>{
-  const t=e.target.dataset;
-  if(t.shop){shopModal();return;}
-  if(t.gb){gachaModal();return;}
-  if(t.buy){
-    const s=SHOP.find(x=>x.id===t.buy);if(!s)return;
-    if(busy){shopModal('勝負の最中は買えません');return;}
-    if(balance<BigInt(s.price)){shopModal('所持金が足りません');return;}
-    if(ITEMS[s.id]+s.cnt>999){shopModal('持てるのは999回分までです');return;}
-    balance-=BigInt(s.price);ITEMS[s.id]+=s.cnt;bet=bmin(bet,balance);update();slUI();shopModal(s.n+' を'+s.cnt+'回分 買いました');
-  }
-});
 window.addEventListener('resize',()=>{try{fitBal(fmt(balance,1));}catch(e){}});setTimeout(()=>{try{fitBal(fmt(balance,1));}catch(e){}},300);
 $('mbox').addEventListener('click',e=>{
   const t=e.target.dataset;
