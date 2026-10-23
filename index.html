@@ -149,9 +149,7 @@ button.b:disabled{opacity:.45}
 #help .mbox h3{margin:12px 0 4px;font-size:1.05rem;color:#f2d27a}
 #help .mbox p{margin:0 0 6px;line-height:1.5;font-size:.95rem}
 #help .mbox p.cur{background:rgba(201,162,39,.18);border-radius:6px;padding:4px 6px}
-#onbtn,#giftbtn{position:absolute;top:61px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
-#giftbtn{top:119px}
-body.nosrv #giftbtn{top:90px}
+#onbtn{position:absolute;top:61px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
 #newsbtn{position:absolute;top:32px;right:3px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
 #newsdot{display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#e53935;border:1px solid #fff}
 #newsbtn.new #newsdot{display:block}
@@ -465,8 +463,8 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .fxs{display:block;font-size:.68rem;font-weight:normal;letter-spacing:0;color:#9fd8a6;text-shadow:none;margin-top:1px;white-space:normal;line-height:1.25}
 .gfr .fxs.fr{text-align:center;max-width:100%;color:#b9f0c0;font-size:.72rem}
 .gr.sr .fxs{color:#ffe9a8}
-#setbtn{position:absolute;right:3px;top:148px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
-body.nosrv #setbtn{top:119px}
+#setbtn{position:absolute;right:3px;top:119px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+body.nosrv #setbtn{top:90px}
 .setrow{margin:12px 0;padding-bottom:10px;border-bottom:1px solid #4a3d36}
 .setrow label{display:block;font-weight:bold;margin-bottom:6px}
 .mbox .setrow input[type=range]{width:100%;padding:0;margin:6px 0;letter-spacing:0;accent-color:#ffc107}
@@ -478,7 +476,6 @@ body.nosrv #setbtn{top:119px}
 .adm .row .nm small{display:block}
 .adm .dot{flex:none;width:10px;height:10px;border-radius:50%;background:#777}.adm .dot.on{background:#4cd964}
 .adm input{width:100%;box-sizing:border-box;margin:4px 0}
-#giftbtn{font-size:.7rem!important;padding:0 7px!important;letter-spacing:-.02em}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -648,7 +645,7 @@ window.__peerLoad();
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
 <button id="helpbtn">？説明</button>
-<button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="onbtn">オンライン</button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><button id="giftbtn">ギフトコード</button><button id="setbtn">設定</button><div id="oppbar" hidden></div>
+<button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="onbtn">オンライン</button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><button id="setbtn">設定</button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
 <p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前はアカウント名が使われます。フレンドなら、フレンドの画面の「オンライン」ボタンを押すだけでつながります（合言葉は要りません）。部屋を作った人が抜けると部屋は閉じます。</p>
@@ -1053,32 +1050,6 @@ function linTouch(){if(!curLin||linTm)return;linTm=setTimeout(linFlush,400);}
 window.addEventListener('pagehide',()=>{if(linTm)linFlush();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&linTm)linFlush();});
 {const _u0=update;update=function(){_u0.apply(this,arguments);linTouch();};}
-/* ギフトコード */
-const GIFTS={VIP777:77777};   /* 配布用：コード（大文字）:もらえる金額。1つのブラウザで1回だけ使える。ここに足せば増やせる */
-const GCH={adm:'uitwhm.1iwispn',all:'bwpgde.14cdwnn',none:'1nmfm4a.1q4zniz'};   /* 運営用（中身は暗号化してあります） */
-function gcHash(t){let a=2166136261,b=2166136261;const u=t+'#';for(const c of t){a^=c.charCodeAt(0);a=Math.imul(a,16777619);}for(const c of u){b^=c.charCodeAt(0);b=Math.imul(b,16777619);}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36);}
-function giftUsed(){try{return JSON.parse(localStorage.getItem('casinoGift'))||[];}catch(e){return[];}}
-function giftMark(c){try{const u=giftUsed();u.push(c);localStorage.setItem('casinoGift',JSON.stringify(u));}catch(e){}}
-function giftMoney(d){d=typeof d==='bigint'?d:BigInt(Math.floor(d));const v=balance+d;balance=v<0n?0n:v>MAXB?MAXB:v;update();}
-function useGift(raw){
-  const c=String(raw||'').toUpperCase().replace(/[\s\u3000]/g,'');
-  if(!c)return 'コードを入力してください';
-  if(busy||pPhase===1||rBets.length>0||bjOn)return '勝負の最中、またはチップが出ているときは使えません';
-  if(gcHash(c)===GCH.all){SKINS.forEach(k=>{own[k.id]=1;});update();return 'ガチャのアイテムをすべて手に入れました';}
-  if(gcHash(c)===GCH.none){own={d0:1,c0:1,m0:1,t0:1,s0:1};eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};applySkin();update();return 'ガチャのアイテムをすべて消しました';}
-  for(let i=1;i<c.length;i++){
-    const rest=c.slice(i);
-    if(/^-?[0-9]{1,52}$/.test(rest)&&gcHash(c.slice(0,i))===GCH.adm){
-      const d=BigInt(rest);giftMoney(d);
-      return (d>=0n?fmt(d)+' 増えました':fmt(-d)+' 減りました')+'（所持金 '+fmt(balance)+'）';
-    }
-  }
-  if(GIFTS[c]!==undefined){
-    if(giftUsed().includes(c))return 'このコードは使用済みです';
-    giftMark(c);giftMoney(GIFTS[c]);return fmt(GIFTS[c])+' 手に入れました！（所持金 '+fmt(balance)+'）';
-  }
-  return 'コードが違います';
-}
 function pwModal(note,made){
   openModal('<h2>パスワード</h2>'
     +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off"'+(SOC.me?' readonly':'')+'>'
@@ -1115,7 +1086,6 @@ $('mbox').onclick=e=>{
     {if(!curLin)curLin=Math.random().toString(36).slice(2,10);const o=linLoad(),c=encodePw();o.m[pwKey(c)]=curLin;o.l[curLin]=c;linSave(o);}
     return;
   }
-  if(t.gc){const m=useGift($('gcin').value);const n=$('gcnote');if(n)n.textContent=m;return;}
   if(t.cp){
     const code=document.querySelector('#mbox .code').textContent;
     try{navigator.clipboard.writeText(code).then(()=>{const n=document.querySelector('#mbox .note');if(n)n.textContent='コピーしました';},()=>{});}catch(e){}
@@ -1134,8 +1104,6 @@ $('mbox').onclick=e=>{
   }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
-function giftModal(){openModal('<h2>ギフトコード</h2><input id="gcin" placeholder="コードを入力" autocomplete="off" autocapitalize="characters"><div class="mr"><button data-gc="1">コードを使う</button></div><div class="note" id="gcnote"></div><div class="mr" style="margin-top:10px"><button data-x="1">閉じる</button></div>');}
-$('giftbtn').onclick=giftModal;
 
 /* ---- フレンド・チャット（アカウント） ---- */
 const SOC={ws:null,me:null,friends:[],chat:null,hist:[],unread:{},view:'login',retry:0,err:'',min:false,mbd:0,del:false,off:false,pend:false,bypass:false,saveOK:false,lastSave:'',st:0};
@@ -1172,6 +1140,7 @@ function socRx(m){
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
   }else if(m.t==='invite'){socInvite(m);
+  }else if(m.t==='adjust'){admApply(m.op);socToast('管理者が、所持金やアイテムを変更しました');socSaveSoon(1500);
   }else if(m.t==='reset'){setTimeout(()=>location.reload(),300);
   }else if(m.t==='adm'){if(m.ok){ADM.on=true;ADM.err=m.err||'';socSend({t:'adlist'});}else{ADM.on=false;ADM.err=m.err||'';}admRender();
   }else if(m.t==='adlist'){ADM.users=m.users||[];ADM.online=m.online|0;admRender();
@@ -1293,11 +1262,20 @@ setInterval(()=>{
 },1500);
 
 /* ---- アカウントのセーブ（所持金・借金・アイテム・見た目）と、オープニング画面 ---- */
-function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl},b:String(balance)});}
+function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl},b:String(balance),o:Object.keys(own).filter(k=>own[k])});}
+function admApply(op){
+  try{
+    if(op.k==='bal'){const v=BigInt(op.v);let nb=op.mode==='set'?v:balance+v;if(nb<0n)nb=0n;if(nb>MAXB)nb=MAXB;balance=nb;bet=bmin(bet,balance);}
+    else if(op.k==='own'){const k=SKINS.find(x=>x.id===op.id);if(!k)return;if(op.on)own[k.id]=1;else{if(/^[dcmts]0$/.test(k.id))return;delete own[k.id];if(eq[k.t]===k.id)eq[k.t]=k.t+'0';applySkin();}}
+    else if(op.k==='ownall'){if(op.on)SKINS.forEach(k=>{own[k.id]=1;});else{own={d0:1,c0:1,m0:1,t0:1,s0:1};eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};applySkin();}}
+    update();
+  }catch(e){}
+}
 function socApplySave(s){
-  try{const o=JSON.parse(s),r=decodePw(o.p);if(!r)return false;
-    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;
-    if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}
+  try{const o=JSON.parse(s),r=o.p?decodePw(o.p):null;
+    if(r){balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;
+      if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}}
+    if(Array.isArray(o.adm)){o.adm.forEach(admApply);if(o.adm.length)socToast('管理者が、所持金やアイテムを変更しました');}
     if(o.i){ITEMS.luck=Math.max(0,Math.min(999,o.i.luck|0));ITEMS.dbl=Math.max(0,Math.min(999,o.i.dbl|0));}
     update();slUI();return true;}catch(e){return false;}
 }
@@ -1375,7 +1353,7 @@ function setModal(){
 function setDelModal(note){
   openModal('<h2>アカウントを削除</h2><p style="font-size:.95rem;margin:0 0 8px">アカウント、フレンド、チャットの履歴、所持金などのセーブが、すべて消えます。元には戻せません。確認のため、パスワードを入れてください。</p><div class="soc">'+pwf('sdp','パスワード','current-password')+'</div><div class="mr"><button data-s="back">やめる</button><button class="dbtn" data-s="delgo">削除する</button></div><div class="err" id="soce" style="color:#ff9a8a;min-height:1.3em">'+esc(note||'')+'</div>');
 }
-const ADM={on:false,users:[],online:0,err:''};
+const ADM={on:false,users:[],online:0,err:'',edit:null};
 function admOpen(){
   if(!socUrl()){openModal('<h2>管理者画面</h2><p>サーバー版でのみ使えます。</p><div class="mr"><button data-x="1">閉じる</button></div>');return;}
   openModal('<h2>管理者画面</h2><div class="adm soc" id="admroot"></div><div class="mr"><button data-x="1">閉じる</button></div>');
@@ -1386,10 +1364,22 @@ function admRender(){
   if(!SOC.ws||SOC.ws.readyState!==1){r.innerHTML='<p>サーバーにつないでいます…</p>';return;}
   if(!ADM.on){r.innerHTML='<p style="margin:0 0 6px">管理者パスワードを入れてください</p>'+pwf('admp','管理者パスワード','off')+'<div class="mr"><button data-ad="in">入る</button></div><div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';return;}
   const bv=x=>{try{return BigInt(x);}catch(e){return -1n;}};
+  if(ADM.edit!==null){
+    const u=ADM.users.find(x=>x.id===ADM.edit);
+    if(!u){ADM.edit=null;return admRender();}
+    const all=!!(u.own&&u.own[0]==='*'),owned=new Set(u.own||[]);
+    r.innerHTML='<div><button class="sb" data-ad="back">← 一覧へ</button></div><h3 style="margin:8px 0 2px">'+esc(u.name)+'</h3>'
+      +'<div>所持金：<b>'+(u.bal===null?'—':fmt(bv(u.bal)))+'</b></div><small>'+(u.on?'オンライン中なので、すぐ反映されます':'オフラインなので、次にログインしたときに反映されます')+'</small>'
+      +'<input id="admv" inputmode="numeric" placeholder="金額（数字）" style="margin-top:6px"><div class="mr"><button data-ad="add">加える</button><button data-ad="sub">減らす</button><button data-ad="set">この値にする</button></div>'
+      +'<h3 style="margin:12px 0 4px">アイテム</h3><div class="mr"><button class="sb" data-ad="all1">全部入手</button><button class="sb" data-ad="all0">全部外す</button></div>'
+      +'<div style="max-height:30vh;overflow:auto;margin-top:6px">'+SKINS.map(k=>{const has=all||owned.has(k.id);return '<div class="row"><span class="nm" style="color:'+RC[k.r]+'">'+esc(k.n)+'</span><button class="sb" data-ad="own" data-sk="'+k.id+'" data-on="'+(has?0:1)+'">'+(has?'外す':'入手')+'</button></div>';}).join('')+'</div>'
+      +'<div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';
+    return;
+  }
   const us=ADM.users.slice().sort((a,b)=>{const d=bv(b.bal)-bv(a.bal);return d>0n?1:d<0n?-1:0;});
   r.innerHTML='<div style="margin-bottom:6px">登録 <b>'+us.length+'</b>人　オンライン <b>'+ADM.online+'</b>人</div>'
     +'<div style="max-height:40vh;overflow:auto">'+(us.map(u=>{const b=u.bal===null?'—':fmt(bv(u.bal));const hot=u.bal!==null&&bv(u.bal)>=10n**12n;
-      return '<div class="row"><span class="dot'+(u.on?' on':'')+'"></span><span class="nm">'+esc(u.name)+'　<small class="'+(hot?'hot':'')+'">'+b+(hot?' ⚠':'')+'</small></span><button class="sb" data-ad="reset" data-id="'+u.id+'" data-n="'+esc(u.name)+'">初期化</button><button class="sb dbtn" data-ad="del" data-id="'+u.id+'" data-n="'+esc(u.name)+'">削除</button></div>';}).join('')||'<small>アカウントはありません</small>')+'</div>'
+      return '<div class="row"><span class="dot'+(u.on?' on':'')+'"></span><span class="nm">'+esc(u.name)+'　<small class="'+(hot?'hot':'')+'">'+b+(hot?' ⚠':'')+'</small></span><button class="sb" data-ad="edit" data-id="'+u.id+'">編集</button><button class="sb" data-ad="reset" data-id="'+u.id+'" data-n="'+esc(u.name)+'">初期化</button><button class="sb dbtn" data-ad="del" data-id="'+u.id+'" data-n="'+esc(u.name)+'">削除</button></div>';}).join('')||'<small>アカウントはありません</small>')+'</div>'
     +'<div style="margin-top:12px;border-top:1px solid #4a3d36;padding-top:8px"><small>全アカウントを消すには、下に「全削除」と入力してください</small><input id="admc" placeholder="全削除"><button class="dbtn" data-ad="all" style="width:100%;padding:10px">全アカウントを削除</button></div>'
     +'<div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';
 }
@@ -1402,6 +1392,11 @@ $('mbox').addEventListener('click',e=>{
   else if(d.s==='back'){setModal();}
   else if(d.s==='delgo'){const pw=($('sdp')||{}).value||'';if(!pw)setDelModal('パスワードを入れてください');else socSend({t:'delacct',pass:pw});}
   else if(d.s==='admin'){admOpen();}
+  else if(d.ad==='edit'){ADM.edit=Number(d.id);ADM.err='';admRender();}
+  else if(d.ad==='back'){ADM.edit=null;ADM.err='';admRender();}
+  else if(d.ad==='add'||d.ad==='sub'||d.ad==='set'){const v=(($('admv')||{}).value||'').replace(/[^0-9]/g,'');if(!v){ADM.err='金額を数字で入れてください';admRender();}else{ADM.err='';socSend({t:'adop',id:ADM.edit,op:{k:'bal',mode:d.ad==='set'?'set':'add',v:(d.ad==='sub'?'-':'')+v}});}}
+  else if(d.ad==='own'){socSend({t:'adop',id:ADM.edit,op:{k:'own',id:d.sk,on:d.on==='1'}});}
+  else if(d.ad==='all1'||d.ad==='all0'){socSend({t:'adop',id:ADM.edit,op:{k:'ownall',on:d.ad==='all1'}});}
   else if(d.ad==='in'){ADM.err='';socSend({t:'adm',pass:($('admp')||{}).value||''});}
   else if(d.ad==='del'){if(confirm(d.n+' のアカウントを削除しますか？'))socSend({t:'addel',id:Number(d.id)});}
   else if(d.ad==='reset'){if(confirm(d.n+' のセーブを初期化しますか？（所持金などが最初の状態に戻ります）'))socSend({t:'adreset',id:Number(d.id)});}
@@ -2145,7 +2140,7 @@ showGame();
 startAudio();
 update();
 {const _u3=update;update=function(){_u3.apply(this,arguments);slLcd();};}
-$('field').appendChild($('helpbtn'));$('field').appendChild($('onbtn'));$('field').appendChild($('giftbtn'));$('field').appendChild($('oppbar'));
+$('field').appendChild($('helpbtn'));$('field').appendChild($('onbtn'));$('field').appendChild($('oppbar'));
 function fitWarn(){document.querySelectorAll('#help p.warn').forEach(p=>{if(!p.offsetParent)return;const c=p.parentElement,cs=getComputedStyle(c),av=c.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);p.style.display='inline-block';p.style.fontSize='20px';const nat=p.offsetWidth;p.style.display='';p.style.fontSize=Math.max(8,Math.floor(20*av/nat)-1)+'px';});}
 function openHelp(){document.querySelectorAll('#help p[data-g]').forEach(p=>p.classList.toggle('cur',p.dataset.g===game));$('help').hidden=false;fitWarn();}
 $('helpbtn').onclick=openHelp;

@@ -160,10 +160,42 @@ function adminOk(p) {
   const a = crypto.createHash('sha256').update(p).digest(), b = crypto.createHash('sha256').update(ADMIN_PASS).digest();
   return crypto.timingSafeEqual(a, b);
 }
+const SMAXB = 9999n * 10n ** 48n;
+function parseSave(t) { try { const o = JSON.parse(t); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
+function ownOf(save) { const o = parseSave(save); return Array.isArray(o.o) ? o.o.filter(x => typeof x === 'string' && /^([a-z][0-9]{1,2}|\*)$/.test(x)).slice(0, 200) : null; }
+function validOp(op) {
+  if (!op || typeof op !== 'object') return null;
+  if (op.k === 'bal') return (op.mode === 'add' || op.mode === 'set') && typeof op.v === 'string' && /^-?[0-9]{1,52}$/.test(op.v) ? { k: 'bal', mode: op.mode, v: op.v } : null;
+  if (op.k === 'own') return typeof op.id === 'string' && /^[a-z][0-9]{1,2}$/.test(op.id) ? { k: 'own', id: op.id, on: !!op.on } : null;
+  if (op.k === 'ownall') return { k: 'ownall', on: !!op.on };
+  return null;
+}
+async function adminOp(id, op0) {
+  const op = validOp(op0);
+  if (!op) return;
+  const u = await store.userById(id);
+  if (!u) return;
+  const o = parseSave(u.save);
+  if (op.k === 'bal') {
+    let b = 0n; try { b = BigInt(o.b || '0'); } catch (e) {}
+    let nb = op.mode === 'set' ? BigInt(op.v) : b + BigInt(op.v);
+    if (nb < 0n) nb = 0n; if (nb > SMAXB) nb = SMAXB;
+    o.b = String(nb);
+  } else if (op.k === 'own') {
+    const set = new Set(Array.isArray(o.o) && o.o[0] !== '*' ? o.o : []);
+    if (Array.isArray(o.o) && o.o[0] === '*') { /* 全部持っている状態から1つ外す場合は、表示用の一覧を持てないので * のまま */ if (op.on) { return; } }
+    if (!(Array.isArray(o.o) && o.o[0] === '*')) { op.on ? set.add(op.id) : set.delete(op.id); o.o = [...set]; }
+  } else if (op.k === 'ownall') {
+    o.o = op.on ? ['*'] : ['d0', 'c0', 'm0', 't0', 's0'];
+  }
+  if (isOn(id)) toUser(id, { t: 'adjust', op });
+  else o.adm = (Array.isArray(o.adm) ? o.adm : []).concat([op]).slice(-100);
+  await store.setSave(id, JSON.stringify(o));
+}
 function balOf(save) { try { const o = JSON.parse(save); return /^[0-9]{1,60}$/.test(o.b || '') ? o.b : null; } catch (e) { return null; } }
 async function adminList(st) {
   const us = await store.allUsers();
-  sendJson(st, { t: 'adlist', online: online.size, users: us.map(u => ({ id: u.id, name: u.name, created: u.created, on: isOn(u.id), bal: balOf(u.save) })) });
+  sendJson(st, { t: 'adlist', online: online.size, users: us.map(u => ({ id: u.id, name: u.name, created: u.created, on: isOn(u.id), bal: balOf(u.save), own: ownOf(u.save) })) });
 }
 async function adminRemove(id) {
   const fl = await friendList(id);
@@ -175,6 +207,7 @@ async function adminRemove(id) {
 }
 async function adminCmd(st, m) {
   if (m.t === 'adlist') return adminList(st);
+  if (m.t === 'adop') { await adminOp(Number(m.id), m.op); return adminList(st); }
   if (m.t === 'addel') { await adminRemove(Number(m.id)); return adminList(st); }
   if (m.t === 'adreset') {
     const id = Number(m.id);
@@ -200,7 +233,7 @@ async function socialInner(st, m) {
     admFail.n = (now - admFail.t < 600000 ? admFail.n : 0) + 1; admFail.t = now;
     return sendJson(st, { t: 'adm', ok: false, err: 'パスワードが違います' });
   }
-  if (m.t === 'adlist' || m.t === 'addel' || m.t === 'adreset' || m.t === 'adall') {
+  if (m.t === 'adlist' || m.t === 'addel' || m.t === 'adreset' || m.t === 'adall' || m.t === 'adop') {
     if (!st.admin) return sendJson(st, { t: 'adm', ok: false, err: '管理者としてログインしていません' });
     return adminCmd(st, m);
   }
