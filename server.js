@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
 const SB_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SB_KEY = process.env.SUPABASE_KEY || '';
 const SECRET = process.env.SESSION_SECRET || SB_KEY || crypto.randomBytes(32).toString('hex');
-const NAME_RE = /^[^\s<>"'&\/\\%?#,()*:;=\u0000-\u001f]{1,12}$/u;
+const NAME_RE = /^[^\s<>"'&\/\\%?#,()*:;=\u0000-\u001f]{1,10}$/u;
 const nameKey = (n) => n.normalize('NFKC').toLowerCase();
 
 const mem = { users: [], friends: [], msgs: [], nid: 1 };
@@ -54,6 +54,8 @@ const MemStore = {
   async friendAccept(a, b) { const f = mem.friends.find(f => f.a === a && f.b === b); if (f) f.status = 'accepted'; },
   async friendDelete(x, y) { mem.friends = mem.friends.filter(f => !((f.a === x && f.b === y) || (f.a === y && f.b === x))); },
   async setSave(id, t) { const u = mem.users.find(x => x.id === id); if (u) u.save = t; },
+  async allUsers() { return mem.users.map(u => ({ id: u.id, name: u.name, created: u.created, save: u.save || null })); },
+  async deleteAll() { mem.users = []; mem.friends = []; mem.msgs = []; },
   async deleteUser(id) { mem.users = mem.users.filter(u => u.id !== id); mem.friends = mem.friends.filter(f => f.a !== id && f.b !== id); mem.msgs = mem.msgs.filter(m => m.sender !== id && m.receiver !== id); },
   async msgInsert(s, r, t) { const m = { id: mem.nid++, sender: s, receiver: r, text: t, ts: new Date().toISOString() }; mem.msgs.push(m); return m; },
   async msgHist(x, y, n) { return mem.msgs.filter(m => (m.sender === x && m.receiver === y) || (m.sender === y && m.receiver === x)).slice(-n); },
@@ -78,6 +80,12 @@ const SbStore = {
   async friendAccept(a, b) { await sb('PATCH', 'friends', '?a=eq.' + a + '&b=eq.' + b, { status: 'accepted' }); },
   async friendDelete(x, y) { await sb('DELETE', 'friends', '?or=(and(a.eq.' + x + ',b.eq.' + y + '),and(a.eq.' + y + ',b.eq.' + x + '))'); },
   async setSave(id, t) { await sb('PATCH', 'users', '?id=eq.' + id, { save: t }); },
+  async allUsers() { return sb('GET', 'users', '?select=id,name,created,save&order=id.asc&limit=1000'); },
+  async deleteAll() {
+    await sb('DELETE', 'messages', '?id=gt.0');
+    await sb('DELETE', 'friends', '?a=gt.0');
+    await sb('DELETE', 'users', '?id=gt.0');
+  },
   async deleteUser(id) {
     await sb('DELETE', 'messages', '?or=(sender.eq.' + id + ',receiver.eq.' + id + ')');
     await sb('DELETE', 'friends', '?or=(a.eq.' + id + ',b.eq.' + id + ')');
@@ -143,16 +151,68 @@ async function social(st, m) {
   try { await socialInner(st, m); }
   catch (e) { console.error('social:', e.message); sendJson(st, { t: 'err', text: 'サーバーでエラーが起きました' }); }
 }
+
+/* ---- 管理者（環境変数 ADMIN_PASSWORD で守る） ---- */
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || '';
+const admFail = { n: 0, t: 0 };
+function adminOk(p) {
+  if (!ADMIN_PASS || typeof p !== 'string') return false;
+  const a = crypto.createHash('sha256').update(p).digest(), b = crypto.createHash('sha256').update(ADMIN_PASS).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+function balOf(save) { try { const o = JSON.parse(save); return /^[0-9]{1,60}$/.test(o.b || '') ? o.b : null; } catch (e) { return null; } }
+async function adminList(st) {
+  const us = await store.allUsers();
+  sendJson(st, { t: 'adlist', online: online.size, users: us.map(u => ({ id: u.id, name: u.name, created: u.created, on: isOn(u.id), bal: balOf(u.save) })) });
+}
+async function adminRemove(id) {
+  const fl = await friendList(id);
+  const sess = [...(online.get(id) || [])];
+  await store.deleteUser(id);
+  online.delete(id);
+  sess.forEach(s2 => { s2.uid = null; sendJson(s2, { t: 'auth', ok: false, loggedOut: true, deleted: true }); });
+  await Promise.all(fl.map(x => pushFriends(x.id)));
+}
+async function adminCmd(st, m) {
+  if (m.t === 'adlist') return adminList(st);
+  if (m.t === 'addel') { await adminRemove(Number(m.id)); return adminList(st); }
+  if (m.t === 'adreset') {
+    const id = Number(m.id);
+    await store.setSave(id, null);
+    toUser(id, { t: 'reset' });
+    return adminList(st);
+  }
+  if (m.t === 'adall') {
+    if (m.text !== '全削除') return sendJson(st, { t: 'adm', ok: true, err: '確認の文字が違います' });
+    const all = [...online.values()].flatMap(set => [...set]);
+    await store.deleteAll();
+    online.clear();
+    all.forEach(s2 => { s2.uid = null; sendJson(s2, { t: 'auth', ok: false, loggedOut: true, deleted: true }); });
+    return adminList(st);
+  }
+}
 async function socialInner(st, m) {
+  if (m.t === 'adm') {
+    if (!ADMIN_PASS) return sendJson(st, { t: 'adm', ok: false, err: '管理者パスワードが未設定です（サーバーの環境変数 ADMIN_PASSWORD を設定してください）' });
+    const now = Date.now();
+    if (admFail.n >= 5 && now - admFail.t < 600000) return sendJson(st, { t: 'adm', ok: false, err: '失敗が続いたため、10分ほど待ってください' });
+    if (adminOk(m.pass)) { admFail.n = 0; st.admin = true; return sendJson(st, { t: 'adm', ok: true }); }
+    admFail.n = (now - admFail.t < 600000 ? admFail.n : 0) + 1; admFail.t = now;
+    return sendJson(st, { t: 'adm', ok: false, err: 'パスワードが違います' });
+  }
+  if (m.t === 'adlist' || m.t === 'addel' || m.t === 'adreset' || m.t === 'adall') {
+    if (!st.admin) return sendJson(st, { t: 'adm', ok: false, err: '管理者としてログインしていません' });
+    return adminCmd(st, m);
+  }
   if (m.t === 'register' || m.t === 'login') {
     const name = typeof m.name === 'string' ? m.name.trim() : '', pass = typeof m.pass === 'string' ? m.pass : '';
-    if (!NAME_RE.test(name)) return sendJson(st, { t: 'auth', ok: false, err: '名前は12文字までで、記号（< > " \' & / \\ % ? # , ( ) * : ; =）と空白は使えません' });
+    if (!NAME_RE.test(name)) return sendJson(st, { t: 'auth', ok: false, err: '名前は10文字までで、記号（< > " \' & / \\ % ? # , ( ) * : ; =）と空白は使えません' });
     if (pass.length < 6 || pass.length > 64) return sendJson(st, { t: 'auth', ok: false, err: 'パスワードは6〜64文字にしてください' });
     const key = nameKey(name);
     const f = fails.get(key);
     if (f && f.n >= 8 && Date.now() - f.t < 600000) return sendJson(st, { t: 'auth', ok: false, err: '失敗が続いたため、10分ほど待ってからやり直してください' });
     if (m.t === 'register') {
-      if ([...name].length > 6) return sendJson(st, { t: 'auth', ok: false, err: '名前は6文字までです' });
+      if ([...name].length > 10) return sendJson(st, { t: 'auth', ok: false, err: '名前は10文字までです' });
       if (++st.regs > 3) return sendJson(st, { t: 'auth', ok: false, err: '登録の回数が多すぎます' });
       const salt = crypto.randomBytes(16).toString('hex');
       const u = await store.createUser({ name, name_key: key, salt, hash: (await scrypt(pass, salt)).toString('hex') });
@@ -170,7 +230,7 @@ async function socialInner(st, m) {
     const now = Date.now();
     if (!st.chkAt || now - st.chkAt > 60000) { st.chkAt = now; st.chkN = 0; }
     if (++st.chkN > 40) return;
-    if (!NAME_RE.test(name) || [...name].length > 6) return sendJson(st, { t: 'chk', name, r: 'bad' });
+    if (!NAME_RE.test(name) || [...name].length > 10) return sendJson(st, { t: 'chk', name, r: 'bad' });
     const u = await store.userByKey(nameKey(name));
     return sendJson(st, { t: 'chk', name, r: u ? 'exists' : 'new' });
   }

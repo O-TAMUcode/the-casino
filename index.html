@@ -465,6 +465,20 @@ body[data-g="slot"] #gor button.go{flex:0 0 64px;font-size:.78rem;white-space:no
 .fxs{display:block;font-size:.68rem;font-weight:normal;letter-spacing:0;color:#9fd8a6;text-shadow:none;margin-top:1px;white-space:normal;line-height:1.25}
 .gfr .fxs.fr{text-align:center;max-width:100%;color:#b9f0c0;font-size:.72rem}
 .gr.sr .fxs{color:#ffe9a8}
+#setbtn{position:absolute;right:3px;top:148px;z-index:8;height:26px;padding:0 10px;border-radius:13px;border:1px solid #c9a227;background:rgba(30,22,16,.85);color:#f2d27a;font:inherit;font-size:.8rem;font-weight:bold;cursor:pointer}
+body.nosrv #setbtn{top:119px}
+.setrow{margin:12px 0;padding-bottom:10px;border-bottom:1px solid #4a3d36}
+.setrow label{display:block;font-weight:bold;margin-bottom:6px}
+.mbox .setrow input[type=range]{width:100%;padding:0;margin:6px 0;letter-spacing:0;accent-color:#ffc107}
+.mbox .sb{flex:none;padding:6px 12px;font-size:.9rem}
+.mbox .dbtn{background:#5a2a2a;border-color:#8a3a3a;color:#ffd7d0}
+.adm .hot{color:#ff8a80;font-weight:bold}
+.adm .row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #4a3d36}
+.adm .row .nm{flex:1;min-width:0;white-space:normal;word-break:break-all;line-height:1.25}
+.adm .row .nm small{display:block}
+.adm .dot{flex:none;width:10px;height:10px;border-radius:50%;background:#777}.adm .dot.on{background:#4cd964}
+.adm input{width:100%;box-sizing:border-box;margin:4px 0}
+#giftbtn{font-size:.7rem!important;padding:0 7px!important;letter-spacing:-.02em}
 </style>
 <script>
 /* 自前の対戦サーバー（server/server.js）につなぐ場合のURL。空のままなら従来どおりPeerJSを使う。
@@ -634,7 +648,7 @@ window.__peerLoad();
 </div>
 <div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
 <button id="helpbtn">？説明</button>
-<button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="onbtn">オンライン</button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><button id="giftbtn">ギフトコード</button><div id="oppbar" hidden></div>
+<button id="newsbtn">お知らせ<i id="newsdot"></i></button><button id="onbtn">オンライン</button><button id="frbtn" hidden>フレンド<i id="frdot"></i></button><button id="giftbtn">ギフトコード</button><button id="setbtn">設定</button><div id="oppbar" hidden></div>
 <div class="modal" id="onl" hidden><div class="mbox">
 <h2>オンライン対戦</h2>
 <p style="margin:0 0 8px;font-size:.95rem;line-height:1.5">同じコードを入力すると、最大8人までつながります。丁半・ルーレット・バカラ・競馬は同じ結果、ブラックジャックとチンチロは同じディーラー（親）で勝負。ポーカーは2人のときだけ1対1（3人以上はCPU相手）。スロットはオンライン要素がありません。誰かがゲームを選ぶと全員が同じゲームへ移動します。名前はアカウント名が使われます。フレンドなら、フレンドの画面の「オンライン」ボタンを押すだけでつながります（合言葉は要りません）。部屋を作った人が抜けると部屋は閉じます。</p>
@@ -654,7 +668,7 @@ window.__peerLoad();
 <h3>競馬</h3><p data-g="keiba">36頭の中から毎回9頭が出走します。「出走表」で名前・能力・エピソードを見て、賭ける馬と賭け方（単勝・複勝）を選びます。単勝は1着、複勝は3着以内で的中。表示の倍率が配当です。馬の能力はレースごとに少しずつ変わります。</p>
 <h3>スロット</h3><p data-g="slot">「スピン！」で3つのリールが回ります。絵柄が3つ揃えば当たり（7️⃣ 100倍、⭐ 50倍、🔔 20倍、🍇 10倍、🍋 5倍、🍒 3倍）。🍒が2つで1.5倍、1つなら賭け金が戻ります。どれにも当てはまらない「はずれ」もあり、そのときは賭け金を失います。画面右のレバーをタップしても回せます。</p>
 <p class="warn" data-g="slot">⚠ スロットはオンライン要素がありません。</p>
-<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、ページを更新すると消えます）。</p>
+<h3>ガチャ</h3><p>「ガチャ」でサイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます（効果は1回のゲームで、最大3000までです）。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、ページを更新すると消えます）。</p>
 <h3>オンライン</h3><p>左上の「オンライン」から同じコードで接続（最大8人）。参加者のランキングが上に表示されます。名前はアカウント名です。フレンドの画面の「オンライン」ボタンからも始められます。スロットだけはオンライン要素がありません。オンライン中のポーカーは人間同士の1対1です。ブラックジャックはディーラーのカードが同じで、相手の手札が画面下に出ます。</p>
 <div class="mr"><button id="helpx">閉じる</button></div>
 </div></div>
@@ -672,7 +686,8 @@ window.__peerLoad();
 </div>
 <div id="waitov" hidden><div id="waitov-t"></div><button id="waitcx">取り消し</button></div><div id="waitbn" hidden></div>
 <script>
-const START=10000n,MAXB=9999n*10n**48n;var online=false,_sd=1;
+const START=10000n,MAXB=9999n*10n**48n;
+let VOL=1;try{const _v=parseFloat(localStorage.getItem('casinoVol'));if(_v>=0&&_v<=1)VOL=_v;}catch(e){}var online=false,_sd=1;
 function rr(){if(!online)return Math.random();_sd=(_sd+0x6D2B79F5)|0;let t=Math.imul(_sd^_sd>>>15,1|_sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
 const UN=[[10n**48n,'極'],[10n**44n,'載'],[10n**40n,'正'],[10n**36n,'澗'],[10n**32n,'溝'],[10n**28n,'穣'],[10n**24n,'秭'],[10n**20n,'垓'],[10n**16n,'京'],[10n**12n,'兆'],[10n**8n,'億'],[10n**4n,'万']];
 const bmin=(...a)=>a.reduce((x,y)=>y<x?y:x),bmax=(...a)=>a.reduce((x,y)=>y>x?y:x);
@@ -947,7 +962,7 @@ function sfx(win){
 function startAudio(){
   try{
     ctx=new (window.AudioContext||window.webkitAudioContext)();
-    out=ctx.createGain();out.gain.value=.7;const cmp=ctx.createDynamicsCompressor();out.connect(cmp);cmp.connect(ctx.destination);
+    out=ctx.createGain();out.gain.value=.7*VOL;const cmp=ctx.createDynamicsCompressor();out.connect(cmp);cmp.connect(ctx.destination);
     if(ctx.resume)ctx.resume();
     on=GS[game].on;trk=GS[game].trk;setSndLabel();if(on)tick();
   }catch(e){ctx=null;}
@@ -1138,7 +1153,7 @@ function socConnect(){
   SOC.ws=ws;
   ws.onopen=()=>{SOC.retry=0;const t=socTok();if(t){SOC.pend=true;socSend({t:'token',token:t});}else socRender();socRender();introRefresh();if($('inm')&&$('inm').value.trim())introCheck();};
   ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(e){return;}socRx(m);};
-  ws.onclose=()=>{SOC.ws=null;SOC.me=null;SOC.pend=false;if(socTok()||inGate())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
+  ws.onclose=()=>{SOC.ws=null;SOC.me=null;SOC.pend=false;try{ADM.on=false;}catch(e){}if(socTok()||inGate())setTimeout(socConnect,Math.min(30000,2000*(++SOC.retry)));socRender();};
   ws.onerror=()=>{};
 }
 function socDot(){const n=Object.values(SOC.unread).reduce((a,b)=>a+b,0)+SOC.mbd+SOC.friends.filter(f=>f.st==='in').length;$('frbtn').classList.toggle('new',n>0);$('chatbtn').classList.toggle('new',n>0);}
@@ -1146,7 +1161,7 @@ function socRx(m){
   if(m.t==='auth'){
     SOC.pend=false;
     if(m.ok){SOC.me=m.me;socSetTok(m.token);SOC.err='';SOC.view='list';hideGate();myName=cleanName(m.me.name);lastSig='';try{sendSt();}catch(e){}if(m.save)socApplySave(m.save);SOC.saveOK=true;SOC.lastSave='';SOC.lastRoom='';socSaveSoon(1200);introAuth(true,m);}
-    else{if(m.tokenBad||m.loggedOut)socSetTok('');SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;SOC.saveOK=false;introAuth(false,m);if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
+    else{if(m.tokenBad||m.loggedOut)socSetTok('');if(m.deleted)setTimeout(()=>location.reload(),400);SOC.me=null;SOC.friends=[];chatClose();SOC.err=m.err||(m.deleted?'アカウントを削除しました':'');SOC.view='login';SOC.del=false;SOC.saveOK=false;introAuth(false,m);if((m.tokenBad||m.loggedOut)&&OWN_URL)showGate();}
     socRender();socDot();
   }else if(m.t==='friends'){SOC.friends=m.list;if(SOC.chat&&!m.list.some(f=>f.id===SOC.chat&&f.st==='friend'))chatClose();else chatHead();if(SOC.view==='list')socRender();socDot();
   }else if(m.t==='pres'){const f=SOC.friends.find(x=>x.id===m.id);if(f){f.on=m.on;f.room=m.room||'';chatHead();if(SOC.view==='list')socRender();}
@@ -1157,6 +1172,9 @@ function socRx(m){
     else{if(m.from!==SOC.me.id){SOC.unread[other]=(SOC.unread[other]||0)+1;const f=SOC.friends.find(x=>x.id===other);socToast((f?f.name:'フレンド')+'：'+m.text.slice(0,30));}if(SOC.view==='list')socRender();}
     socDot();
   }else if(m.t==='invite'){socInvite(m);
+  }else if(m.t==='reset'){setTimeout(()=>location.reload(),300);
+  }else if(m.t==='adm'){if(m.ok){ADM.on=true;ADM.err=m.err||'';socSend({t:'adlist'});}else{ADM.on=false;ADM.err=m.err||'';}admRender();
+  }else if(m.t==='adlist'){ADM.users=m.users||[];ADM.online=m.online|0;admRender();
   }else if(m.t==='chk'){introChk(m);
   }else if(m.t==='savefail'){socToast('セーブ用の設定が未完了です（setup.sql の最後の1行を実行してください）');
   }else if(m.t==='notice'){socToast(m.text);
@@ -1202,7 +1220,7 @@ function socRender(){
   if(!SOC.ws||SOC.ws.readyState!==1){root.innerHTML='<p>サーバーにつないでいます…</p><small>起動に1分ほどかかることがあります</small>'+(inGate()?'<button class="offb" data-a="off">オフラインで遊ぶ（フレンド・オンラインは使えません）</button>':'');return;}
   if(SOC.pend&&!SOC.me){root.innerHTML='<p>ログインしています…</p>';return;}
   if(!SOC.me||SOC.view==='login'){
-    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="6" placeholder="名前（6文字まで）" autocomplete="username">'+pwf('socp','パスワード（6文字以上）','current-password')+'<div class="mr"><button class="pri" data-a="reg">新規登録</button><button data-a="login">ログイン</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>'+(inGate()?'<button class="offb" data-a="off">オフラインで遊ぶ（フレンド・オンラインは使えません）</button>':'');
+    root.innerHTML='<p style="margin:0 0 6px;font-size:.95rem">名前とパスワードで、アカウントを作れます。</p><input id="socn" maxlength="10" placeholder="名前（10文字まで）" autocomplete="username">'+pwf('socp','パスワード（6文字以上）','current-password')+'<div class="mr"><button class="pri" data-a="reg">新規登録</button><button data-a="login">ログイン</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><small>※パスワードを忘れると、再発行はできません。</small>'+(inGate()?'<button class="offb" data-a="off">オフラインで遊ぶ（フレンド・オンラインは使えません）</button>':'');
     return;
   }
   if(SOC.del){
@@ -1214,7 +1232,7 @@ function socRender(){
    +(fr.some(f=>f.st==='in')?'<h3>届いた申請</h3>'+fr.filter(f=>f.st==='in').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="acc" data-id="'+f.id+'">承認</button><button class="sb" data-a="del" data-id="'+f.id+'">拒否</button></div>').join(''):'')
    +'<h3>フレンド</h3>'+rows(fr.filter(f=>f.st==='friend'),f=>'<div class="row"><span class="dot'+(f.on?' on':'')+'"></span><span class="nm">'+esc(f.name)+'</span>'+(SOC.unread[f.id]?'<span class="bd">'+SOC.unread[f.id]+'</span>':'')+(f.on?'<button class="sb" data-a="play" data-id="'+f.id+'">オンライン</button>':'')+'<button class="sb" data-a="chat" data-id="'+f.id+'">チャット</button><button class="sb" data-a="del" data-id="'+f.id+'">削除</button></div>')
    +(fr.some(f=>f.st==='out')?'<h3>申請中</h3>'+fr.filter(f=>f.st==='out').map(f=>'<div class="row"><span class="nm">'+esc(f.name)+'</span><button class="sb" data-a="del" data-id="'+f.id+'">取消</button></div>').join(''):'')
-   +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div><div class="dang"><button class="sb" data-a="delask">アカウントを削除</button></div>';
+   +'<h3>フレンドを追加</h3><div class="row"><input id="socf" maxlength="12" placeholder="相手の名前" style="flex:1"><button class="sb" data-a="add">申請</button></div><div class="err" id="soce">'+esc(SOC.err)+'</div>';
   SOC.err='';
 }
 document.addEventListener('click',e=>{
@@ -1275,7 +1293,7 @@ setInterval(()=>{
 },1500);
 
 /* ---- アカウントのセーブ（所持金・借金・アイテム・見た目）と、オープニング画面 ---- */
-function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl}});}
+function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl},b:String(balance)});}
 function socApplySave(s){
   try{const o=JSON.parse(s),r=decodePw(o.p);if(!r)return false;
     balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;
@@ -1312,7 +1330,7 @@ function introRefresh(){
   else if(SOC.pend){label='ログイン中…';}
   else if(!open){label='つないでいます…';msg='サーバーにつないでいます（起動に1分ほどかかることがあります）';}
   else if(!nm){label='名前を入れてください';msg='名前とパスワードで、いつでも続きから遊べます';}
-  else if(IN.name===nm&&IN.r==='bad'){label='名前を直してください';msg='6文字まで。記号と空白は使えません';}
+  else if(IN.name===nm&&IN.r==='bad'){label='名前を直してください';msg='10文字まで。記号と空白は使えません';}
   else if(IN.name!==nm||!IN.r){label='確認中…';}
   else{
     label=IN.r==='exists'?'再開':'新規登録';
@@ -1324,7 +1342,7 @@ function introRefresh(){
 }
 function introInit(){
   const il=$('ilog');il.hidden=false;
-  il.innerHTML='<input id="inm" maxlength="6" placeholder="名前（6文字まで）" autocomplete="username">'+pwf('ipw','パスワード（6文字以上）','current-password')+'<div id="imsg"></div><button type="button" class="ialt" id="ialt" hidden>別のアカウントで入る</button>';
+  il.innerHTML='<input id="inm" maxlength="10" placeholder="名前（10文字まで）" autocomplete="username">'+pwf('ipw','パスワード（6文字以上）','current-password')+'<div id="imsg"></div><button type="button" class="ialt" id="ialt" hidden>別のアカウントで入る</button>';
   $('ioff').hidden=false;
   $('inm').oninput=()=>{IN.r=null;IN.name='';IN.err='';clearTimeout(IN.t);IN.t=setTimeout(introCheck,350);introRefresh();};
   $('ipw').oninput=()=>{IN.err='';introRefresh();};
@@ -1344,6 +1362,51 @@ function introInit(){
   },true);
   introRefresh();socConnect();
 }
+
+/* ---- 設定・管理者画面 ---- */
+function applyVol(){try{if(out)out.gain.value=.7*VOL;}catch(e){}}
+function setModal(){
+  const me=SOC.me?SOC.me.name:null;
+  openModal('<h2>設定</h2><div class="setrow"><label>音量　<b id="volv">'+Math.round(VOL*100)+'%</b></label><input type="range" id="vol" min="0" max="100" value="'+Math.round(VOL*100)+'"></div>'
+    +(OWN_URL?'<div class="setrow"><label>アカウント</label><div style="margin-bottom:8px">'+(me?'ログイン中：<b>'+esc(me)+'</b>':'ログインしていません')+'</div>'+(me?'<button class="sb dbtn" data-s="delask">アカウントを削除</button>':'')+'</div><div class="setrow" style="border:0"><button data-s="admin">管理者画面</button></div>':'')
+    +'<div class="mr"><button data-x="1">閉じる</button></div>');
+  $('vol').oninput=e=>{VOL=e.target.value/100;$('volv').textContent=e.target.value+'%';applyVol();try{localStorage.setItem('casinoVol',String(VOL));}catch(x){}};
+}
+function setDelModal(note){
+  openModal('<h2>アカウントを削除</h2><p style="font-size:.95rem;margin:0 0 8px">アカウント、フレンド、チャットの履歴、所持金などのセーブが、すべて消えます。元には戻せません。確認のため、パスワードを入れてください。</p><div class="soc">'+pwf('sdp','パスワード','current-password')+'</div><div class="mr"><button data-s="back">やめる</button><button class="dbtn" data-s="delgo">削除する</button></div><div class="err" id="soce" style="color:#ff9a8a;min-height:1.3em">'+esc(note||'')+'</div>');
+}
+const ADM={on:false,users:[],online:0,err:''};
+function admOpen(){
+  if(!socUrl()){openModal('<h2>管理者画面</h2><p>サーバー版でのみ使えます。</p><div class="mr"><button data-x="1">閉じる</button></div>');return;}
+  openModal('<h2>管理者画面</h2><div class="adm soc" id="admroot"></div><div class="mr"><button data-x="1">閉じる</button></div>');
+  socConnect();admRender();
+}
+function admRender(){
+  const r=document.getElementById('admroot');if(!r)return;
+  if(!SOC.ws||SOC.ws.readyState!==1){r.innerHTML='<p>サーバーにつないでいます…</p>';return;}
+  if(!ADM.on){r.innerHTML='<p style="margin:0 0 6px">管理者パスワードを入れてください</p>'+pwf('admp','管理者パスワード','off')+'<div class="mr"><button data-ad="in">入る</button></div><div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';return;}
+  const bv=x=>{try{return BigInt(x);}catch(e){return -1n;}};
+  const us=ADM.users.slice().sort((a,b)=>{const d=bv(b.bal)-bv(a.bal);return d>0n?1:d<0n?-1:0;});
+  r.innerHTML='<div style="margin-bottom:6px">登録 <b>'+us.length+'</b>人　オンライン <b>'+ADM.online+'</b>人</div>'
+    +'<div style="max-height:40vh;overflow:auto">'+(us.map(u=>{const b=u.bal===null?'—':fmt(bv(u.bal));const hot=u.bal!==null&&bv(u.bal)>=10n**12n;
+      return '<div class="row"><span class="dot'+(u.on?' on':'')+'"></span><span class="nm">'+esc(u.name)+'　<small class="'+(hot?'hot':'')+'">'+b+(hot?' ⚠':'')+'</small></span><button class="sb" data-ad="reset" data-id="'+u.id+'" data-n="'+esc(u.name)+'">初期化</button><button class="sb dbtn" data-ad="del" data-id="'+u.id+'" data-n="'+esc(u.name)+'">削除</button></div>';}).join('')||'<small>アカウントはありません</small>')+'</div>'
+    +'<div style="margin-top:12px;border-top:1px solid #4a3d36;padding-top:8px"><small>全アカウントを消すには、下に「全削除」と入力してください</small><input id="admc" placeholder="全削除"><button class="dbtn" data-ad="all" style="width:100%;padding:10px">全アカウントを削除</button></div>'
+    +'<div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';
+}
+$('setbtn').onclick=setModal;
+$('mbox').addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('button');if(!b)return;
+  const d=b.dataset;
+  if(b.classList.contains('eye')){const i=b.parentElement.querySelector('input');if(i){const s=i.type==='password';i.type=s?'text':'password';b.classList.toggle('on',s);}return;}
+  if(d.s==='delask'){setDelModal();}
+  else if(d.s==='back'){setModal();}
+  else if(d.s==='delgo'){const pw=($('sdp')||{}).value||'';if(!pw)setDelModal('パスワードを入れてください');else socSend({t:'delacct',pass:pw});}
+  else if(d.s==='admin'){admOpen();}
+  else if(d.ad==='in'){ADM.err='';socSend({t:'adm',pass:($('admp')||{}).value||''});}
+  else if(d.ad==='del'){if(confirm(d.n+' のアカウントを削除しますか？'))socSend({t:'addel',id:Number(d.id)});}
+  else if(d.ad==='reset'){if(confirm(d.n+' のセーブを初期化しますか？（所持金などが最初の状態に戻ります）'))socSend({t:'adreset',id:Number(d.id)});}
+  else if(d.ad==='all'){const t=(($('admc')||{}).value||'').trim();if(t!=='全削除'){ADM.err='「全削除」と入力してください';admRender();}else if(confirm('本当に、全てのアカウントを削除しますか？元には戻せません。')){ADM.err='';socSend({t:'adall',text:t});}}
+});
 
 if(!OWN_URL)document.body.classList.add('nosrv');
 if(OWN_URL&&document.getElementById('intro'))introInit();
@@ -2112,12 +2175,12 @@ for(let i=0;i<S.length;i++){const s=document.createElement('span');s.textContent
 it.insertBefore(f,it.children[1]);})();
 $('introgo').onclick=()=>{imOn=false;clearTimeout(imTm);try{if(ctx&&ctx.resume)ctx.resume();clearTimeout(tm);step=0;if(on)tick();}catch(e){}$('intro').classList.add('out');setTimeout(()=>$('intro').remove(),700);};
 /* オンライン対戦（PeerJS・最大8人。部屋を作った人が中継） */
-const MAXP=8,NM=6;
+const MAXP=8,NM=6,NMO=10;
 let net=null,room='',cnt={},isHost=true,pendG=null,hostConn=null,peers=new Map(),hostRoster=new Map(),roster=[],lastSig='',roTimer=null,myName='',myId='host';
 const hs=t=>{let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;};
 const onNote=m=>{$('onn').textContent=m;};
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const cleanName=n=>Array.from(String(n==null?'':n)).filter(c=>c.codePointAt(0)>=32&&c.codePointAt(0)!==127).slice(0,NM).join('')||'？';
+const cleanName=n=>Array.from(String(n==null?'':n)).filter(c=>c.codePointAt(0)>=32&&c.codePointAt(0)!==127).slice(0,NMO).join('')||'？';
 const pname=()=>myName||(myName='ゲスト'+(1+Math.floor(Math.random()*99)));
 const netWorth=e=>e.b-BigInt(Math.floor(e.d||0));
 function meEntry(){return{i:myId,n:pname(),b:balance,d:debt,g:game};}
@@ -2702,12 +2765,12 @@ async function gachaAnim(list){
 const FXG={d:['chouhan','chinchiro'],c:['poker','blackjack','baccarat'],t:['roulette','keiba'],s:['slot']};
 const FXN_GAMES={chouhan:'丁半',chinchiro:'チンチロ',roulette:'ルーレット',poker:'ポーカー',blackjack:'ブラックジャック',keiba:'競馬',baccarat:'バカラ',slot:'スロット'};
 const FX={};
-['d','c','m','t','s'].forEach(t=>{const cnt={N:0,R:0,S:0};SKINS.filter(k=>k.t===t).forEach(k=>{if(/^[dcmts]0$/.test(k.id))return;const n=cnt[k.r]++;FX[k.id]={t:t,v:({N:2,R:6,S:15})[k.r]+n*({N:1,R:1,S:3})[k.r]};});});
+['d','c','m','t','s'].forEach(t=>{const cnt={N:0,R:0,S:0};SKINS.filter(k=>k.t===t).forEach(k=>{if(/^[dcmts]0$/.test(k.id))return;const n=cnt[k.r]++;FX[k.id]={t:t,v:({N:1,R:3,S:8})[k.r]+Math.floor(n*({N:.5,R:.7,S:2})[k.r])};});});
 function fxText(k){
   const e=FX[k.id];if(!e)return '効果なし';
   if(e.t==='m')return '負けたとき、賭け金の'+Math.max(1,Math.round(e.v/2))+'%が戻る（全ゲーム）';
   const g=FXG[e.t].map(x=>FXN_GAMES[x]).join('・');
-  if(e.t==='s')return g+'：当たりやすさ+'+Math.min(60,e.v*2)+'%、配当+'+Math.ceil(e.v/2)+'%';
+  if(e.t==='s')return g+'：当たりやすさ+'+e.v+'%、配当+'+Math.ceil(e.v/2)+'%';
   return g+'の配当 +'+e.v+'%';
 }
 function fxGet(game){
@@ -2715,14 +2778,15 @@ function fxGet(game){
   [eq.d,eq.c,eq.m,eq.t,eq.s].forEach(id=>{const e=FX[id];if(!e)return;
     if(e.t==='m'){f.back+=Math.max(1,Math.round(e.v/2));return;}
     if(!FXG[e.t].includes(game))return;
-    if(e.t==='s'){f.pay+=Math.ceil(e.v/2);f.luck+=Math.min(60,e.v*2);}else f.pay+=e.v;});
+    if(e.t==='s'){f.pay+=Math.ceil(e.v/2);f.luck+=e.v;}else f.pay+=e.v;});
   return f;
 }
+const FXCAP=3000n;
 let FXN='';
 function fxSettle(game,stake,pay){
   const f=fxGet(game);let ex=0n;FXN='';
-  if(pay>stake&&f.pay>0){ex=(pay-stake)*BigInt(f.pay)/100n;if(ex>0n)FXN='（装備ボーナス +'+fmt(ex)+'）';}
-  else if(pay<stake&&f.back>0){ex=(stake-pay)*BigInt(f.back)/100n;if(ex>0n)FXN='（返金 +'+fmt(ex)+'）';}
+  if(pay>stake&&f.pay>0){ex=bmin((pay-stake)*BigInt(f.pay)/100n,FXCAP);if(ex>0n)FXN='（装備ボーナス +'+fmt(ex)+'）';}
+  else if(pay<stake&&f.back>0){ex=bmin((stake-pay)*BigInt(f.back)/100n,FXCAP);if(ex>0n)FXN='（返金 +'+fmt(ex)+'）';}
   return ex;
 }
 function gachaModal(note){
@@ -2730,7 +2794,7 @@ function gachaModal(note){
     return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'<small class="fxs">'+fxText(k)+'</small></span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
   const HEAD={S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
   const rows=['S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
-  openModal('<div class="fixw"><div class="gnav" style="justify-content:center"><div class="gt"><h2>ガチャ</h2></div></div><div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
+  openModal('<div class="fixw"><div class="gnav" style="justify-content:center"><div class="gt"><h2>ガチャ</h2></div></div><div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます（効果は1回のゲームで、最大3000までです）。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
     +'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
     +'<div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div></div>');
