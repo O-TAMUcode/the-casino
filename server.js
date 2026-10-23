@@ -43,7 +43,7 @@ const SECRET = process.env.SESSION_SECRET || SB_KEY || crypto.randomBytes(32).to
 const NAME_RE = /^[^\s<>"'&\/\\%?#,()*:;=\u0000-\u001f]{1,10}$/u;
 const nameKey = (n) => n.normalize('NFKC').toLowerCase();
 
-const mem = { users: [], friends: [], msgs: [], nid: 1 };
+const mem = { users: [], friends: [], msgs: [], xfers: [], nid: 1 };
 const MemStore = {
   async userByKey(k) { return mem.users.find(u => u.name_key === k) || null; },
   async userById(id) { return mem.users.find(u => u.id === id) || null; },
@@ -55,9 +55,11 @@ const MemStore = {
   async friendDelete(x, y) { mem.friends = mem.friends.filter(f => !((f.a === x && f.b === y) || (f.a === y && f.b === x))); },
   async setSave(id, t) { const u = mem.users.find(x => x.id === id); if (u) u.save = t; },
   async allUsers() { return mem.users.map(u => ({ id: u.id, name: u.name, created: u.created, save: u.save || null })); },
-  async deleteAll() { mem.users = []; mem.friends = []; mem.msgs = []; },
-  async deleteUser(id) { mem.users = mem.users.filter(u => u.id !== id); mem.friends = mem.friends.filter(f => f.a !== id && f.b !== id); mem.msgs = mem.msgs.filter(m => m.sender !== id && m.receiver !== id); },
+  async deleteAll() { mem.users = []; mem.friends = []; mem.msgs = []; mem.xfers = []; },
+  async deleteUser(id) { mem.users = mem.users.filter(u => u.id !== id); mem.friends = mem.friends.filter(f => f.a !== id && f.b !== id); mem.msgs = mem.msgs.filter(m => m.sender !== id && m.receiver !== id); mem.xfers = mem.xfers.filter(x => x.sender !== id && x.receiver !== id); },
   async msgInsert(s, r, t) { const m = { id: mem.nid++, sender: s, receiver: r, text: t, ts: new Date().toISOString() }; mem.msgs.push(m); return m; },
+  async xferInsert(s, r, a) { mem.xfers.push({ id: mem.nid++, sender: s, receiver: r, amount: a, claimed: false }); },
+  async xferClaim(uid) { const rows = mem.xfers.filter(x => x.receiver === uid && !x.claimed); rows.forEach(x => { x.claimed = true; }); return rows.map(x => ({ ...x })); },
   async msgHist(x, y, n) { return mem.msgs.filter(m => (m.sender === x && m.receiver === y) || (m.sender === y && m.receiver === x)).slice(-n); },
 };
 async function sb(method, table, query, body, prefer) {
@@ -82,15 +84,19 @@ const SbStore = {
   async setSave(id, t) { await sb('PATCH', 'users', '?id=eq.' + id, { save: t }); },
   async allUsers() { return sb('GET', 'users', '?select=id,name,created,save&order=id.asc&limit=1000'); },
   async deleteAll() {
+    await sb('DELETE', 'transfers', '?id=gt.0').catch(() => {});
     await sb('DELETE', 'messages', '?id=gt.0');
     await sb('DELETE', 'friends', '?a=gt.0');
     await sb('DELETE', 'users', '?id=gt.0');
   },
   async deleteUser(id) {
+    await sb('DELETE', 'transfers', '?or=(sender.eq.' + id + ',receiver.eq.' + id + ')').catch(() => {});
     await sb('DELETE', 'messages', '?or=(sender.eq.' + id + ',receiver.eq.' + id + ')');
     await sb('DELETE', 'friends', '?or=(a.eq.' + id + ',b.eq.' + id + ')');
     await sb('DELETE', 'users', '?id=eq.' + id);
   },
+  async xferInsert(s, r, a) { await sb('POST', 'transfers', '', { sender: s, receiver: r, amount: a }); },
+  async xferClaim(uid) { return sb('PATCH', 'transfers', '?receiver=eq.' + uid + '&claimed=eq.false', { claimed: true }, 'return=representation'); },
   async msgInsert(s, r, t) { const q = await sb('POST', 'messages', '', { sender: s, receiver: r, text: t }, 'return=representation'); return q[0]; },
   async msgHist(x, y, n) {
     const q = await sb('GET', 'messages', '?or=(and(sender.eq.' + x + ',receiver.eq.' + y + '),and(sender.eq.' + y + ',receiver.eq.' + x + '))&order=id.desc&limit=' + n);
@@ -137,9 +143,18 @@ async function loginOk(st, u) {
   st.uid = u.id; st.uname = u.name;
   if (!online.has(u.id)) online.set(u.id, new Set());
   online.get(u.id).add(st);
-  sendJson(st, { t: 'auth', ok: true, token: makeToken(u.id), me: { id: u.id, name: u.name }, save: typeof u.save === 'string' ? u.save : null });
+  sendJson(st, { t: 'auth', ok: true, token: makeToken(u.id), now: Date.now(), me: { id: u.id, name: u.name }, save: typeof u.save === 'string' ? u.save : null });
   sendJson(st, { t: 'friends', list: await friendList(u.id) });
+  deliverGifts(u.id, st).catch(() => {});
   if (online.get(u.id).size === 1) announce(u.id, true).catch(() => {});
+}
+async function deliverGifts(uid, st) {
+  if (!st || st.closed) return;
+  let rows;
+  try { rows = await store.xferClaim(uid); } catch (e) { console.error('xfer:', e.message); return; }
+  if (!rows || !rows.length) return;
+  const us = await store.usersByIds([...new Set(rows.map(r => r.sender))]);
+  sendJson(st, { t: 'gift', list: rows.map(r => ({ name: (us.find(u => u.id === r.sender) || {}).name || '?', amt: String(r.amount) })) });
 }
 function socialGone(st) {
   if (!st.uid) return;
@@ -160,42 +175,10 @@ function adminOk(p) {
   const a = crypto.createHash('sha256').update(p).digest(), b = crypto.createHash('sha256').update(ADMIN_PASS).digest();
   return crypto.timingSafeEqual(a, b);
 }
-const SMAXB = 9999n * 10n ** 48n;
-function parseSave(t) { try { const o = JSON.parse(t); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
-function ownOf(save) { const o = parseSave(save); return Array.isArray(o.o) ? o.o.filter(x => typeof x === 'string' && /^([a-z][0-9]{1,2}|\*)$/.test(x)).slice(0, 200) : null; }
-function validOp(op) {
-  if (!op || typeof op !== 'object') return null;
-  if (op.k === 'bal') return (op.mode === 'add' || op.mode === 'set') && typeof op.v === 'string' && /^-?[0-9]{1,52}$/.test(op.v) ? { k: 'bal', mode: op.mode, v: op.v } : null;
-  if (op.k === 'own') return typeof op.id === 'string' && /^[a-z][0-9]{1,2}$/.test(op.id) ? { k: 'own', id: op.id, on: !!op.on } : null;
-  if (op.k === 'ownall') return { k: 'ownall', on: !!op.on };
-  return null;
-}
-async function adminOp(id, op0) {
-  const op = validOp(op0);
-  if (!op) return;
-  const u = await store.userById(id);
-  if (!u) return;
-  const o = parseSave(u.save);
-  if (op.k === 'bal') {
-    let b = 0n; try { b = BigInt(o.b || '0'); } catch (e) {}
-    let nb = op.mode === 'set' ? BigInt(op.v) : b + BigInt(op.v);
-    if (nb < 0n) nb = 0n; if (nb > SMAXB) nb = SMAXB;
-    o.b = String(nb);
-  } else if (op.k === 'own') {
-    const set = new Set(Array.isArray(o.o) && o.o[0] !== '*' ? o.o : []);
-    if (Array.isArray(o.o) && o.o[0] === '*') { /* 全部持っている状態から1つ外す場合は、表示用の一覧を持てないので * のまま */ if (op.on) { return; } }
-    if (!(Array.isArray(o.o) && o.o[0] === '*')) { op.on ? set.add(op.id) : set.delete(op.id); o.o = [...set]; }
-  } else if (op.k === 'ownall') {
-    o.o = op.on ? ['*'] : ['d0', 'c0', 'm0', 't0', 's0'];
-  }
-  if (isOn(id)) toUser(id, { t: 'adjust', op });
-  else o.adm = (Array.isArray(o.adm) ? o.adm : []).concat([op]).slice(-100);
-  await store.setSave(id, JSON.stringify(o));
-}
 function balOf(save) { try { const o = JSON.parse(save); return /^[0-9]{1,60}$/.test(o.b || '') ? o.b : null; } catch (e) { return null; } }
 async function adminList(st) {
   const us = await store.allUsers();
-  sendJson(st, { t: 'adlist', online: online.size, users: us.map(u => ({ id: u.id, name: u.name, created: u.created, on: isOn(u.id), bal: balOf(u.save), own: ownOf(u.save) })) });
+  sendJson(st, { t: 'adlist', online: online.size, users: us.map(u => ({ id: u.id, name: u.name, created: u.created, on: isOn(u.id), bal: balOf(u.save) })) });
 }
 async function adminRemove(id) {
   const fl = await friendList(id);
@@ -207,7 +190,6 @@ async function adminRemove(id) {
 }
 async function adminCmd(st, m) {
   if (m.t === 'adlist') return adminList(st);
-  if (m.t === 'adop') { await adminOp(Number(m.id), m.op); return adminList(st); }
   if (m.t === 'addel') { await adminRemove(Number(m.id)); return adminList(st); }
   if (m.t === 'adreset') {
     const id = Number(m.id);
@@ -233,7 +215,7 @@ async function socialInner(st, m) {
     admFail.n = (now - admFail.t < 600000 ? admFail.n : 0) + 1; admFail.t = now;
     return sendJson(st, { t: 'adm', ok: false, err: 'パスワードが違います' });
   }
-  if (m.t === 'adlist' || m.t === 'addel' || m.t === 'adreset' || m.t === 'adall' || m.t === 'adop') {
+  if (m.t === 'adlist' || m.t === 'addel' || m.t === 'adreset' || m.t === 'adall') {
     if (!st.admin) return sendJson(st, { t: 'adm', ok: false, err: '管理者としてログインしていません' });
     return adminCmd(st, m);
   }
@@ -280,6 +262,20 @@ async function socialInner(st, m) {
     if (typeof m.data !== 'string' || m.data.length > 3000) return;
     try { await store.setSave(me, m.data); }
     catch (e) { console.error('save:', e.message); if (!st.saveWarn) { st.saveWarn = true; sendJson(st, { t: 'savefail' }); } }
+    return;
+  }
+  if (m.t === 'xfer') {
+    const to = Number(m.to), amt = typeof m.amt === 'string' ? m.amt : '';
+    const bad = (text) => sendJson(st, { t: 'xerr', amt, text });
+    if (!/^[1-9][0-9]{0,59}$/.test(amt)) return bad('金額が正しくありません');
+    if (!(to > 0) || to === me || !(await areFriends(me, to))) return bad('フレンドにだけ送れます');
+    const now = Date.now(); if (!st.xfAt || now - st.xfAt > 60000) { st.xfAt = now; st.xfN = 0; }
+    if (++st.xfN > 20) return bad('送金の回数が多すぎます');
+    try { await store.xferInsert(me, to, amt); } catch (e) { console.error('xfer:', e.message); return bad('送金できませんでした（サーバーの設定が未完了です）'); }
+    const u = await store.userById(to);
+    sendJson(st, { t: 'xok', name: u ? u.name : '?', amt });
+    const first = [...(online.get(to) || [])][0];
+    if (first) deliverGifts(to, first).catch(() => {});
     return;
   }
   if (m.t === 'room') {
