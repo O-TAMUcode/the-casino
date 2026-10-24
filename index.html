@@ -989,13 +989,14 @@ function fitMon(el){
   while(sz>12&&r.getBoundingClientRect().width>maxW){sz-=2;el.style.fontSize=sz+'px';}
   sz=Math.max(10,Math.round(sz*2/3));el.style.fontSize=sz+'px';
 }
-let debt=0,deposit=0n,depT=0;
+let debt=0,deposit=0n,depT=0,LB={n:0,d:''},FG=0;
 const RATE=1.1,MAXD=110000,KEY=[7,13,3,19,11,5,17,2,23,9],AL='0123456789abcdefghijklmnopqrstuvwxyz';
 function hash6(str){let h=7654321;for(const c of str)h=(h*31+c.charCodeAt(0))%2176782336;return h.toString(36).padStart(6,'0');}
 const SKB={d:0,c:20,m:40,t:60},SKT=['d','c','m','t'];
-function skMask(){let m=0n;SKINS.forEach(k=>{if(k.t!=='s'&&own[k.id])m|=1n<<BigInt(SKB[k.t]+Number(k.id.slice(1)));});return m;}
-function slMask(){let m=0n;SKINS.forEach(k=>{if(k.t==='s'&&own[k.id])m|=1n<<BigInt(Number(k.id.slice(1)));});return m;}
-const slExt=()=>SKINS.some(k=>k.t==='s'&&k.id!=='s0'&&own[k.id])||eq.s!=='s0';
+function skMask(){let m=0n;SKINS.forEach(k=>{if(k.r!=='X'&&k.t!=='s'&&own[k.id])m|=1n<<BigInt(SKB[k.t]+Number(k.id.slice(1)));});return m;}
+function slMask(){let m=0n;SKINS.forEach(k=>{if(k.r!=='X'&&k.t==='s'&&own[k.id])m|=1n<<BigInt(Number(k.id.slice(1)));});return m;}
+const eqp=t=>/^x/.test(eq[t])?t+'0':eq[t];
+const slExt=()=>SKINS.some(k=>k.r!=='X'&&k.t==='s'&&k.id!=='s0'&&own[k.id])||eqp('s')!=='s0';
 function encName(force){
   const cs=Array.from(myName||'').slice(0,NM);if(!cs.length&&!force)return '';
   let o=cs.length.toString(36);
@@ -1003,7 +1004,7 @@ function encName(force){
   return o;
 }
 function encodePw(){
-  const d=bmin(balance,MAXB).toString(36).padStart(34,'0')+debt.toString(36).padStart(6,'0')+skMask().toString(36).padStart(16,'0')+SKT.map(t=>Number(eq[t].slice(1)).toString(36)).join('')+encName(slExt())+(slExt()?slMask().toString(36).padStart(6,'0')+Number(eq.s.slice(1)).toString(36):''),raw=d+hash6(d);
+  const d=bmin(balance,MAXB).toString(36).padStart(34,'0')+debt.toString(36).padStart(6,'0')+skMask().toString(36).padStart(16,'0')+SKT.map(t=>Number(eqp(t).slice(1)).toString(36)).join('')+encName(slExt())+(slExt()?slMask().toString(36).padStart(6,'0')+Number(eqp('s').slice(1)).toString(36):''),raw=d+hash6(d);
   let o='';for(let i=0;i<raw.length;i++)o+=AL[(AL.indexOf(raw[i])+KEY[i%KEY.length])%36];
   return o.toUpperCase().replace(/(.{4})(?=.)/g,'$1-');
 }
@@ -1019,8 +1020,8 @@ function decodePw(pw){
   if(nn>=40){
     let m=0n;for(const c of raw.slice(14+W,30+W))m=m*36n+BigInt(parseInt(c,36));
     const o2={d0:1,c0:1,m0:1,t0:1,s0:1},e2={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};
-    SKINS.forEach(q=>{if(q.t!=='s'&&m>>BigInt(SKB[q.t]+Number(q.id.slice(1)))&1n)o2[q.id]=1;});
-    if(nn===72){let sm=0n;for(const c of raw.slice(59+W,65+W))sm=sm*36n+BigInt(parseInt(c,36));SKINS.forEach(q=>{if(q.t==='s'&&sm>>BigInt(Number(q.id.slice(1)))&1n)o2[q.id]=1;});const sid='s'+parseInt(raw[65+W],36);if(o2[sid])e2.s=sid;}
+    SKINS.forEach(q=>{if(q.r!=='X'&&q.t!=='s'&&m>>BigInt(SKB[q.t]+Number(q.id.slice(1)))&1n)o2[q.id]=1;});
+    if(nn===72){let sm=0n;for(const c of raw.slice(59+W,65+W))sm=sm*36n+BigInt(parseInt(c,36));SKINS.forEach(q=>{if(q.r!=='X'&&q.t==='s'&&sm>>BigInt(Number(q.id.slice(1)))&1n)o2[q.id]=1;});const sid='s'+parseInt(raw[65+W],36);if(o2[sid])e2.s=sid;}
     SKT.forEach((ty,i)=>{const id=ty+parseInt(raw.slice(30+W+i,31+W+i),36);if(o2[id])e2[ty]=id;});
     r.sk={own:o2,eq:e2};
   }
@@ -1286,13 +1287,17 @@ setInterval(()=>{
 },1500);
 
 /* ---- アカウントのセーブ（所持金・借金・アイテム・見た目）と、オープニング画面 ---- */
-function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl},b:String(balance),dp:String(deposit),dt:depT});}
+function socSaveStr(){return JSON.stringify({p:encodePw(),i:{luck:ITEMS.luck,dbl:ITEMS.dbl},b:String(balance),dp:String(deposit),dt:depT,lb:LB,fg:FG,xo:SKINS.filter(k=>k.r==='X'&&own[k.id]).map(k=>k.id),xe:Object.fromEntries(['d','c','m','t','s'].filter(t=>/^x/.test(eq[t])).map(t=>[t,eq[t]]))});}
 function socApplySave(s){
   try{const o=JSON.parse(s),r=decodePw(o.p);if(!r)return false;
     balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;
     if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}
     if(o.i){ITEMS.luck=Math.max(0,Math.min(999,o.i.luck|0));ITEMS.dbl=Math.max(0,Math.min(999,o.i.dbl|0));}
     deposit=/^[0-9]{1,60}$/.test(o.dp||'')?bmin(MAXB,BigInt(o.dp)):0n;depT=Number(o.dt)||0;
+    LB=o.lb&&Number.isInteger(o.lb.n)&&o.lb.n>=0&&o.lb.n<=100&&/^\d{4}-\d{2}-\d{2}$/.test(o.lb.d||'')?{n:o.lb.n,d:o.lb.d}:{n:0,d:''};FG=Math.max(0,Math.min(99,o.fg|0));
+    if(Array.isArray(o.xo))o.xo.forEach(id=>{if(SKINS.some(k=>k.id===id&&k.r==='X'))own[id]=1;});
+    if(o.xe)['d','c','m','t','s'].forEach(t=>{const id=o.xe[t];if(id&&own[id]&&SKINS.some(k=>k.id===id&&k.t===t&&k.r==='X'))eq[t]=id;});
+    applySkin();
     update();slUI();return true;}catch(e){return false;}
 }
 function socSaveNow(){
@@ -2725,8 +2730,18 @@ const SKINS=[
 {id:'s10',t:'s',n:'黄金の台',r:'S',v:{'--slbg':'linear-gradient(135deg,#f7e08a,#d4af37 50%,#9a7a10)','--slt':'#fff3b0','--sll':'#fff','--slrb':'#fffbe6'}},
 {id:'s11',t:'s',n:'虹の台',r:'S',v:{'--slbg':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)','--slt':'#fff','--sll':'#fff','--slrb':'#fff'}},
 {id:'s12',t:'s',n:'ネオンの台',r:'S',v:{'--slbg':'linear-gradient(#10101c,#000)','--slt':'#ff4da6','--sll':'#00e5ff','--slrb':'#101018'}},
+{id:'xd1',t:'d',n:'レインボーダイス',r:'X',v:{'--dbg':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)','--dpip':'#fff','--done':'#fff','--dbd':'#fff'}},
+{id:'xd2',t:'d',n:'プリズムダイス',r:'X',v:{'--dbg':'linear-gradient(45deg,#c77dff,#4d96ff,#6bcf7f,#ffd93d,#ff6b6b)','--dpip':'#222','--done':'#222','--dbd':'#fff'}},
+{id:'xc1',t:'c',n:'レインボーカード',r:'X',v:{'--cbg':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)','--cfg':'#fff','--cred':'#fff','--cback':'repeating-linear-gradient(45deg,#ff6b6b 0 5px,#ffd93d 5px 10px,#6bcf7f 10px 15px,#4d96ff 15px 20px,#c77dff 20px 25px)'}},
+{id:'xc2',t:'c',n:'プリズムカード',r:'X',v:{'--cbg':'linear-gradient(45deg,#c77dff,#4d96ff,#6bcf7f,#ffd93d,#ff6b6b)','--cfg':'#222','--cred':'#b0003a','--cback':'repeating-linear-gradient(-45deg,#c77dff 0 5px,#4d96ff 5px 10px,#6bcf7f 10px 15px,#ffd93d 15px 20px,#ff6b6b 20px 25px)'}},
+{id:'xm1',t:'m',n:'レインボーの卓',r:'X',v:{'--felt':'linear-gradient(180deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)'}},
+{id:'xm2',t:'m',n:'オーロラの卓',r:'X',v:{'--felt':'linear-gradient(135deg,#c77dff,#4d96ff,#6bcf7f,#ffd93d,#ff6b6b)'}},
+{id:'xt1',t:'t',n:'虹色の畳',r:'X',v:{'--mbw':'0px','--mst':'linear-gradient(transparent,transparent)','--mat':'repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 46px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 46px),linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)'}},
+{id:'xt2',t:'t',n:'極光の畳',r:'X',v:{'--mbw':'0px','--mst':'linear-gradient(transparent,transparent)','--mat':'repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 46px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 46px),linear-gradient(45deg,#c77dff,#4d96ff,#6bcf7f,#ffd93d,#ff6b6b)'}},
+{id:'xs1',t:'s',n:'レインボー台',r:'X',v:{'--slbg':'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff)','--slt':'#fff','--sll':'#fff','--slrb':'#fff'}},
+{id:'xs2',t:'s',n:'プリズム台',r:'X',v:{'--slbg':'linear-gradient(45deg,#c77dff,#4d96ff,#6bcf7f,#ffd93d,#ff6b6b)','--slt':'#fff','--sll':'#fff','--slrb':'#fff'}},
 ];
-const RL={N:'ノーマル',R:'レア',S:'超レア'},RC={N:'#9aa4b0',R:'#5aa9ff',S:'#ffb300'};
+const RL={N:'ノーマル',R:'レア',S:'超レア',X:'Xランク'},RC={N:'#9aa4b0',R:'#5aa9ff',S:'#ffb300',X:'#ff77e6'};
 let own={d0:1,c0:1,m0:1,t0:1,s0:1},eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};
 try{localStorage.removeItem('casinoSkin');}catch(e){}
 const saveSkin=()=>{};
@@ -2835,7 +2850,7 @@ async function gachaAnim(list){
 const FXG={d:['chouhan','chinchiro'],c:['poker','blackjack','baccarat'],t:['roulette','keiba'],s:['slot']};
 const FXN_GAMES={chouhan:'丁半',chinchiro:'チンチロ',roulette:'ルーレット',poker:'ポーカー',blackjack:'ブラックジャック',keiba:'競馬',baccarat:'バカラ',slot:'スロット'};
 const FX={};
-['d','c','m','t','s'].forEach(t=>{const cnt={N:0,R:0,S:0};SKINS.filter(k=>k.t===t).forEach(k=>{if(/^[dcmts]0$/.test(k.id))return;const n=cnt[k.r]++;FX[k.id]={t:t,v:({N:1,R:3,S:8})[k.r]+Math.floor(n*({N:.5,R:.7,S:2})[k.r])};});});
+['d','c','m','t','s'].forEach(t=>{const cnt={N:0,R:0,S:0,X:0};SKINS.filter(k=>k.t===t).forEach(k=>{if(/^[dcmts]0$/.test(k.id))return;const n=cnt[k.r]++;FX[k.id]={t:t,v:({N:1,R:3,S:8,X:15})[k.r]+Math.floor(n*({N:.5,R:.7,S:2,X:3})[k.r])};});});
 function fxText(k){
   const e=FX[k.id];if(!e)return '効果なし';
   if(e.t==='m')return '負けたとき、賭け金の'+Math.max(1,Math.round(e.v/2))+'%が戻る（全ゲーム）';
@@ -2861,11 +2876,11 @@ function fxSettle(game,stake,pay){
 }
 function gachaModal(note){
   const row=k=>{const has=own[k.id],cur=eq[k.t]===k.id;
-    return '<div class="gr'+(k.r==='S'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'<small class="fxs">'+fxText(k)+'</small></span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
-  const HEAD={S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
-  const rows=['S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
+    return '<div class="gr'+(k.r==='S'||k.r==='X'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'<small class="fxs">'+fxText(k)+'</small></span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
+  const HEAD={X:'<div class="gsub" style="font-weight:900;background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent">🌈 Xランク（ログインボーナス100日目だけ）</div>',S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
+  const rows=['X','S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
   openModal('<div class="fixw"><div class="gnav" style="justify-content:center"><div class="gt"><h2>ガチャ</h2></div></div><div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます（効果は1回のゲームで、最大3000までです）。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
-    +'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
+    +(FG>0?'<div class="mr"><button data-gp="free">無料ガチャ（'+FG+'回）</button></div>':'')+'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
     +'<div class="note">'+(note||'')+'</div><div style="margin:6px 0">'+rows+'</div></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div></div>');
 }
@@ -2877,13 +2892,46 @@ $('mbox').addEventListener('click',e=>{
   if(t.sk){const k=SKINS.find(x=>x.id===t.sk);if(k&&own[k.id]){eq[k.t]=k.id;applySkin();saveSkin();gachaModal('着替えました');}return;}
   if(!t.gp)return;
   if(busy||pPhase===1||bjOn||rBets.length>0){gachaModal('勝負の最中は使えません');return;}
-  const n=Number(t.gp),cost=n===10?9000:1000;
+  const fr=t.gp==='free';if(fr&&FG<1){gachaModal('無料ガチャはありません');return;}
+  const n=fr?1:Number(t.gp),cost=fr?0:n===10?9000:1000;
   if(balance<cost){gachaModal('所持金が足りません');return;}
-  balance-=BigInt(cost);const lines=[],list=[];let back=0;
+  balance-=BigInt(cost);if(fr)FG--;const lines=[],list=[];let back=0;
   for(let i=0;i<n;i++){const g=pullOnce();if(!g.nw)back+=300;list.push(g);lines.push('['+RL[g.k.r]+'] '+g.k.n+(g.nw?' NEW!':'（ダブり）'));}
   balance+=BigInt(back);saveSkin();update();
   gachaAnim(list).then(()=>gachaModal(lines.join('<br>')+(back?'<br>ダブり返金 '+back:'')));
 });
+
+/* ---- ログインボーナス（30日・アカウントに保存） ---- */
+const lbDay=off=>new Date(Date.now()+(SOC.skew||0)+9*36e5+(off||0)*864e5).toISOString().slice(0,10);
+function lbPick(r,back){
+  const pool=SKINS.filter(x=>x.r===r),un=pool.filter(x=>!own[x.id]);
+  if(!un.length){balance=bmin(MAXB,balance+BigInt(back));return '全部持っているので '+back;}
+  const k=un[Math.floor(Math.random()*un.length)];own[k.id]=1;saveSkin();return (r==='X'?'Xランク「':'超レア「')+k.n+'」';
+}
+function lbReward(n){
+  if(n===100)return lbPick('X',10000);
+  if(n%25===0)return lbPick('S',5000);
+  if(n%5===0){balance=bmin(MAXB,balance+2500n);FG=Math.min(99,FG+1);return '2500 と 無料ガチャ1回';}
+  balance=bmin(MAXB,balance+1000n);return '1000';
+}
+function lbModal(msg){
+  const cell=i=>{const d=i<=LB.n,t=i===LB.n,lab=i===100?'🌈X':i%25===0?'S':i%5===0?'2500🎟':'1000';
+    return '<div'+(t?' id="lbtd"':'')+' style="padding:5px 0;border-radius:6px;text-align:center;font-size:.72rem;line-height:1.3;border:2px solid '+(t?'#ffd54a':'#4a3d36')+';opacity:'+(d&&!t?.45:1)+';background:'+(i===100?'linear-gradient(135deg,#7a2a4a,#2a4a7a)':i%25===0?'#6a4a10':i%5===0?'#5a4310':'#2a211d')+'"><div>'+i+'日</div><div>'+(d?'✓':lab)+'</div></div>';};
+  let c='';for(let i=1;i<=100;i++)c+=cell(i);
+  openModal('<h2>ログインボーナス</h2><div style="margin-bottom:6px">'+(msg||'')+'</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-height:42vh;overflow:auto">'+c+'</div><small>毎日ログインすると続きます。1日でも逃すと最初からで、100日目のあとも最初からです。普通の日は1000、5の倍数の日は2500＋無料ガチャ1回、25の倍数の日は超レア（全部持っていたら5000）、100日目はXランク（全部持っていたら10000）です。</small><div class="mr"><button data-x="1">閉じる</button></div>');
+  setTimeout(()=>{const t=document.getElementById('lbtd');if(t&&t.scrollIntoView)t.scrollIntoView({block:'center'});},50);
+}
+function lbCheck(){
+  const today=lbDay(0);if(LB.d===today)return;
+  const next=(LB.d===lbDay(-1)&&LB.n>0&&LB.n<100)?LB.n+1:1;
+  const got=lbReward(next);LB={n:next,d:today};update();socSaveNow();
+  lbModal('<b>'+next+'日目</b>：'+got+' を手に入れました！');
+}
+setInterval(()=>{try{
+  if(!(SOC.me&&SOC.saveOK)||LB.d===lbDay(0))return;
+  if(busy||pPhase===1||bjOn||rBets.length>0||!$('modal').hidden)return;
+  lbCheck();
+}catch(e){}},3000);
 {const mo=new MutationObserver(()=>{const m=$('msg'),t=m.textContent,u=t.replace(/\d{5,}/g,x=>fmt(BigInt(x)));if(u!==t)m.textContent=u;if(/^他のプレイヤーが「/.test(m.textContent)){m.style.whiteSpace='nowrap';let fs=11;m.style.fontSize=fs+'px';while(fs>6&&m.scrollWidth>m.clientWidth+1){fs--;m.style.fontSize=fs+'px';}}else{m.style.fontSize='';m.style.whiteSpace='';}});mo.observe($('msg'),{childList:true,characterData:true,subtree:true});}
 </script>
 <div id="gate" hidden><div class="gbx"><h1>THE CASINO</h1><p class="gp">アカウントを作ると、フレンド・チャット・オンライン対戦が使えます。</p><div class="soc" id="gateroot"></div></div></div>
