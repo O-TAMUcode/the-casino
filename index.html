@@ -1055,7 +1055,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&linTm)linF
 {const _u0=update;update=function(){_u0.apply(this,arguments);linTouch();};}
 /* ギフトコード */
 const GIFTS={VIP777:77777};   /* 配布用：コード（大文字）:もらえる金額。1つのブラウザで1回だけ使える。ここに足せば増やせる */
-const GCH={adm:'uitwhm.1iwispn',all:'bwpgde.14cdwnn',none:'1nmfm4a.1q4zniz'};   /* 運営用（中身は暗号化してあります） */
 function gcHash(t){let a=2166136261,b=2166136261;const u=t+'#';for(const c of t){a^=c.charCodeAt(0);a=Math.imul(a,16777619);}for(const c of u){b^=c.charCodeAt(0);b=Math.imul(b,16777619);}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36);}
 function giftUsed(){try{return JSON.parse(localStorage.getItem('casinoGift'))||[];}catch(e){return[];}}
 function giftMark(c){try{const u=giftUsed();u.push(c);localStorage.setItem('casinoGift',JSON.stringify(u));}catch(e){}}
@@ -1064,15 +1063,6 @@ function useGift(raw){
   const c=String(raw||'').toUpperCase().replace(/[\s\u3000]/g,'');
   if(!c)return 'コードを入力してください';
   if(busy||pPhase===1||rBets.length>0||bjOn)return '勝負の最中、またはチップが出ているときは使えません';
-  if(gcHash(c)===GCH.all){SKINS.forEach(k=>{own[k.id]=1;});update();return 'ガチャのアイテムをすべて手に入れました';}
-  if(gcHash(c)===GCH.none){own={d0:1,c0:1,m0:1,t0:1,s0:1};eq={d:'d0',c:'c0',m:'m0',t:'t0',s:'s0'};applySkin();update();return 'ガチャのアイテムをすべて消しました';}
-  for(let i=1;i<c.length;i++){
-    const rest=c.slice(i);
-    if(/^-?[0-9]{1,52}$/.test(rest)&&gcHash(c.slice(0,i))===GCH.adm){
-      const d=BigInt(rest);giftMoney(d);
-      return (d>=0n?fmt(d)+' 増えました':fmt(-d)+' 減りました')+'（所持金 '+fmt(balance)+'）';
-    }
-  }
   if(GIFTS[c]!==undefined){
     if(giftUsed().includes(c))return 'このコードは使用済みです';
     giftMark(c);giftMoney(GIFTS[c]);return fmt(GIFTS[c])+' 手に入れました！（所持金 '+fmt(balance)+'）';
@@ -1392,11 +1382,25 @@ function admRender(){
   const bv=x=>{try{return BigInt(x);}catch(e){return -1n;}};
   const us=ADM.users.slice().sort((a,b)=>{const d=bv(b.bal)-bv(a.bal);return d>0n?1:d<0n?-1:0;});
   r.innerHTML='<div style="margin-bottom:6px">登録 <b>'+us.length+'</b>人　オンライン <b>'+ADM.online+'</b>人</div>'
+    +'<div style="border:1px solid #4a3d36;padding:8px;margin-bottom:8px"><b>自分のお金・アイテム</b><div>所持金 <b id="admbal">'+fmt(balance)+'</b></div>'
+    +'<input id="admm" type="text" inputmode="numeric" placeholder="金額" autocomplete="off" style="width:100%;box-sizing:border-box;font-size:1rem;padding:8px;margin:6px 0">'
+    +'<div class="mr"><button data-ad="mon">増やす</button><button data-ad="mset">この金額にする</button></div>'
+    +'<input id="admi" type="text" inputmode="numeric" placeholder="個数（最大999）" autocomplete="off" style="width:100%;box-sizing:border-box;font-size:1rem;padding:8px;margin:6px 0">'
+    +'<div class="mr"><button data-ad="lk">スロット ラック</button><button data-ad="db">スロット ダブル</button></div>'
+    +'<div class="mr"><button data-ad="sk">ガチャのアイテムを全部</button></div><small id="admmsg"></small></div>'
     +'<div style="max-height:40vh;overflow:auto">'+(us.map(u=>{const b=u.bal===null?'—':fmt(bv(u.bal));const hot=u.bal!==null&&bv(u.bal)>=10n**12n;
       return '<div class="row"><span class="dot'+(u.on?' on':'')+'"></span><span class="nm">'+esc(u.name)+'　<small class="'+(hot?'hot':'')+'">'+b+(hot?' ⚠':'')+'</small></span><button class="sb" data-ad="reset" data-id="'+u.id+'" data-n="'+esc(u.name)+'">初期化</button><button class="sb dbtn" data-ad="del" data-id="'+u.id+'" data-n="'+esc(u.name)+'">削除</button></div>';}).join('')||'<small>アカウントはありません</small>')+'</div>'
     +'<div style="margin-top:12px;border-top:1px solid #4a3d36;padding-top:8px"><small>全アカウントを消すには、下に「全削除」と入力してください</small><input id="admc" placeholder="全削除"><button class="dbtn" data-ad="all" style="width:100%;padding:10px">全アカウントを削除</button></div>'
     +'<div class="err" style="color:#ff9a8a;min-height:1.3em">'+esc(ADM.err)+'</div>';
 }
+$('mbox').addEventListener('click',e=>{
+  const k=e.target.dataset&&e.target.dataset.ad;if(!['mon','mset','lk','db','sk'].includes(k)||!ADM.on)return;
+  const g=id=>String((document.getElementById(id)||{}).value||'').normalize('NFKC').replace(/[^0-9]/g,'').slice(0,60);
+  const say=t=>{const m=document.getElementById('admmsg');if(m)m.textContent=t;const bl=document.getElementById('admbal');if(bl)bl.textContent=fmt(balance);};
+  if(k==='mon'||k==='mset'){const v=g('admm');if(!v){say('金額を入れてください');return;}const d=BigInt(v);balance=k==='mon'?bmin(MAXB,balance+d):bmin(MAXB,d);update();socSaveNow();say('所持金が '+fmt(balance)+' になりました');return;}
+  if(k==='lk'||k==='db'){const v=g('admi');if(!v){say('個数を入れてください');return;}const n=Math.min(999,Number(v.slice(0,6)));const f=k==='lk'?'luck':'dbl';ITEMS[f]=Math.min(999,ITEMS[f]+n);update();socSaveNow();say('スロットの'+(k==='lk'?'ラック':'ダブル')+'が '+ITEMS[f]+' 個になりました');return;}
+  if(k==='sk'){SKINS.forEach(q=>{own[q.id]=1;});update();socSaveNow();say('ガチャのアイテムをすべて手に入れました');}
+});
 $('setbtn').onclick=setModal;
 $('mbox').addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('button');if(!b)return;
