@@ -1044,16 +1044,6 @@ function loanModal(note){
     +'<div class="mr"><button data-rp="1000">1000返す</button><button data-rp="all">全額返す</button></div>'
     +'<div class="mr"><button data-x="1">閉じる</button></div><div class="note">'+(note||'')+'</div>');
 }
-/* パスワードの巻き戻し防止：このブラウザ内で、同じパスワードの最新の状態を覚えておく */
-var LK='casinoLin2',curLin=null,linTm=null;
-function linLoad(){try{const o=JSON.parse(localStorage.getItem(LK));if(o&&o.m&&o.l)return o;}catch(e){}return{m:{},l:{}};}
-function linSave(o){try{localStorage.setItem(LK,JSON.stringify(o));}catch(e){}}
-const pwKey=t=>{t=String(t).toLowerCase().replace(/[^0-9a-z]/g,'');return hash6(t)+hash6(t.split('').reverse().join(''));};
-function linFlush(){clearTimeout(linTm);linTm=null;if(!curLin)return;try{const o=linLoad();o.l[curLin]=encodePw();linSave(o);}catch(e){}}
-function linTouch(){if(!curLin||linTm)return;linTm=setTimeout(linFlush,400);}
-window.addEventListener('pagehide',()=>{if(linTm)linFlush();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&linTm)linFlush();});
-{const _u0=update;update=function(){_u0.apply(this,arguments);linTouch();};}
 /* ギフトコード */
 const GIFTS={VIP777:77777};   /* 配布用：コード（大文字）:もらえる金額。1つのブラウザで1回だけ使える。ここに足せば増やせる */
 function gcHash(t){let a=2166136261,b=2166136261;const u=t+'#';for(const c of t){a^=c.charCodeAt(0);a=Math.imul(a,16777619);}for(const c of u){b^=c.charCodeAt(0);b=Math.imul(b,16777619);}return (a>>>0).toString(36)+'.'+(b>>>0).toString(36);}
@@ -1069,17 +1059,6 @@ function useGift(raw){
     giftMark(c);giftMoney(GIFTS[c]);return fmt(GIFTS[c])+' 手に入れました！（所持金 '+fmt(balance)+'）';
   }
   return 'コードが違います';
-}
-function pwModal(note,made){
-  openModal('<h2>パスワード</h2>'
-    +'<div>プレイヤー名（'+NM+'文字まで）</div><input id="pnm" maxlength="'+NM+'" value="'+esc(myName)+'" placeholder="名前を入力" autocomplete="off"'+(SOC.me?' readonly':'')+'>'
-    +'<div class="mr"><button data-mk="1">パスワードを作成</button></div>'
-    +(made?'<div>今のパスワード（名前・所持金・借金・ガチャのアイテムが入っています。控えておくと途中から再開できます）</div><div class="code">'+encodePw()+'</div><div class="mr"><button data-cp="1">コピー</button></div>':'<small>名前を決めて「パスワードを作成」を押すと、名前・所持金・借金・ガチャのアイテムが入ったパスワードができます。ページを更新するとガチャのアイテムは消え、パスワードでしか戻せません。</small>')
-    +'<div style="margin-top:14px">再開するパスワード</div><input id="pwin" placeholder="パスワードを入力" autocomplete="off" autocapitalize="characters">'
-    +'<div class="mr"><button data-rs="1">再開する</button></div><div class="note">'+(note||'')+'</div>'
-    +'<div style="margin-top:14px">ギフトコード</div><input id="gcin" placeholder="コードを入力" autocomplete="off" autocapitalize="characters">'
-    +'<div class="mr"><button data-gc="1">コードを使う</button></div><div class="note" id="gcnote"></div>'
-    +'<div class="mr" style="margin-top:14px"><button data-x="1">閉じる</button></div>');
 }
 $('mbox').onclick=e=>{
   const t=e.target.dataset;
@@ -1098,31 +1077,7 @@ $('mbox').onclick=e=>{
     }
     return;
   }
-  if(t.mk){
-    const v=($('pnm').value||'').trim();
-    if(v)myName=cleanName(v);
-    pname();lastSig='';sendSt();
-    pwModal('パスワードを作成しました（名前：'+myName+'）',true);
-    {if(!curLin)curLin=Math.random().toString(36).slice(2,10);const o=linLoad(),c=encodePw();o.m[pwKey(c)]=curLin;o.l[curLin]=c;linSave(o);}
-    return;
-  }
   if(t.gc){const m=useGift($('gcin').value);const n=$('gcnote');if(n)n.textContent=m;return;}
-  if(t.cp){
-    const code=document.querySelector('#mbox .code').textContent;
-    try{navigator.clipboard.writeText(code).then(()=>{const n=document.querySelector('#mbox .note');if(n)n.textContent='コピーしました';},()=>{});}catch(e){}
-    return;
-  }
-  if(t.rs){
-    if(busy||pPhase===1||rBets.length>0||bjOn){pwModal('勝負の最中、またはチップが出ているときは再開できません');return;}
-    const code=$('pwin').value;let r=decodePw(code);
-    if(!r){pwModal('パスワードが違います');return;}
-    let lat=false;
-    {const o=linLoad(),k=pwKey(code),lid=o.m[k];
-     if(lid&&o.l[lid]){const r2=decodePw(o.l[lid]);if(r2){lat=(r2.b!==r.b||r2.d!==r.d);r=r2;}}
-     curLin=lid||Math.random().toString(36).slice(2,10);o.m[k]=curLin;linSave(o);}
-    balance=bmin(MAXB,r.b+BigInt(Math.floor(r.k)));debt=r.d;bet=0n;if(r.sk){own=r.sk.own;eq=r.sk.eq;applySkin();}if(r.nm&&!SOC.me){myName=cleanName(r.nm);lastSig='';}update();linFlush();closeModal();
-    $('msg').className='msg';$('msg').textContent='パスワードで再開しました（所持金 '+fmt(balance)+'／借金 '+fmt(debt)+(r.nm?'／名前：'+r.nm:'')+'／アイテム '+SKINS.filter(k=>own[k.id]).length+'/'+SKINS.length+'個）'+(lat?'　※このパスワードの最新の状態から再開しました':'');
-  }
 };
 $('modal').onclick=e=>{if(e.target===$('modal'))closeModal();};
 function giftModal(){openModal('<h2>ギフトコード</h2><input id="gcin" placeholder="コードを入力" autocomplete="off" autocapitalize="characters"><div class="mr"><button data-gc="1">コードを使う</button></div><div class="note" id="gcnote"></div><div class="mr" style="margin-top:10px"><button data-x="1">閉じる</button></div>');}
@@ -2877,7 +2832,7 @@ function fxSettle(game,stake,pay){
 function gachaModal(note){
   const row=k=>{const has=own[k.id],cur=eq[k.t]===k.id;
     return '<div class="gr'+(k.r==='S'||k.r==='X'?' sr'+(has?' got':''):'')+'"><span class="gpv" style="'+skPrev(k)+'">'+skIco(k)+'</span><span class="gn" style="color:'+RC[k.r]+'">'+(has?k.n:'？？？')+'<small class="fxs">'+fxText(k)+'</small></span>'+(has?'<button data-sk="'+k.id+'">'+(cur?'着用中':'着る')+'</button>':'<em>未入手</em>')+'</div>';};
-  const HEAD={X:'<div class="gsub" style="font-weight:900;background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent">🌈 Xランク（ログインボーナス100日目だけ）</div>',S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
+  const HEAD={X:'<div class="gsub" style="font-weight:900;background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcf7f,#4d96ff,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent">Xランク（ログインボーナス100日目だけ）</div>',S:'<div class="gpop"><i class="sp a">✦</i><i class="sp b">✦</i><i class="sp c">✦</i><span class="pt">★★★ 当たり ★★★</span><span class="ps">超レア</span></div>',R:'<div class="gsub R">★★ レア</div>',N:'<div class="gsub N">★ ノーマル</div>'};
   const rows=['X','S','R','N'].map(r=>HEAD[r]+SKINS.filter(k=>k.r===r).map(row).join('')).join('');
   openModal('<div class="fixw"><div class="gnav" style="justify-content:center"><div class="gt"><h2>ガチャ</h2></div></div><div class="fixb"><div>所持金 <b>'+fmt(balance)+'</b></div><small>サイコロ・カード・卓（緑の台の色）・畳（和風の床）・スロット台が当たります。それぞれ効果があり、着用すると効きます（効果は1回のゲームで、最大3000までです）。ダブりは300返金。アイテムはアカウントに自動で保存されます（オフラインのときは、更新すると消えます）。</small>'
     +(FG>0?'<div class="mr"><button data-gp="free">無料ガチャ（'+FG+'回）</button></div>':'')+'<div class="mr"><button data-gp="1">1回 1000</button><button data-gp="10">10連 9000</button></div>'
@@ -2915,7 +2870,7 @@ function lbReward(n){
   balance=bmin(MAXB,balance+1000n);return '1000';
 }
 function lbModal(msg){
-  const cell=i=>{const d=i<=LB.n,t=i===LB.n,lab=i===100?'🌈X':i%25===0?'S':i%5===0?'2500🎟':'1000';
+  const cell=i=>{const d=i<=LB.n,t=i===LB.n,lab=i===100?'X':i%25===0?'S':i%5===0?'2500🎟':'1000';
     return '<div'+(t?' id="lbtd"':'')+' style="padding:5px 0;border-radius:6px;text-align:center;font-size:.72rem;line-height:1.3;border:2px solid '+(t?'#ffd54a':'#4a3d36')+';opacity:'+(d&&!t?.45:1)+';background:'+(i===100?'linear-gradient(135deg,#7a2a4a,#2a4a7a)':i%25===0?'#6a4a10':i%5===0?'#5a4310':'#2a211d')+'"><div>'+i+'日</div><div>'+(d?'✓':lab)+'</div></div>';};
   let c='';for(let i=1;i<=100;i++)c+=cell(i);
   openModal('<h2>ログインボーナス</h2><div style="margin-bottom:6px">'+(msg||'')+'</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;max-height:42vh;overflow:auto">'+c+'</div><small>毎日ログインすると続きます。1日でも逃すと最初からで、100日目のあとも最初からです。普通の日は1000、5の倍数の日は2500＋無料ガチャ1回、25の倍数の日は超レア（全部持っていたら5000）、100日目はXランク（全部持っていたら10000）です。</small><div class="mr"><button data-x="1">閉じる</button></div>');
